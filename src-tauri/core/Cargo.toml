@@ -10,3 +10,7 @@ readme.workspace = true
 
 [lib]
 path = "lib.rs"
+
+[dependencies]
+anyhow.workspace = true
+serde.workspace = true
