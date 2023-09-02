@@ -1,5 +1,5 @@
 [package]
-name = "tauri-redis"
+name = "tauri_redis"
 version.workspace = true
 description.workspace = true
 authors.workspace = true
@@ -10,7 +10,7 @@ readme.workspace = true
 
 [[bin]]
 path = "main.rs"
-name = "tauri-redis"
+name = "tauri_redis"
 
 [build-dependencies]
 tauri-build = { version = "1.4", features = [] }
@@ -19,6 +19,10 @@ tauri-build = { version = "1.4", features = [] }
 tauri = { version = "1.4", features = ["shell-open"] }
 serde.workspace = true
 serde_json.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+tauri_redis_core.workspace = true
+reqwest = "0.11"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

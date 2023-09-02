@@ -1,8 +1,8 @@
-mod cmd;
+mod command;
+mod context;
+mod features;
 
 fn main() {
-    tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![cmd::demo::greet])
-        .run(tauri::generate_context!())
+    context::run_with_context(command::register_commands(tauri::Builder::default()))
         .expect("error while running tauri application");
 }
