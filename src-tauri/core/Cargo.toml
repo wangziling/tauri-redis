@@ -1,5 +1,5 @@
 [package]
-name = "tauri-redis-core"
+name = "tauri_redis_core"
 version.workspace = true
 description.workspace = true
 authors.workspace = true

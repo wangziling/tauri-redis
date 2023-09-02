@@ -1,5 +1,5 @@
 [package]
-name = "tauri-redis-config"
+name = "tauri_redis_config"
 version.workspace = true
 description.workspace = true
 authors.workspace = true
