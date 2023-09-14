@@ -1,0 +1,56 @@
+@mixin clear-fix {
+  &::after {
+    clear: both;
+    content: '';
+    display: table;
+  }
+}
+
+@mixin abs-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@mixin respond($breakpoint) {
+  @if $breakpoint == phone {
+    @include respond-phone {
+      @content
+    }
+  }
+
+  @if $breakpoint == tab-port {
+    @include respond-tablet-portrait {
+      @content
+    }
+  }
+
+  @if $breakpoint == tab-land {
+    @include respond-tablet-landscape {
+      @content
+    }
+  }
+}
+
+
+// 1em = 16pxx -> 在 media query 中， em, rem 仅仅是依据浏览器设置，并不被开发者所设置的大小影响
+@mixin respond-phone {
+  @media only screen and (max-width: $mobile-max-width) {
+    @content
+  }
+}
+
+@mixin respond-tablet-portrait {
+  @media only screen and /*(min-width: $tablet-min-width) and */
+  (max-width: $tablet-max-width) {
+    @content
+  }
+}
+
+@mixin respond-tablet-landscape {
+  @media only screen and /*(min-width: $desktop-min-width) and */
+  (max-width: $desktop-max-width) {
+    @content
+  }
+}

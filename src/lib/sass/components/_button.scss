@@ -1,0 +1,55 @@
+.btn {
+  border-color: transparent;
+
+  &--primary {
+    background-color: var(--button-primary-bg-color);
+
+    &:hover,
+    &:focus {
+      background-color: var(--button-primary-hover-bg-color);
+    }
+
+    &:focus {
+      border-color: var(--button-primary-hover-border-color);
+    }
+  }
+
+  &--warning {
+    background-color: var(--button-warning-bg-color);
+
+    &:hover,
+    &:focus {
+      background-color: var(--button-warning-hover-bg-color);
+    }
+
+    &:focus {
+      border-color: var(--button-warning-hover-border-color);
+    }
+  }
+
+  &--success {
+    background-color: var(--button-success-bg-color);
+
+    &:hover,
+    &:focus {
+      background-color: var(--button-success-hover-bg-color);
+    }
+
+    &:focus {
+      border-color: var(--button-success-hover-border-color);
+    }
+  }
+
+  &--danger {
+    background-color: var(--button-danger-bg-color);
+
+    &:hover,
+    &:focus {
+      background-color: var(--button-danger-hover-bg-color);
+    }
+
+    &:focus {
+      border-color: var(--button-danger-hover-border-color);
+    }
+  }
+}
