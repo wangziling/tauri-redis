@@ -1,3 +1,7 @@
+@use 'custom/font-awsome/fontawesome' with (
+	$fa-font-path: '/webfonts'
+);
+
 @import 'abstract/variables';
 @import 'abstract/extends';
 @import 'abstract/mixins';
@@ -13,6 +17,8 @@
 @import 'layout/aside';
 @import 'layout/main';
 @import 'layout/container';
+
+@import 'custom/font-awsome/solid';
 
 @import 'pages/main';
 
