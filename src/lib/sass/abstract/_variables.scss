@@ -1,48 +1,48 @@
-$color-white: #fff;
-$color-black: #000;
+$color-white: #fff !default;
+$color-black: #000 !default;
 
-$color-grey-dark: #777;
-$color-grey-dark-2: #999;
-$color-grey-dark-3: #333;
-$color-grey-light-1: #f7f7f7;
-$color-grey-light-2: #eee;
-$color-grey: #eee;
+$color-grey-dark: #777 !default;
+$color-grey-dark-2: #999 !default;
+$color-grey-dark-3: #333 !default;
+$color-grey-light-1: #f7f7f7 !default;
+$color-grey-light-2: #eee !default;
+$color-grey: #eee !default;
 
-$color-highlight-light: #ffb900;
-$color-highlight-dark: #ff7730;
+$color-highlight-light: #ffb900 !default;
+$color-highlight-dark: #ff7730 !default;
 
-$color-blue: #b9d7ea;
-$color-blue-light: #d6e6f2;
-$color-blue-dark: #769fcd;
-$color-green: #35a29f;
-$color-green-light: #97feed;
-$color-green-dark: #0b666a;
-$color-red: #fad4d4;
-$color-red-light: #fff2f2;
-$color-red-dark: #f47c7c;
-$color-yellow: #ffdca9;
-$color-yellow-light: #fcf9be;
-$color-yellow-dark: #faab78;
+$color-blue: #b9d7ea !default;
+$color-blue-light: #d6e6f2 !default;
+$color-blue-dark: #769fcd !default;
+$color-green: #35a29f !default;
+$color-green-light: #97feed !default;
+$color-green-dark: #0b666a !default;
+$color-red: #fad4d4 !default;
+$color-red-light: #fff2f2 !default;
+$color-red-dark: #f47c7c !default;
+$color-yellow: #ffdca9 !default;
+$color-yellow-light: #fcf9be !default;
+$color-yellow-dark: #faab78 !default;
 
 // Grid
-$grid-width: 114rem;
-$grid-width-small: 114rem;
-$gutter-vertical: 8rem;
-$gutter-vertical-small: 6rem;
-$gutter-horizontal: 6rem;
+$grid-width: 114rem !default;
+$grid-width-small: 114rem !default;
+$gutter-vertical: 8rem !default;
+$gutter-vertical-small: 6rem !default;
+$gutter-horizontal: 6rem !default;
 
 // Responsive
-$desktop-max-width: 1199px;
-$desktop-min-width: 992px;
-$tablet-max-width: 991px;
-$tablet-min-width: 768px;
-$mobile-max-width: 767px;
+$desktop-max-width: 1199px !default;
+$desktop-min-width: 992px !default;
+$tablet-max-width: 991px !default;
+$tablet-min-width: 768px !default;
+$mobile-max-width: 767px !default;
 
 // FontSize
-$default-font-size: 1.6rem;
+$default-font-size: 1.6rem !default;
 
 // Box shadow
-$box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.5);
+$box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.5) !default;
 
 // Font awesome
-$fa-font-path: '/webfonts';
+$fa-font-path: '/webfonts' !default;
