@@ -1,4 +1,4 @@
-import { times, reduce, uniq } from 'lodash';
+import { times, reduce, uniq } from 'lodash-es';
 import type { CalcDynamicClassesParams } from '$lib/types';
 
 export function randomString(len: number) {

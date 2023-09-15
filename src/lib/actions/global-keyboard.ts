@@ -1,6 +1,6 @@
 import type { TArrayOrPrimitive } from '$lib/types/base';
 import type { Action } from 'svelte/action';
-import { isMatch, uniqWith, forEach, cloneDeep, capitalize } from 'lodash';
+import { isMatch, uniqWith, forEach, cloneDeep, capitalize } from 'lodash-es';
 
 type ActionsGlobalKeyboardParamsKey = 'keyup' | 'keydown' | 'keypress';
 type ActionsGlobalKeyboardParamsEventName = `global${Capitalize<ActionsGlobalKeyboardParamsKey>}`;
