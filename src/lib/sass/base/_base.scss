@@ -1,48 +1,49 @@
 @import '@fontsource/fira-code';
 
 :root {
-  --page-font-family: Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
-  Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  --page-font-family-mono: 'Fira Code', monospace;
-  --page-font-color: #{$color-black};
-  --page-font-size: #{$default-font-size};
-  --page-bg-color: #{$color-white};
+	--page-font-family: Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+		Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+	--page-font-family-mono: 'Fira Code', monospace;
+	--page-font-color: #{$color-black};
+	--page-font-size: #{$default-font-size};
+	--page-bg-color: #{$color-white};
 
-  --base-selection-bg-color: #{$color-highlight-dark};
-  --base-selection-font-color: #{$color-white};
-  --base-border-radius: 4px;
-
-  --aside-min-width: 35rem;
+	--base-selection-bg-color: #{$color-highlight-dark};
+	--base-selection-font-color: #{$color-white};
+	--base-border-radius: 4px;
+	--base-success-font-color: #{$color-yellow-dark};
+	--base-warning-font-color: #{$color-yellow-dark};
+	--base-danger-font-color: #{$color-red-dark};
 }
 
 html {
-  font-family: var(--page-font-family);
-  font-size: 10px;
-  box-sizing: border-box;
-  color: var(--page-font-color);
-  background-color: var(--page-bg-color);
-  transition-property: background-color, color;
-  transition-duration: .3s;
+	font-family: var(--page-font-family);
+	font-size: 10px;
+	box-sizing: border-box;
+	color: var(--page-font-color);
+	background-color: var(--page-bg-color);
+	transition-property: background-color, color;
+	transition-duration: 0.3s;
 }
 
 body {
-  margin: 0;
-  padding: 0;
-  font-size: var(--page-font-size);
-  box-sizing: inherit;
+	margin: 0;
+	padding: 0;
+	font-size: var(--page-font-size);
+	box-sizing: inherit;
 }
 
 * {
-  margin: 0;
-  padding: 0;
+	margin: 0;
+	padding: 0;
 
-  &::before,
-  &::after {
-    box-sizing: inherit;
-  }
+	&::before,
+	&::after {
+		box-sizing: inherit;
+	}
 }
 
 ::selection {
-  background-color: var(--base-selection-bg-color);
-  color: var(--base-selection-font-color);
+	background-color: var(--base-selection-bg-color);
+	color: var(--base-selection-font-color);
 }

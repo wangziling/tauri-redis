@@ -1,0 +1,13 @@
+:root {
+	--dialog-bg-color: transparent;
+	--dialog-layered-bg-color: rgba(0, 0, 0, 0.3);
+	--dialog-wrapper-max-width: 97.5rem;
+	--dialog-wrapper-bg-color: var(--page-bg-color);
+	--dialog-wrapper-box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.5);
+	--dialog-header-content-font-size: 1.8rem;
+}
+
+dialog {
+	border: 0;
+	background-color: var(--dialog-bg-color);
+}

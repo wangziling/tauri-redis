@@ -1,55 +1,59 @@
 .btn {
-  border-color: transparent;
+	border-color: var(--button-border-color);
 
-  &--primary {
-    background-color: var(--button-primary-bg-color);
+	&--primary {
+		background-color: var(--button-primary-bg-color);
+		border-color: var(--button-primary-border-color);
 
-    &:hover,
-    &:focus {
-      background-color: var(--button-primary-hover-bg-color);
-    }
+		&:hover,
+		&:focus {
+			background-color: var(--button-primary-hover-bg-color);
+		}
 
-    &:focus {
-      border-color: var(--button-primary-hover-border-color);
-    }
-  }
+		&:focus {
+			border-color: var(--button-primary-hover-border-color);
+		}
+	}
 
-  &--warning {
-    background-color: var(--button-warning-bg-color);
+	&--warning {
+		background-color: var(--button-warning-bg-color);
+		border-color: var(--button-warning-border-color);
 
-    &:hover,
-    &:focus {
-      background-color: var(--button-warning-hover-bg-color);
-    }
+		&:hover,
+		&:focus {
+			background-color: var(--button-warning-hover-bg-color);
+		}
 
-    &:focus {
-      border-color: var(--button-warning-hover-border-color);
-    }
-  }
+		&:focus {
+			border-color: var(--button-warning-hover-border-color);
+		}
+	}
 
-  &--success {
-    background-color: var(--button-success-bg-color);
+	&--success {
+		background-color: var(--button-success-bg-color);
+		border-color: var(--button-success-border-color);
 
-    &:hover,
-    &:focus {
-      background-color: var(--button-success-hover-bg-color);
-    }
+		&:hover,
+		&:focus {
+			background-color: var(--button-success-hover-bg-color);
+		}
 
-    &:focus {
-      border-color: var(--button-success-hover-border-color);
-    }
-  }
+		&:focus {
+			border-color: var(--button-success-hover-border-color);
+		}
+	}
 
-  &--danger {
-    background-color: var(--button-danger-bg-color);
+	&--danger {
+		background-color: var(--button-danger-bg-color);
+		border-color: var(--button-danger-border-color);
 
-    &:hover,
-    &:focus {
-      background-color: var(--button-danger-hover-bg-color);
-    }
+		&:hover,
+		&:focus {
+			background-color: var(--button-danger-hover-bg-color);
+		}
 
-    &:focus {
-      border-color: var(--button-danger-hover-border-color);
-    }
-  }
+		&:focus {
+			border-color: var(--button-danger-hover-border-color);
+		}
+	}
 }

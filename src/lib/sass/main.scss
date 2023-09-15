@@ -9,16 +9,20 @@
 @import 'base/base';
 @import 'base/typography';
 @import 'base/btn';
+@import 'base/dialog';
+@import 'base/form';
 
 @import 'components/button';
 @import 'components/input';
+@import 'components/dialog';
+@import 'components/checkbox';
+@import 'components/select';
+@import 'components/form';
 
 @import 'layout/root';
 @import 'layout/aside';
 @import 'layout/main';
-@import 'layout/container';
 
 @import 'custom/font-awsome/solid';
 
 @import 'pages/main';
-

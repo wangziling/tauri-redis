@@ -1,0 +1,36 @@
+:root {
+	--aside-min-width: 30rem;
+	--aside-bg-color: #{rgba($color-green, 0.2)};
+}
+
+.tauri-redis-page-main {
+	display: grid;
+	grid-template-rows: 1fr;
+	grid-template-columns: minmax(var(--aside-min-width), 1fr) 2fr;
+	height: 100%;
+
+	.tauri-redis-aside {
+		grid-column: 1/1;
+		background-color: var(--aside-bg-color);
+
+		&__header {
+			.tauri-redis-aside__operation-btn {
+				max-width: 27.5rem;
+				width: 100%;
+			}
+		}
+	}
+
+	.tauri-redis-content {
+		grid-column: 2/-1;
+	}
+
+	.tauri-redis-dialog {
+	}
+
+	.tauri-redis-new-connection {
+		padding: 1.2rem 1.5rem;
+		box-shadow: $box-shadow;
+		border-radius: var(--base-border-radius);
+	}
+}

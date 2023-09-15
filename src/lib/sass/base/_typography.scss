@@ -1,41 +1,40 @@
 :root {
-  --input-padding: 1.2rem 1.5rem;
+	--input-padding: 1.2rem 1.5rem;
 }
 
 input,
 textarea {
-  outline: 0;
-  padding: var(--input-padding);
-  border-radius: var(--base-border-radius);
-  border-width: 1px;
+	outline: 0;
+	padding: var(--input-padding);
+	border-radius: var(--base-border-radius);
+	border-width: 1px;
 }
 
 p {
-  margin-bottom: 1rem;
+	margin-bottom: 1rem;
 }
 
-
 h1 {
-  font-size: 2.4rem;
-  margin-bottom: 1.5rem;
+	font-size: 2.4rem;
+	margin-bottom: 1.5rem;
 }
 
 h2 {
-  font-size: 2.2rem;
-  margin-bottom: 1.5rem;
+	font-size: 2.2rem;
+	margin-bottom: 1.5rem;
 }
 
 h3 {
-  font-size: 2rem;
-  margin-bottom: 1.5rem;
+	font-size: 2rem;
+	margin-bottom: 1.5rem;
 }
 
 h4 {
-  font-size: 1.8rem;
-  margin-bottom: 1.5rem;
+	font-size: 1.8rem;
+	margin-bottom: 1.5rem;
 }
 
 h5 {
-  font-size: 1.6rem;
-  margin-bottom: 1.5rem;
+	font-size: 1.6rem;
+	margin-bottom: 1.5rem;
 }

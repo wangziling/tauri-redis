@@ -1,55 +1,67 @@
-<script>
-	import Counter from './Counter.svelte';
-	import welcome from '$lib/images/svelte-welcome.webp';
-	import welcome_fallback from '$lib/images/svelte-welcome.png';
+<script lang="ts">
+	import { invoke } from '@tauri-apps/api/tauri';
+	import Aside from './Aside.svelte';
+	import Dialog from '$lib/components/Dialog.svelte';
+	import Form from '$lib/components/Form.svelte';
+	import FormItem from '$lib/components/FormItem.svelte';
+	import Input from '$lib/components/Input.svelte';
+	import Checkbox from '$lib/components/Checkbox.svelte';
+	import Select from '$lib/components/Select.svelte';
+	import type { SelectOptions } from '$lib/types';
+
+	let name = 'Sling';
+	let greetMsg = '';
+	let dialogOpened = false;
+	const selectOptions: SelectOptions = [
+		{ label: 'Sling', value: 1 },
+		{ label: 'Wang', value: 2 }
+	];
+
+	async function greet() {
+		// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
+		greetMsg = await invoke('greet', { name });
+	}
+
+	async function async_greet() {
+		console.log(await invoke('async_greet', { name, test: '1' }));
+	}
+
+	async function get_web_content() {
+		console.log(await invoke('get_web_content', { name, uri: 'https://baidu.com' }));
+	}
+
+	function handleNewConnection() {
+		dialogOpened = true;
+		// return Promise.allSettled([async_greet(), greet(), get_web_content()]);
+	}
+
+	function handleDialogClose() {
+		dialogOpened = false;
+	}
 </script>
 
 <svelte:head>
 	<title>Home</title>
-	<meta name='description' content='Svelte demo app' />
+	<meta name="description" content="Tauri redis." />
 </svelte:head>
 
-<section>
-	<h1>
-		<span class='welcome'>
-			<picture>
-				<source srcset={welcome} type='image/webp' />
-				<img src={welcome_fallback} alt='Welcome' />
-			</picture>
-		</span>
-	</h1>
-	<h2>
-		try editing <strong>src/routes/+page.svelte</strong>
-	</h2>
-	<Counter />
+<section class="tauri-redis-page tauri-redis-page-main">
+	<Aside on:newConnection={handleNewConnection} />
+	<div class="tauri-redis-content">Main.</div>
+	{#if dialogOpened}
+		<Dialog
+			class="tauri-redis-dialog tauri-redis-dialog__new-connection"
+			header="New connection"
+			on:close={handleDialogClose}
+		>
+			<div class="tauri-redis-new-connection">
+				<Form class="new-connection-form">
+					<FormItem label="Hosts" required><Input /></FormItem>
+					<FormItem label="Port" required><Input /></FormItem>
+					<FormItem labe="Demo Select"><Select options={selectOptions} /></FormItem>
+					<FormItem labe="Demo Checkbox"><Checkbox label="Hello World." /></FormItem>
+				</Form>
+			</div>
+		</Dialog>
+	{/if}
 </section>
-
-<style>
-	section {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		flex: 0.6;
-	}
-
-	h1 {
-		width: 100%;
-	}
-
-	.welcome {
-		display: block;
-		position: relative;
-		width: 100%;
-		height: 0;
-		padding: 0 0 calc(100% * 495 / 2048) 0;
-	}
-
-	.welcome img {
-		position: absolute;
-		width: 100%;
-		height: 100%;
-		top: 0;
-		display: block;
-	}
-</style>
