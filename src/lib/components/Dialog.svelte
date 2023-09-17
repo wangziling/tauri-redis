@@ -1,10 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
 	import { clickOutside } from '$lib/actions/click-outside';
-	import {
-		globalKeyboard,
-		type ActionsGlobalKeyboardReturnParams
-	} from '$lib/actions/global-keyboard';
+	import { keyboard, type ActionsKeyboardReturnParams } from '$lib/actions/keyboard';
 	import { calcDynamicClasses } from '$lib/utils/calculators';
 
 	export let header = '';
@@ -53,7 +50,7 @@
 		handleClickClose();
 	}
 
-	function handleGlobalKeyup(e: CustomEvent<ActionsGlobalKeyboardReturnParams>) {
+	function handleKeyboardKeyup(e: CustomEvent<ActionsKeyboardReturnParams>) {
 		if (still) {
 			dispatch(this, e.detail.eventName, e);
 			return;
@@ -69,8 +66,8 @@
 	<div
 		class="dialog-wrapper"
 		use:clickOutside
-		use:globalKeyboard={{ key: 'Escape', type: 'keyup' }}
-		on:globalKeyup={handleGlobalKeyup}
+		use:keyboard={{ key: 'Escape', type: 'keyup', target: window }}
+		on:keyboardKeyup={handleKeyboardKeyup}
 		on:outside={handleClickOutside}
 	>
 		<div class="dialog-header">
