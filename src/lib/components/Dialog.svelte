@@ -10,8 +10,10 @@
 	export let headerCentered = true;
 	export let footerPosition: 'left' | 'right' | 'center' = 'left';
 	export let still = false;
+	export let focusWhenShown = true;
 
 	let shown = true;
+	let dialogEle: undefined | HTMLDialogElement;
 
 	$: dynamicClasses = calcDynamicClasses([
 		'dialog',
@@ -26,6 +28,16 @@
 		},
 		$$restProps.class
 	]);
+
+	$: {
+		if (shown && focusWhenShown) {
+			setTimeout(function () {
+				if (dialogEle) {
+					dialogEle.focus();
+				}
+			});
+		}
+	}
 
 	const dispatch = createEventDispatcher();
 
@@ -62,7 +74,7 @@
 	}
 </script>
 
-<dialog class={dynamicClasses} open={shown}>
+<dialog class={dynamicClasses} open={shown} bind:this={dialogEle}>
 	<div
 		class="dialog-wrapper"
 		use:clickOutside
