@@ -1,4 +1,4 @@
-import type { TArrayOrPrimitive } from '$lib/types/base';
+import type { TArrayOrPrimitive } from '$lib/types';
 import type { Action } from 'svelte/action';
 import { isMatch, uniqWith, forEach, cloneDeep, capitalize } from 'lodash-es';
 
