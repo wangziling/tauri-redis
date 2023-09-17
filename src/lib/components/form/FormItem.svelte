@@ -57,9 +57,9 @@
 			prop,
 			name,
 			required: innerRequired,
-			loading: false,
+			loading,
 			rules: innerRules,
-			messageInfo: undefined
+			messageInfo
 		});
 
 		// contextStore.utils.updateRegisteredField({ name }, function setMessageInfo(field) {
