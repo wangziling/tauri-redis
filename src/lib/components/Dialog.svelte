@@ -62,26 +62,24 @@
 		handleClickClose();
 	}
 
-	function handleKeyboardKeyup(e: CustomEvent<ActionsKeyboardReturnParams>) {
-		if (still) {
-			dispatch(this, e.detail.eventName, e);
-			return;
-		}
-
+	function handleWindowKeyup(e: CustomEvent<ActionsKeyboardReturnParams>) {
 		if (e.detail.config.key === 'Escape') {
+			if (still) {
+				dispatch(this, e.detail.eventName, e);
+				return;
+			}
+
 			handleClickClose();
 		}
 	}
 </script>
 
+<svelte:window
+	use:keyboard={{ key: 'Escape', type: 'keyup' }}
+	on:keyboardKeyup={handleWindowKeyup}
+/>
 <dialog class={dynamicClasses} open={shown} bind:this={dialogEle}>
-	<div
-		class="dialog-wrapper"
-		use:clickOutside
-		use:keyboard={{ key: 'Escape', type: 'keyup', target: window }}
-		on:keyboardKeyup={handleKeyboardKeyup}
-		on:outside={handleClickOutside}
-	>
+	<div class="dialog-wrapper" use:clickOutside on:outside={handleClickOutside}>
 		<div class="dialog-header">
 			<div class="dialog-header-wrapper">
 				<div class="dialog-header-content">

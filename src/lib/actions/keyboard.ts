@@ -31,7 +31,7 @@ type ActionsKeyboardHandlerItem = ActionsKeyboardParams & {
 };
 
 export const keyboard: Action<
-	HTMLElement,
+	HTMLElement | Window,
 	TArrayOrPrimitive<ActionsKeyboardParams>,
 	ActionsKeyboardAttributes
 > = function keyboard(node, params) {
