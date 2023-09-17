@@ -6,7 +6,7 @@
 	import {
 		contextStoreKey,
 		type createStore,
-		getFieldPathPropertyValue
+		getFieldPropPathValue
 	} from '$lib/components/form/context';
 
 	export let label = '';
@@ -19,12 +19,12 @@
 
 	let messageInfo: FormItemMessageInfo | undefined;
 	contextStore.subscribe(function subscribe(state) {
-		messageInfo = getFieldPathPropertyValue(state, { name }, 'messageInfo');
+		messageInfo = getFieldPropPathValue(state, { name }, 'messageInfo');
 	});
 
 	let loading = false;
 	contextStore.subscribe(function subscribe(state) {
-		loading = getFieldPathPropertyValue(state, { name }, 'loading');
+		loading = getFieldPropPathValue(state, { name }, 'loading');
 	});
 
 	$: isMessageInfoValid = !!(messageInfo && messageInfo.message);

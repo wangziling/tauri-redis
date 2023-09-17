@@ -33,7 +33,7 @@ export function filterRegisteredFields(
 		.filter(Boolean);
 }
 
-export function getFieldPathPropertyValue(
+export function getFieldPropPathValue(
 	state: FormStoreState,
 	condition: FormFieldPicker,
 	propPath: TArrayOrPrimitive<string>
@@ -155,7 +155,7 @@ export const createStore = function createStore(initialState?: FormStoreState) {
 		filterRegisteredFields(conditions: TArrayOrPrimitive<FormFieldPicker>) {
 			return filterRegisteredFields(get(store), conditions);
 		},
-		generateFieldDerived<T = any>(
+		getFieldPropPathValueDerived<T = any>(
 			condition: FormFieldPicker,
 			propPath: TArrayOrPrimitive<string>
 		): ReturnType<typeof readable<T | undefined>> {
@@ -163,8 +163,8 @@ export const createStore = function createStore(initialState?: FormStoreState) {
 				return lodashGet(findRegisteredField(state, condition), propPath);
 			});
 		},
-		getFieldPathPropertyValue(condition: FormFieldPicker, propPath: TArrayOrPrimitive<string>) {
-			return getFieldPathPropertyValue(get(store), condition, propPath);
+		getFieldPropPathValue(condition: FormFieldPicker, propPath: TArrayOrPrimitive<string>) {
+			return getFieldPropPathValue(get(store), condition, propPath);
 		},
 		validate(callback?: ValidateCallback, options?: ValidateOption) {
 			const state = get(store);
