@@ -2,6 +2,7 @@
 	import { createEventDispatcher } from 'svelte';
 	import { clickOutside } from '$lib/actions/click-outside';
 	import { keyboard, type ActionsKeyboardReturnParams } from '$lib/actions/keyboard';
+	import { focusWhenMount } from '$lib/actions/focus-when-mount';
 	import { calcDynamicClasses } from '$lib/utils/calculators';
 
 	export let header = '';
@@ -13,7 +14,6 @@
 	export let focusWhenShown = true;
 
 	let shown = true;
-	let dialogEle: undefined | HTMLDialogElement;
 
 	$: dynamicClasses = calcDynamicClasses([
 		'dialog',
@@ -28,16 +28,6 @@
 		},
 		$$restProps.class
 	]);
-
-	$: {
-		if (shown && focusWhenShown) {
-			setTimeout(function () {
-				if (dialogEle) {
-					dialogEle.focus();
-				}
-			});
-		}
-	}
 
 	const dispatch = createEventDispatcher();
 
@@ -78,7 +68,11 @@
 	use:keyboard={{ key: 'Escape', type: 'keyup' }}
 	on:keyboardKeyup={handleWindowKeyup}
 />
-<dialog class={dynamicClasses} open={shown} bind:this={dialogEle}>
+<dialog
+	class={dynamicClasses}
+	use:focusWhenMount={{ condition: shown && focusWhenShown }}
+	open={shown}
+>
 	<div class="dialog-wrapper" use:clickOutside on:outside={handleClickOutside}>
 		<div class="dialog-header">
 			<div class="dialog-header-wrapper">
