@@ -2,8 +2,8 @@
 	import { invoke } from '@tauri-apps/api/tauri';
 	import Aside from './Aside.svelte';
 	import Dialog from '$lib/components/Dialog.svelte';
-	import Form from '$lib/components/Form.svelte';
-	import FormItem from '$lib/components/FormItem.svelte';
+	import Form from '$lib/components/form/Form.svelte';
+	import FormItem from '$lib/components/form/FormItem.svelte';
 	import Input from '$lib/components/Input.svelte';
 	import Checkbox from '$lib/components/Checkbox.svelte';
 	import Select from '$lib/components/Select.svelte';
@@ -56,10 +56,12 @@
 		>
 			<div class="tauri-redis-new-connection">
 				<Form class="new-connection-form">
-					<FormItem label="Hosts" required><Input /></FormItem>
+					<FormItem label="Hosts" required prop="hosts"><Input /></FormItem>
 					<FormItem label="Port" required><Input /></FormItem>
 					<FormItem labe="Demo Select"><Select options={selectOptions} /></FormItem>
-					<FormItem labe="Demo Checkbox"><Checkbox label="Hello World." /></FormItem>
+					<FormItem labe="Demo Checkbox">
+						<Checkbox label="Hello World." />
+					</FormItem>
 				</Form>
 			</div>
 		</Dialog>
