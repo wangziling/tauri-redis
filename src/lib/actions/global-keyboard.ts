@@ -54,7 +54,7 @@ export const globalKeyboard: Action<
 				if (p.keyCode) {
 					if (p.keyCode === e.keyCode) {
 						node.dispatchEvent(
-							new CustomEvent(`on:global${capitalize(p.type)}`, { detail: { e, config: p } })
+							new CustomEvent(`global${capitalize(p.type)}`, { detail: { e, config: p } })
 						);
 					}
 
@@ -62,7 +62,7 @@ export const globalKeyboard: Action<
 				}
 
 				node.dispatchEvent(
-					new CustomEvent(`on:global${capitalize(p.type)}`, { detail: { e, config: p } })
+					new CustomEvent(`global${capitalize(p.type)}`, { detail: { e, config: p } })
 				);
 			};
 
