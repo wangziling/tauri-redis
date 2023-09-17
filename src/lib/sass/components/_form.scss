@@ -1,75 +1,98 @@
 .form {
-  width: 100%;
+	width: 100%;
 
-  &-item {
-    &-label {
-      &:empty {
-        display: none;
-      }
+	&-item {
+		&-label {
+			&:empty {
+				display: none;
+			}
+		}
 
-      + .form-item-content {
-        margin-top: var(--form-item-label-content-gap);
-      }
-    }
+		+ .form-item {
+			margin-top: var(--form-item-gap);
+		}
 
-    + .form-item {
-      margin-top: var(--form-item-gap);
-    }
+		&-content {
+			&:empty {
+				display: none;
+			}
+		}
 
-    &-content {
-      &:empty {
-        display: none;
-      }
+		&-wrapper {
+			+ .form-item-message {
+				margin-top: var(--form-item-content-error-gap);
+			}
+		}
 
-      + .form-item-error {
-        margin-top: var(--form-item-content-error-gap);
-      }
-    }
+		&-message {
+			&:empty {
+				display: none;
+			}
+		}
 
-    &-message {
-      &:empty {
-        display: none;
-      }
-    }
+		&:not([class*='form-item--message-']) {
+			.form-item-message {
+				display: none;
+			}
+		}
 
-    &:not([class*='form-item--message-']) {
-      .form-item-message {
-        display: none;
-      }
-    }
+		&--required {
+			.form-item-label {
+				&::after {
+					content: '*';
+					margin-left: 0.3rem;
+					color: var(--base-danger-font-color);
+				}
+			}
+		}
 
-    &--required {
-      .form-item-label {
-        &::after {
-          content: '*';
-          margin-left: 0.3rem;
-          color: var(--base-danger-font-color);
-        }
-      }
-    }
+		&--message-success {
+			.form-item-message {
+				color: var(--base-success-font-color);
+			}
+		}
 
-    &--message-success {
-      .form-item-message {
-        color: var(--base-success-font-color);
-      }
-    }
+		&--message-warning {
+			.form-item-message {
+				color: var(--base-warning-font-color);
+			}
+		}
 
-    &--message-warning {
-      .form-item-message {
-        color: var(--base-warning-font-color);
-      }
-    }
+		&--message-error {
+			.form-item-message {
+				color: var(--base-danger-font-color);
+			}
+		}
 
-    &--message-error {
-      .form-item-message {
-        color: var(--base-danger-font-color);
-      }
-    }
+		&--message-info {
+			.form-item-message {
+				color: inherit;
+			}
+		}
+	}
 
-    &--message-info {
-      .form-item-message {
-        color: inherit;
-      }
-    }
-  }
+	&--label-pos-top {
+		.form-item-label:not(:empty) {
+			+ .form-item-content {
+				margin-top: var(--form-item-label-content-gap);
+			}
+		}
+	}
+
+	&--label-pos-left {
+		.form-item-wrapper {
+			display: flex;
+			align-items: flex-start;
+
+			.form-item-content {
+				flex-basis: 100%;
+			}
+		}
+
+		.form-item-label:not(:empty) {
+			+ .form-item-content {
+				margin-left: var(--form-item-label-content-gap);
+			}
+		}
+	}
 }
