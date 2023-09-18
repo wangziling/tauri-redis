@@ -3,6 +3,8 @@
 	import type { FormField } from '$lib/types';
 	import { lowerCase } from 'lodash-es';
 	import { initialFormItemMisc } from '$lib/components/form/utils';
+	import { contextItemStoreKey, createItemStore } from '$lib/components/form/context';
+	import { setContext } from 'svelte';
 
 	export let label = '';
 	export let prop = '';
@@ -16,14 +18,16 @@
 	const formItemMisc = initialFormItemMisc({ prop, name });
 
 	const {
+		propDerived,
 		messageInfoDerived,
 		loadingDerived,
 		validatingDerived,
 		disabledDerived,
 		readonlyDerived,
 		requiredDerived,
-		fieldFormRulesDerived,
-		rulesDerived
+		// fieldFormRulesDerived,
+		// rulesDerived,
+		valueDerived
 	} = formItemMisc.state;
 
 	$: isMessageInfoValid = !!($messageInfoDerived && $messageInfoDerived.message);
@@ -44,6 +48,20 @@
 		isMessageInfoValid ? 'form-item--message-' + lowerCase($messageInfoDerived.type) : '',
 		$$restProps.class
 	]);
+
+	const contextItemStore = createItemStore();
+
+	$: contextItemStore.mutations.setName(name);
+	$: contextItemStore.mutations.setBindings({
+		value: valueDerived,
+		validating: validatingDerived,
+		readonly: readonlyDerived,
+		disabled: disabledDerived,
+		loading: loadingDerived,
+		prop: propDerived
+	});
+
+	setContext(contextItemStoreKey, contextItemStore);
 </script>
 
 <div class={dynamicClasses}>

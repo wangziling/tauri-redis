@@ -1,9 +1,8 @@
 import type { FormField, FormFieldPicker } from '$lib/types';
 import { createEventDispatcher, getContext, hasContext, onDestroy, onMount } from 'svelte';
-import { contextStoreKey, createStore } from '$lib/components/form/context';
+import { contextItemStoreKey, contextStoreKey, createItemStore, createStore } from '$lib/components/form/context';
 import { derived, get } from 'svelte/store';
 import { get as lodashGet, some } from 'lodash-es';
-import { FormItemMessageType } from '$lib/types';
 
 export function initialFormItemMisc(
 	condition: Required<FormFieldPicker>,
@@ -43,6 +42,7 @@ export function initialFormItemMisc(
 		fieldDerived,
 		'required'
 	);
+	const fieldPropDerived = contextStore.utils.getFieldPropPathValueDerived<FormField['prop']>(fieldDerived, 'prop');
 	const fieldRulesDerived = contextStore.utils.getFieldPropPathValueDerived<FormField['rules']>(fieldDerived, 'rules');
 	const fieldFormRulesDerived = contextStore.utils.getFieldFormRulesDerived(condition);
 
@@ -135,20 +135,21 @@ export function initialFormItemMisc(
 	onMount(function onMount() {
 		setFieldMounted(true);
 
-		contextStore.utils.updateRegisteredField(condition, function setMessageInfo(field) {
-			if (!field) {
-				return;
-			}
-
-			field.messageInfo = {
-				type: FormItemMessageType.Info,
-				message: '123'
-			};
-		});
+		// contextStore.utils.updateRegisteredField(condition, function setMessageInfo(field) {
+		// 	if (!field) {
+		// 		return;
+		// 	}
+		//
+		// 	field.messageInfo = {
+		// 		type: FormItemMessageType.Info,
+		// 		message: '123'
+		// 	};
+		// });
 	});
 
 	return {
 		state: {
+			propDerived: fieldPropDerived,
 			messageInfoDerived: fieldMessageInfoDerived,
 			valueDerived: fieldValueDerived,
 			disabledDerived: fieldDisabledDerived,
@@ -157,7 +158,8 @@ export function initialFormItemMisc(
 			validatingDerived: fieldValidatingDerived,
 			requiredDerived: modifiedFieldRequiredDerived,
 			fieldFormRulesDerived,
-			rulesDerived: fieldRulesDerived
+			rulesDerived: fieldRulesDerived,
+			fieldDerived
 		},
 		mutations: {
 			setFieldRules,
@@ -165,6 +167,37 @@ export function initialFormItemMisc(
 		},
 		utils: {
 			unsubscribe
+		}
+	};
+}
+
+export function initialFormItemFieldMisc(type: string) {
+	if (!hasContext(contextItemStoreKey)) {
+		return;
+	}
+
+	const contextItemStore = getContext(contextItemStoreKey) as ReturnType<typeof createItemStore>;
+	if (contextItemStore) {
+		return;
+	}
+
+	const name = contextItemStore.getters.name;
+
+	const handleFieldFocus = function handleFieldFocus() {};
+
+	const handleFieldBlur = function handleFieldBlur() {};
+
+	const handleFieldSetValue = function handleFieldSetValue() {};
+
+	return {
+		state: {
+			bindings: contextItemStore.getters.bindings
+		},
+		mutations: {},
+		utils: {
+			handleFieldFocus,
+			handleFieldBlur,
+			handleFieldSetValue
 		}
 	};
 }

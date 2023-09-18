@@ -1,5 +1,5 @@
 import type { RuleItem } from 'async-validator/dist-types/interface';
-import type { TArrayOrPrimitive, TArrayMember } from '$lib/types';
+import type { TArrayOrPrimitive, TArrayMember, PropWritable, PropReadable } from '$lib/types';
 
 export interface SelectOptionItem {
 	label: string;
@@ -42,7 +42,16 @@ export interface FormItemMessageInfo {
 	reason?: FormItemMessageReason;
 }
 
-export type FormItemRules = Array<RuleItem>;
+export enum FormRuleTrigger {
+	Change = 'Change',
+	Input = 'Input'
+}
+
+export type FormRuleItem = RuleItem & {
+	trigger?: TArrayOrPrimitive<FormRuleTrigger>;
+};
+
+export type FormItemRules = Array<FormRuleItem>;
 
 // Lodash.get() propPath.
 // E.g. 'user.name'
@@ -81,3 +90,13 @@ export interface FormStoreState {
 }
 
 export type FormFieldPicker = Partial<Pick<TArrayMember<FormStoreState['fields']>, 'name' | 'prop'>>;
+
+export type FormItemStoreState = {
+	name: FormField['name']; // Field name.
+	bindings: PropReadable<
+		{
+			// Here will be Readonly.
+			value: FormItemValue;
+		} & Pick<FormField, 'loading' | 'readonly' | 'disabled' | 'validating' | 'prop'>
+	>;
+};

@@ -1,14 +1,24 @@
-import { derived, get, type readable, writable } from 'svelte/store';
-import type { FormFieldPicker, FormItemNamedRules, FormStoreState, TArrayMember, TArrayOrPrimitive } from '$lib/types';
-import { FormLabelPosition } from '$lib/types';
-import { assign, get as lodashGet, isEmpty, isMatch, set as lodashSet } from 'lodash-es';
+import { derived, get, type Readable, writable } from 'svelte/store';
+import type {
+	FormField,
+	FormFieldPicker,
+	FormItemNamedRules,
+	FormItemRules,
+	FormItemStoreState,
+	FormRuleItem,
+	FormStoreState,
+	PropWritable,
+	TArrayMember,
+	TArrayOrPrimitive
+} from '$lib/types';
+import { FormLabelPosition, FormRuleTrigger } from '$lib/types';
+import { get as lodashGet, isEmpty, isMatch, set as lodashSet } from 'lodash-es';
 import Schema, { type ValidateOption } from 'async-validator';
 import type { ValidateCallback } from 'async-validator/dist-types/interface';
 import { noop } from '$lib/utils/miscs';
+import { generateOperablePromise } from '$lib/utils/async';
 
-type FormFieldDerived = ReturnType<
-	typeof derived<ReturnType<typeof writable<FormStoreState>>, TArrayMember<FormStoreState['fields']> | undefined>
->;
+type FormFieldDerived = Readable<TArrayMember<FormStoreState['fields']>> | undefined;
 
 function findRegisteredField(fields: FormStoreState['fields'], condition: FormFieldPicker) {
 	if (isEmpty(condition)) {
@@ -32,29 +42,56 @@ function filterRegisteredFields(fields: FormStoreState['fields'], conditions: TA
 function generateFieldRuleValidator(
 	formRules: FormStoreState['rules'],
 	fields: TArrayOrPrimitive<FormStoreState['fields']>,
-	iterationCallback?: (field: TArrayMember<FormStoreState['fields']>) => any
+	iterationCallback?: (field: TArrayMember<FormStoreState['fields']>) => any,
+	options?: Pick<FormRuleItem, 'trigger'>
 ) {
-	const usedFields = Array.isArray(fields) ? fields : ([] as FormStoreState['fields']).concat(fields);
 	const usedIterationCallback = typeof iterationCallback === 'function' ? iterationCallback : noop;
+	const usedFields = Array.isArray(fields) ? fields : ([] as FormStoreState['fields']).concat(fields);
+	const triggers = lodashGet(options, 'trigger');
+	const usedTriggers =
+		triggers && Array.isArray(triggers) ? triggers : ([] as Array<FormRuleTrigger>).concat(triggers).filter(Boolean);
+	const isUsedTriggersValid = !isEmpty(usedTriggers);
 
 	const rules = {} as FormItemNamedRules;
+	const recordUsedRules = function (usedRules: FormItemRules, field: FormField) {
+		if (isUsedTriggersValid) {
+			usedRules = usedRules.filter(function (rule) {
+				const ruleTriggers = rule.trigger;
+				if (!ruleTriggers) {
+					return true;
+				}
+
+				if (!Array.isArray(ruleTriggers)) {
+					return usedTriggers.includes(ruleTriggers);
+				}
+
+				return ruleTriggers.some(function (tr: FormRuleTrigger) {
+					return usedTriggers.includes(tr);
+				});
+			});
+		}
+
+		if (Array.isArray(usedRules) && usedRules.length) {
+			lodashSet(rules, field.prop, usedRules);
+			usedIterationCallback(field);
+
+			return true;
+		}
+
+		return false;
+	};
+
 	usedFields.forEach(function mapUsedFields(field) {
 		if (!field.prop) {
 			return;
 		}
 
-		const usedFieldRules = field.rules;
-		if (Array.isArray(usedFieldRules) && usedFieldRules.length) {
-			lodashSet(rules, field.prop, usedFieldRules);
-			usedIterationCallback(field);
+		const isRecorded = recordUsedRules(field.rules, field);
+		if (isRecorded) {
 			return;
 		}
 
-		const useFormRules = lodashGet(formRules, field.prop);
-		if (Array.isArray(useFormRules) && useFormRules.length) {
-			lodashSet(rules, field.prop, useFormRules);
-			usedIterationCallback(field);
-		}
+		recordUsedRules(lodashGet(formRules, field.prop), field);
 	});
 
 	return generateRulesValidator(rules);
@@ -64,61 +101,40 @@ export function generateRulesValidator(rules: FormItemNamedRules) {
 	return new Schema(rules);
 }
 
-export const createStore = function createStore(initialState?: FormStoreState) {
-	const store = writable(
-		assign(
-			{
-				name: '',
-				fields: [],
-				model: {},
-				rules: {},
-				labelPosition: FormLabelPosition.Top
-			} as Partial<FormStoreState>,
-			initialState
-		)
-	);
+export const createStore = function createStore() {
+	const store = {
+		name: writable(''),
+		fields: writable([]),
+		model: writable({}),
+		rules: writable({}),
+		labelPosition: writable(FormLabelPosition.Top)
+	} as PropWritable<FormStoreState>;
 
 	const mutations = {
 		setName(payload: FormStoreState['name']) {
-			store.update(function setName(state) {
-				state.name = payload;
-
-				return state;
-			});
+			store.name.set(payload);
 		},
 		setModel(payload: FormStoreState['model']) {
-			store.update(function setModel(state) {
-				state.model = payload;
-
-				return state;
-			});
+			store.model.set(payload);
 		},
 		setRules(payload: FormStoreState['rules']) {
-			store.update(function setRules(state) {
-				state.rules = payload;
-
-				return state;
-			});
+			store.rules.set(payload);
 		},
 		setLabelPosition(payload: FormStoreState['labelPosition']) {
-			store.update(function setRules(state) {
-				state.labelPosition = payload;
-
-				return state;
-			});
+			store.labelPosition.set(payload);
 		},
 		registerField(payload: TArrayMember<FormStoreState['fields']>) {
-			store.update(function registerField(state) {
-				const isExisted = state.fields.some(function (item) {
+			store.fields.update(function registerField(fields) {
+				const isExisted = fields.some(function (item) {
 					return item.name === payload.name || item.prop === payload.prop;
 				});
 				if (isExisted) {
-					return state;
+					return fields;
 				}
 
-				state.fields.push(payload);
+				fields.push(payload);
 
-				return state;
+				return fields;
 			});
 		},
 		unregisterField(payload: FormFieldPicker) {
@@ -126,104 +142,94 @@ export const createStore = function createStore(initialState?: FormStoreState) {
 				return;
 			}
 
-			store.update(function unregisterField(state) {
-				const idx = state.fields.findIndex(function (item) {
+			store.fields.update(function unregisterField(fields) {
+				const idx = fields.findIndex(function (item) {
 					return item.name === payload.name || item.prop === payload.prop;
 				});
 				if (idx === -1) {
-					return state;
+					return fields;
 				}
 
-				state.fields.splice(idx, 1);
+				fields.splice(idx, 1);
 
-				return state;
+				return fields;
 			});
 		},
 		setFieldDisabled(
 			field: TArrayMember<FormStoreState['fields']>,
 			payload: TArrayMember<FormStoreState['fields']>['disabled']
 		) {
-			store.update(function setFieldDisabled(state) {
+			store.fields.update(function setFieldDisabled(fields) {
 				field.disabled = payload;
 
-				return state;
+				return fields;
 			});
 		},
 		setFieldReadonly(
 			field: TArrayMember<FormStoreState['fields']>,
 			payload: TArrayMember<FormStoreState['fields']>['readonly']
 		) {
-			store.update(function setFieldReadonly(state) {
+			store.fields.update(function setFieldReadonly(fields) {
 				field.readonly = payload;
 
-				return state;
+				return fields;
 			});
 		},
 		setFieldLoading(
 			field: TArrayMember<FormStoreState['fields']>,
 			payload: TArrayMember<FormStoreState['fields']>['loading']
 		) {
-			store.update(function setFieldLoading(state) {
+			store.fields.update(function setFieldLoading(fields) {
 				field.loading = payload;
 
-				return state;
+				return fields;
 			});
 		},
 		setFieldValidating(
 			field: TArrayMember<FormStoreState['fields']>,
 			payload: TArrayMember<FormStoreState['fields']>['validating']
 		) {
-			store.update(function setFieldValidating(state) {
+			store.fields.update(function setFieldValidating(fields) {
 				field.validating = payload;
 
-				return state;
+				return fields;
 			});
 		},
 		setFieldRequired(
 			field: TArrayMember<FormStoreState['fields']>,
 			payload: TArrayMember<FormStoreState['fields']>['required']
 		) {
-			store.update(function setFieldRequired(state) {
+			store.fields.update(function setFieldRequired(fields) {
 				field.required = payload;
 
-				return state;
+				return fields;
 			});
 		},
 		setFieldMounted(
 			field: TArrayMember<FormStoreState['fields']>,
 			payload: TArrayMember<FormStoreState['fields']>['mounted']
 		) {
-			store.update(function setFieldMounted(state) {
+			store.fields.update(function setFieldMounted(fields) {
 				field.mounted = payload;
 
-				return state;
+				return fields;
 			});
 		},
 		setFieldRules(
 			field: TArrayMember<FormStoreState['fields']>,
 			payload: TArrayMember<FormStoreState['fields']>['rules']
 		) {
-			store.update(function updateRegisteredField(state) {
+			store.fields.update(function updateRegisteredField(fields) {
 				field.rules = payload;
 
-				return state;
+				return fields;
 			});
 		}
 	};
 
 	const actions = {};
 
-	const getters = {
-		fields: derived(store, function (state) {
-			return state.fields;
-		}),
-		model: derived(store, function (state) {
-			return state.model;
-		}),
-		rules: derived(store, function (state) {
-			return state.rules;
-		})
-	};
+	const getters = {};
 
 	const utils = {
 		updateRegisteredField(
@@ -236,38 +242,38 @@ export const createStore = function createStore(initialState?: FormStoreState) {
 				return;
 			}
 
-			store.update(function updateRegisteredField(state) {
+			store.fields.update(function updateRegisteredField(fields) {
 				callback(item);
-				return state;
+				return fields;
 			});
 		},
 		findRegisteredField(condition: FormFieldPicker) {
-			return findRegisteredField(get(getters.fields), condition);
+			return findRegisteredField(get(store.fields), condition);
 		},
 		filterRegisteredFields(conditions: TArrayOrPrimitive<FormFieldPicker>) {
-			return filterRegisteredFields(get(getters.fields), conditions);
+			return filterRegisteredFields(get(store.fields), conditions);
 		},
 		getRegisteredFieldDerived(
 			condition: FormFieldPicker
-		): ReturnType<typeof derived<typeof store, TArrayMember<FormStoreState['fields']> | undefined>> {
-			return derived(getters.fields, function (fields) {
+		): ReturnType<typeof derived<(typeof store)['fields'], TArrayMember<FormStoreState['fields']> | undefined>> {
+			return derived(store.fields, function (fields) {
 				return findRegisteredField(fields, condition);
 			});
 		},
 		getRegisteredFieldsDerived(
 			conditions: TArrayOrPrimitive<FormFieldPicker>
-		): ReturnType<typeof derived<typeof store, FormStoreState['fields'] | undefined>> {
-			return derived(getters.fields, function (fields) {
+		): ReturnType<typeof derived<(typeof store)['fields'], FormStoreState['fields'] | undefined>> {
+			return derived(store.fields, function (fields) {
 				return filterRegisteredFields(fields, conditions);
 			});
 		},
 		getFieldFormRulesDerived(condition: FormFieldPicker) {
-			return derived(getters.rules, function (formRules) {
+			return derived(store.rules, function (formRules) {
 				if (condition.prop) {
 					return lodashGet(formRules, condition.prop);
 				}
 
-				const foundField = findRegisteredField(get(getters.fields), condition);
+				const foundField = findRegisteredField(get(store.fields), condition);
 				if (!(foundField && foundField.prop)) {
 					return;
 				}
@@ -278,7 +284,7 @@ export const createStore = function createStore(initialState?: FormStoreState) {
 		getFieldPropPathValueDerived<T = any>(
 			fieldDerived: FormFieldDerived,
 			propPath: TArrayOrPrimitive<string>
-		): ReturnType<typeof readable<T | undefined>> {
+		): Readable<T | undefined> {
 			return derived(fieldDerived, function (field) {
 				return lodashGet(field, propPath);
 			});
@@ -287,13 +293,15 @@ export const createStore = function createStore(initialState?: FormStoreState) {
 			return lodashGet(field, propPath);
 		},
 		validate(callback?: ValidateCallback, options?: ValidateOption) {
-			const state = get(store);
+			const validator = generateFieldRuleValidator(
+				get(store.rules),
+				get(store.fields),
+				function iterationCallback(field) {
+					mutations.setFieldValidating(field, true);
+				}
+			);
 
-			const validator = generateFieldRuleValidator(state.rules, state.fields, function iterationCallback(field) {
-				mutations.setFieldValidating(field, true);
-			});
-
-			return validator.validate(state.model, options, callback);
+			return validator.validate(get(store.model), options, callback);
 		},
 		validateFields(
 			conditions: TArrayOrPrimitive<FormFieldPicker>,
@@ -301,17 +309,34 @@ export const createStore = function createStore(initialState?: FormStoreState) {
 			options?: ValidateOption
 		) {
 			const validator = generateFieldRuleValidator(
-				get(getters.rules),
-				filterRegisteredFields(get(getters.fields), conditions),
+				get(store.rules),
+				filterRegisteredFields(get(store.fields), conditions),
 				function iterationCallback(field) {
 					mutations.setFieldValidating(field, true);
 				}
 			);
 
-			return validator.validate(get(getters.model), options, callback);
+			return validator.validate(get(store.model), options, callback);
+		},
+		validateFieldsWithTrigger(
+			conditions: TArrayOrPrimitive<FormFieldPicker>,
+			trigger: FormRuleItem['trigger'],
+			callback?: ValidateCallback,
+			options?: ValidateOption
+		) {
+			const validator = generateFieldRuleValidator(
+				get(store.rules),
+				filterRegisteredFields(get(store.fields), conditions),
+				function iterationCallback(field) {
+					mutations.setFieldValidating(field, true);
+				},
+				{ trigger }
+			);
+
+			return validator.validate(get(store.model), options, callback);
 		},
 		getFieldFormModelValue(condition: FormFieldPicker) {
-			const model = get(getters.model);
+			const model = get(store.model);
 			if (condition.prop) {
 				return lodashGet(model, condition.prop);
 			}
@@ -324,7 +349,7 @@ export const createStore = function createStore(initialState?: FormStoreState) {
 			return lodashGet(model, registeredField.prop);
 		},
 		getFieldFormModelValueDerived(condition: FormFieldPicker) {
-			return derived(getters.model, function (model) {
+			return derived(store.model, function (model) {
 				if (condition.prop) {
 					return lodashGet(model, condition.prop);
 				}
@@ -339,12 +364,37 @@ export const createStore = function createStore(initialState?: FormStoreState) {
 		}
 	};
 
+	const events = {
+		handleValidateFields(conditions: TArrayOrPrimitive<FormFieldPicker>) {
+			const { p, resolve, reject } = generateOperablePromise<undefined>();
+			utils.validateFields(
+				conditions,
+				function (errors, fields) {
+					if (!errors) {
+						resolve(undefined);
+
+						return;
+					}
+
+					reject(errors);
+				},
+				{ first: true }
+			);
+
+			return p;
+		},
+		handleSetFieldValue(condition: FormFieldPicker, options: Pick<FormRuleItem, 'trigger'>) {
+			// Trigger validation.
+			return utils.validateFields(condition);
+		}
+	};
+
 	const target = {
 		mutations,
 		actions,
 		getters,
 		utils,
-		subscribe: store.subscribe
+		events
 	};
 
 	return new Proxy(target, {
@@ -355,3 +405,47 @@ export const createStore = function createStore(initialState?: FormStoreState) {
 };
 
 export const contextStoreKey = Symbol('formContext');
+
+export const createItemStore = function createItemStore() {
+	const store = {
+		name: writable(''),
+		bindings: writable({})
+	} as PropWritable<FormItemStoreState>;
+
+	const mutations = {
+		setName(payload: FormItemStoreState['name']) {
+			store.name.set(payload);
+		},
+		setBindings(payload: FormItemStoreState['bindings']) {
+			store.bindings.set(payload);
+		}
+	};
+
+	const actions = {};
+
+	const getters = {
+		bindings: derived(store.bindings, function (bindings) {
+			return bindings;
+		}),
+		name: derived(store.name, function (name) {
+			return name;
+		})
+	};
+
+	const utils = {};
+
+	const target = {
+		mutations,
+		actions,
+		getters,
+		utils
+	};
+
+	return new Proxy(target, {
+		set() {
+			return false;
+		}
+	} as ProxyHandler<typeof target>);
+};
+
+export const contextItemStoreKey = Symbol('formItemContext');
