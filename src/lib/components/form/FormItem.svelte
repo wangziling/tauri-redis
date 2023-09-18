@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { calcDynamicClasses, randomString } from '$lib/utils/calculators';
-	import type { FormField, FormItemMessageInfo } from '$lib/types';
+	import type { FormField } from '$lib/types';
 	import { lowerCase } from 'lodash-es';
-	import { getContext, onDestroy, onMount } from 'svelte';
-	import { contextStoreKey, type createStore, getFieldPropPathValue } from '$lib/components/form/context';
+	import { tick } from 'svelte';
+	import { initialFormItemMisc } from '$lib/components/form/utils';
 
 	export let label = '';
 	export let prop = '';
@@ -11,19 +11,12 @@
 	export let name = `form-item-fake-name-${randomString(6)}`;
 	export let rules: FormField['rules'] = [];
 
-	const contextStore = getContext(contextStoreKey) as ReturnType<typeof createStore>;
+	const formItemMisc = initialFormItemMisc({ prop, name }, { required, rules });
 
-	let messageInfo: FormItemMessageInfo | undefined;
-	contextStore.subscribe(function subscribe(state) {
-		messageInfo = getFieldPropPathValue(state, { name }, 'messageInfo');
-	});
+	const { messageInfoDerived, loadingDerived, validatingDerived, disabledDerived, readonlyDerived, requiredDerived } =
+		formItemMisc.state;
 
-	let loading = false;
-	contextStore.subscribe(function subscribe(state) {
-		loading = getFieldPropPathValue(state, { name }, 'loading');
-	});
-
-	$: isMessageInfoValid = !!(messageInfo && messageInfo.message);
+	$: isMessageInfoValid = !!($messageInfoDerived && $messageInfoDerived.message);
 
 	$: innerRules = required
 		? rules.some(function (rule) {
@@ -37,43 +30,25 @@
 		return rule.required;
 	});
 
+	$: {
+		tick().then(function updateFieldOtherMetrics() {
+			formItemMisc.utils.updateFieldOtherMetrics({ rules: innerRules, required: innerRequired });
+		});
+	}
+
 	$: dynamicClasses = calcDynamicClasses([
 		'form-item',
 		{
 			['form-item__prop-' + prop]: prop,
-			'form-item--required': innerRequired,
-			'form-item--loading': loading
+			'form-item--required': $requiredDerived,
+			'form-item--loading': $loadingDerived,
+			'form-item--validating': $validatingDerived,
+			'form-item--disabled': $disabledDerived,
+			'form-item--readonly': $readonlyDerived
 		},
-		isMessageInfoValid ? 'form-item--message-' + lowerCase(messageInfo.type) : '',
+		isMessageInfoValid ? 'form-item--message-' + lowerCase($messageInfoDerived.type) : '',
 		$$restProps.class
 	]);
-
-	onMount(function onMount() {
-		contextStore.mutations.registerField({
-			prop,
-			name,
-			required: innerRequired,
-			loading,
-			rules: innerRules,
-			messageInfo
-		});
-
-		// contextStore.utils.updateRegisteredField({ name }, function setMessageInfo(field) {
-		// 	if (!field) {
-		// 		return;
-		// 	}
-		//
-		// 	field.messageInfo = {
-		// 		type: FormItemMessageType.Info,
-		// 		message: '123'
-		// 	};
-		// });
-	});
-	onDestroy(function onDestroy() {
-		contextStore.mutations.unregisterField({
-			name
-		});
-	});
 </script>
 
 <div class={dynamicClasses}>
@@ -91,7 +66,7 @@
 	</div>
 	<div class="form-item-message">
 		{#if isMessageInfoValid}
-			{@html messageInfo.message}
+			{@html $messageInfoDerived.message}
 		{/if}
 	</div>
 </div>

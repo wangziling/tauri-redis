@@ -1,5 +1,5 @@
 import type { RuleItem } from 'async-validator/dist-types/interface';
-import type { TArrayOrPrimitive } from '$lib/types/base';
+import type { TArrayOrPrimitive, TArrayMember } from '$lib/types';
 
 export interface SelectOptionItem {
 	label: string;
@@ -65,3 +65,5 @@ export interface FormStoreState {
 	model: Record<string, FormItemValue>;
 	fields: Array<FormField>;
 }
+
+export type FormFieldPicker = Partial<Pick<TArrayMember<FormStoreState['fields']>, 'name' | 'prop'>>;
