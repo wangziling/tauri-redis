@@ -1,13 +1,12 @@
 import type { FormField, FormFieldPicker } from '$lib/types';
 import { createEventDispatcher, getContext, hasContext, onDestroy, onMount } from 'svelte';
 import { contextStoreKey, createStore } from '$lib/components/form/context';
-import { get } from 'svelte/store';
-import { get as lodashGet } from 'lodash-es';
+import { derived, get } from 'svelte/store';
+import { get as lodashGet, some } from 'lodash-es';
 import { FormItemMessageType } from '$lib/types';
 
 export function initialFormItemMisc(
 	condition: Required<FormFieldPicker>,
-	otherMetrics: Pick<FormField, 'rules' | 'required'>,
 	options?: Partial<{ useRestrictSetFieldValueMode: boolean }>
 ) {
 	if (!hasContext(contextStoreKey)) {
@@ -44,6 +43,25 @@ export function initialFormItemMisc(
 		fieldDerived,
 		'required'
 	);
+	const fieldRulesDerived = contextStore.utils.getFieldPropPathValueDerived<FormField['rules']>(fieldDerived, 'rules');
+	const fieldFormRulesDerived = contextStore.utils.getFieldFormRulesDerived(condition);
+
+	// If we set required or set 'required' related rules.
+	// We need to consider that the field is required.
+	const modifiedFieldRequiredDerived = derived(
+		[fieldRequiredDerived, fieldFormRulesDerived, fieldRulesDerived],
+		function ([fieldRequired, fieldFormRules, fieldRules]) {
+			return (
+				fieldRequired ||
+				some(fieldFormRules, function (rule) {
+					return rule.required;
+				}) ||
+				some(fieldRules, function (rule) {
+					return rule.required;
+				})
+			);
+		}
+	);
 
 	const unSubscribers: Function[] = [];
 	unSubscribers.push(
@@ -68,15 +86,45 @@ export function initialFormItemMisc(
 			sub();
 		});
 	};
-	const updateFieldOtherMetrics = function updateFieldOtherMetrics(newOtherMetrics: typeof otherMetrics) {
+	const setFieldRules = function setFieldRules(rules: FormField['rules']) {
 		const field = get(fieldDerived);
 		if (!field) {
 			return;
 		}
 
-		contextStore.mutations.setFieldRequired(field, newOtherMetrics.required);
-		contextStore.mutations.setFieldRules(field, newOtherMetrics.rules);
+		contextStore.mutations.setFieldRules(field, rules);
 	};
+
+	const setFieldRequired = function setFieldRequired(required: FormField['required']) {
+		const field = get(fieldDerived);
+		if (!field) {
+			return;
+		}
+
+		contextStore.mutations.setFieldRequired(field, required);
+	};
+
+	const setFieldMounted = function setFieldMounted(mounted: FormField['mounted']) {
+		const field = get(fieldDerived);
+		if (!field) {
+			return;
+		}
+
+		contextStore.mutations.setFieldMounted(field, mounted);
+	};
+
+	// Register.
+	contextStore.mutations.registerField({
+		...condition,
+		messageInfo: undefined,
+		required: false,
+		loading: false,
+		disabled: false,
+		readonly: false,
+		validating: false,
+		mounted: false,
+		rules: []
+	});
 
 	onDestroy(function onDestroy() {
 		contextStore.mutations.unregisterField(condition);
@@ -85,15 +133,7 @@ export function initialFormItemMisc(
 	});
 
 	onMount(function onMount() {
-		contextStore.mutations.registerField({
-			...condition,
-			...otherMetrics,
-			messageInfo: undefined,
-			loading: false,
-			disabled: false,
-			readonly: false,
-			validating: false
-		});
+		setFieldMounted(true);
 
 		contextStore.utils.updateRegisteredField(condition, function setMessageInfo(field) {
 			if (!field) {
@@ -115,11 +155,16 @@ export function initialFormItemMisc(
 			readonlyDerived: fieldReadonlyDerived,
 			loadingDerived: fieldLoadingDerived,
 			validatingDerived: fieldValidatingDerived,
-			requiredDerived: fieldRequiredDerived
+			requiredDerived: modifiedFieldRequiredDerived,
+			fieldFormRulesDerived,
+			rulesDerived: fieldRulesDerived
+		},
+		mutations: {
+			setFieldRules,
+			setFieldRequired
 		},
 		utils: {
-			unsubscribe,
-			updateFieldOtherMetrics
+			unsubscribe
 		}
 	};
 }

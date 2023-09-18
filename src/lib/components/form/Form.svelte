@@ -3,24 +3,28 @@
 	import { onMount, setContext } from 'svelte';
 	import { contextStoreKey, createStore } from '$lib/components/form/context';
 	import type { FormStoreState } from '$lib/types';
+	import { FormLabelPosition } from '$lib/types';
+	import { lowerCase } from 'lodash-es';
 
 	export let name = `form-${randomString(6)}`;
 	export let model: FormStoreState['model'] = {};
-	export let labelPosition: 'top' | 'left' = 'top';
+	export let labelPosition = FormLabelPosition.Top;
+	export let rules: FormStoreState['rules'] = {};
 
 	$: dynamicClasses = calcDynamicClasses([
 		'form',
 		{
-			['form--label-pos-' + labelPosition]: labelPosition
+			['form--label-pos-' + lowerCase(labelPosition)]: labelPosition
 		},
 		$$restProps.class
 	]);
 
 	const store = createStore();
-	$: {
-		store.mutations.setName(name);
-		store.mutations.setModel(model);
-	}
+
+	$: store.mutations.setName(name);
+	$: store.mutations.setModel(model);
+	$: store.mutations.setRules(rules);
+	$: store.mutations.setLabelPosition(labelPosition);
 
 	setContext(contextStoreKey, store);
 

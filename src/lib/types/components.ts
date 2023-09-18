@@ -44,13 +44,16 @@ export interface FormItemMessageInfo {
 
 export type FormItemRules = Array<RuleItem>;
 
-export type FormItemNamedRules = Record<string, FormItemRules>;
+// Lodash.get() propPath.
+// E.g. 'user.name'
+export type FormFieldProp = string;
+
+export type FormItemNamedRules = Record<FormFieldProp, FormItemRules>;
 
 export type FormItemValue = TArrayOrPrimitive<string | number | File | undefined | null>;
 
 export type FormField = {
-	prop: string;
-	name: string;
+	prop: FormFieldProp;
 	messageInfo?: FormItemMessageInfo;
 	required: boolean;
 	loading: boolean;
@@ -58,12 +61,23 @@ export type FormField = {
 	readonly: boolean;
 	validating: boolean;
 	rules: FormItemRules;
+	mounted: boolean;
+
+	// Still and uniq.
+	name: string;
 };
 
+export enum FormLabelPosition {
+	Top = 'Top',
+	'Left' = 'Left'
+}
+
 export interface FormStoreState {
+	labelPosition: FormLabelPosition;
 	name: string; // Form name.
-	model: Record<string, FormItemValue>;
+	model: Record<FormFieldProp, FormItemValue>; // Can be Deep level data.
 	fields: Array<FormField>;
+	rules: FormItemNamedRules;
 }
 
 export type FormFieldPicker = Partial<Pick<TArrayMember<FormStoreState['fields']>, 'name' | 'prop'>>;

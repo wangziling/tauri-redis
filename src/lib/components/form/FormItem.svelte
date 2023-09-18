@@ -2,39 +2,34 @@
 	import { calcDynamicClasses, randomString } from '$lib/utils/calculators';
 	import type { FormField } from '$lib/types';
 	import { lowerCase } from 'lodash-es';
-	import { tick } from 'svelte';
 	import { initialFormItemMisc } from '$lib/components/form/utils';
 
 	export let label = '';
 	export let prop = '';
 	export let required = false;
-	export let name = `form-item-fake-name-${randomString(6)}`;
+	// This is a high-priority rules.
+	// It will be used no matter whether we set the form rules or not.
 	export let rules: FormField['rules'] = [];
 
-	const formItemMisc = initialFormItemMisc({ prop, name }, { required, rules });
+	// Name is for the internal use.
+	const name = `form-item-fake-name-${randomString(6)}`;
+	const formItemMisc = initialFormItemMisc({ prop, name });
 
-	const { messageInfoDerived, loadingDerived, validatingDerived, disabledDerived, readonlyDerived, requiredDerived } =
-		formItemMisc.state;
+	const {
+		messageInfoDerived,
+		loadingDerived,
+		validatingDerived,
+		disabledDerived,
+		readonlyDerived,
+		requiredDerived,
+		fieldFormRulesDerived,
+		rulesDerived
+	} = formItemMisc.state;
 
 	$: isMessageInfoValid = !!($messageInfoDerived && $messageInfoDerived.message);
 
-	$: innerRules = required
-		? rules.some(function (rule) {
-				return rule.required;
-		  })
-			? rules
-			: (rules.push({ required: true }), rules)
-		: rules;
-
-	$: innerRequired = rules.some(function (rule) {
-		return rule.required;
-	});
-
-	$: {
-		tick().then(function updateFieldOtherMetrics() {
-			formItemMisc.utils.updateFieldOtherMetrics({ rules: innerRules, required: innerRequired });
-		});
-	}
+	$: formItemMisc.mutations.setFieldRequired(required);
+	$: formItemMisc.mutations.setFieldRules(rules);
 
 	$: dynamicClasses = calcDynamicClasses([
 		'form-item',
