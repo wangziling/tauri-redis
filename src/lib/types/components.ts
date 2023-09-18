@@ -1,4 +1,5 @@
 import type { RuleItem } from 'async-validator/dist-types/interface';
+import type { TArrayOrPrimitive } from '$lib/types/base';
 
 export interface SelectOptionItem {
 	label: string;
@@ -44,17 +45,23 @@ export interface FormItemMessageInfo {
 export type FormItemRules = Array<RuleItem>;
 
 export type FormItemNamedRules = Record<string, FormItemRules>;
+
+export type FormItemValue = TArrayOrPrimitive<string | number | File | undefined | null>;
+
 export type FormField = {
 	prop: string;
 	name: string;
 	messageInfo?: FormItemMessageInfo;
 	required: boolean;
 	loading: boolean;
+	disabled: boolean;
+	readonly: boolean;
+	validating: boolean;
 	rules: FormItemRules;
 };
 
 export interface FormStoreState {
 	name: string; // Form name.
-	model: Record<string, any>;
+	model: Record<string, FormItemValue>;
 	fields: Array<FormField>;
 }
