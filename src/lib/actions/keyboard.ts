@@ -21,9 +21,7 @@ export type ActionsKeyboardReturnParams = {
 };
 
 export type ActionsKeyboardAttributes = {
-	[key in ActionsKeyboardAttributesEventName]: (
-		e: CustomEvent<ActionsKeyboardReturnParams>
-	) => void;
+	[key in ActionsKeyboardAttributesEventName]: (e: CustomEvent<ActionsKeyboardReturnParams>) => void;
 };
 
 type ActionsKeyboardHandlerItem = ActionsKeyboardParams & {
@@ -36,17 +34,13 @@ export const keyboard: Action<
 	ActionsKeyboardAttributes
 > = function keyboard(node, params) {
 	const initialize = function initialize(options: TArrayOrPrimitive<ActionsKeyboardParams>) {
-		const config = cloneDeep(
-			uniqWith(([] as any[]).concat(options), isMatch)
-		) as Array<ActionsKeyboardHandlerItem>;
+		const config = cloneDeep(uniqWith(([] as any[]).concat(options), isMatch)) as Array<ActionsKeyboardHandlerItem>;
 
 		const handlerGenerator = function handlerGenerator(p: ActionsKeyboardHandlerItem) {
 			p._$_handle_$_ = function handler(e: KeyboardEvent) {
 				if (p.key) {
 					if (p.key === e.key) {
-						node.dispatchEvent(
-							new CustomEvent(`keyboard${capitalize(p.type)}`, { detail: { e, config: p } })
-						);
+						node.dispatchEvent(new CustomEvent(`keyboard${capitalize(p.type)}`, { detail: { e, config: p } }));
 					}
 
 					return;
@@ -54,17 +48,13 @@ export const keyboard: Action<
 
 				if (p.keyCode) {
 					if (p.keyCode === e.keyCode) {
-						node.dispatchEvent(
-							new CustomEvent(`keyboard${capitalize(p.type)}`, { detail: { e, config: p } })
-						);
+						node.dispatchEvent(new CustomEvent(`keyboard${capitalize(p.type)}`, { detail: { e, config: p } }));
 					}
 
 					return;
 				}
 
-				node.dispatchEvent(
-					new CustomEvent(`keyboard${capitalize(p.type)}`, { detail: { e, config: p } })
-				);
+				node.dispatchEvent(new CustomEvent(`keyboard${capitalize(p.type)}`, { detail: { e, config: p } }));
 			};
 
 			return p._$_handle_$_;

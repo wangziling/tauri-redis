@@ -87,10 +87,7 @@
 			{#each grepedOptions as option}
 				{@const isOptionValid = judgeOptionInvalid(option)}
 				{#if isOptionValid || !hideInvalidOptions}
-					<div
-						class={calcSelectOptionClass(option)}
-						on:click={handleChooseOptionItem.bind(this, option)}
-					>
+					<div class={calcSelectOptionClass(option)} on:click={handleChooseOptionItem.bind(this, option)}>
 						{@html option.label}
 					</div>
 				{/if}

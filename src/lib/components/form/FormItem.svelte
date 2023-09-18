@@ -3,11 +3,7 @@
 	import type { FormField, FormItemMessageInfo } from '$lib/types';
 	import { lowerCase } from 'lodash-es';
 	import { getContext, onDestroy, onMount } from 'svelte';
-	import {
-		contextStoreKey,
-		type createStore,
-		getFieldPropPathValue
-	} from '$lib/components/form/context';
+	import { contextStoreKey, type createStore, getFieldPropPathValue } from '$lib/components/form/context';
 
 	export let label = '';
 	export let prop = '';

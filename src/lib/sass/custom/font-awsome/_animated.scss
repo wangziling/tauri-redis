@@ -16,10 +16,7 @@
 	animation-direction: var(--#{$fa-css-prefix}-animation-direction, normal);
 	animation-duration: var(--#{$fa-css-prefix}-animation-duration, 1s);
 	animation-iteration-count: var(--#{$fa-css-prefix}-animation-iteration-count, infinite);
-	animation-timing-function: var(
-		--#{$fa-css-prefix}-animation-timing,
-		cubic-bezier(0.28, 0.84, 0.42, 1)
-	);
+	animation-timing-function: var(--#{$fa-css-prefix}-animation-timing, cubic-bezier(0.28, 0.84, 0.42, 1));
 }
 
 .#{$fa-css-prefix}-fade {
@@ -28,10 +25,7 @@
 	animation-direction: var(--#{$fa-css-prefix}-animation-direction, normal);
 	animation-duration: var(--#{$fa-css-prefix}-animation-duration, 1s);
 	animation-iteration-count: var(--#{$fa-css-prefix}-animation-iteration-count, infinite);
-	animation-timing-function: var(
-		--#{$fa-css-prefix}-animation-timing,
-		cubic-bezier(0.4, 0, 0.6, 1)
-	);
+	animation-timing-function: var(--#{$fa-css-prefix}-animation-timing, cubic-bezier(0.4, 0, 0.6, 1));
 }
 
 .#{$fa-css-prefix}-beat-fade {
@@ -40,10 +34,7 @@
 	animation-direction: var(--#{$fa-css-prefix}-animation-direction, normal);
 	animation-duration: var(--#{$fa-css-prefix}-animation-duration, 1s);
 	animation-iteration-count: var(--#{$fa-css-prefix}-animation-iteration-count, infinite);
-	animation-timing-function: var(
-		--#{$fa-css-prefix}-animation-timing,
-		cubic-bezier(0.4, 0, 0.6, 1)
-	);
+	animation-timing-function: var(--#{$fa-css-prefix}-animation-timing, cubic-bezier(0.4, 0, 0.6, 1));
 }
 
 .#{$fa-css-prefix}-flip {

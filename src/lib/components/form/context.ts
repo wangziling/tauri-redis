@@ -1,10 +1,5 @@
 import { derived, get, type readable, writable } from 'svelte/store';
-import type {
-	FormItemNamedRules,
-	FormStoreState,
-	TArrayMember,
-	TArrayOrPrimitive
-} from '$lib/types';
+import type { FormItemNamedRules, FormStoreState, TArrayMember, TArrayOrPrimitive } from '$lib/types';
 import { isEmpty, isMatch, assign, get as lodashGet } from 'lodash-es';
 import Schema, { type ValidateOption } from 'async-validator';
 import type { ValidateCallback } from 'async-validator/dist-types/interface';
@@ -21,10 +16,7 @@ export function findRegisteredField(state: FormStoreState, condition: FormFieldP
 	});
 }
 
-export function filterRegisteredFields(
-	state: FormStoreState,
-	conditions: TArrayOrPrimitive<FormFieldPicker>
-) {
+export function filterRegisteredFields(state: FormStoreState, conditions: TArrayOrPrimitive<FormFieldPicker>) {
 	return ([] as Array<FormFieldPicker>)
 		.concat(conditions)
 		.map(function (cdt) {
@@ -46,9 +38,7 @@ export function generateRulesValidator(rules: FormItemNamedRules) {
 }
 
 export function generateFieldRuleValidator(fields: TArrayOrPrimitive<FormStoreState['fields']>) {
-	const usedFields = Array.isArray(fields)
-		? fields
-		: ([] as FormStoreState['fields']).concat(fields);
+	const usedFields = Array.isArray(fields) ? fields : ([] as FormStoreState['fields']).concat(fields);
 
 	const rules = {} as FormItemNamedRules;
 	usedFields.forEach(function mapUsedFields(field) {

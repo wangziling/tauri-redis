@@ -64,15 +64,8 @@
 	}
 </script>
 
-<svelte:window
-	use:keyboard={{ key: 'Escape', type: 'keyup' }}
-	on:keyboardKeyup={handleWindowKeyup}
-/>
-<dialog
-	class={dynamicClasses}
-	use:focusWhenMount={{ condition: shown && focusWhenShown }}
-	open={shown}
->
+<svelte:window use:keyboard={{ key: 'Escape', type: 'keyup' }} on:keyboardKeyup={handleWindowKeyup} />
+<dialog class={dynamicClasses} use:focusWhenMount={{ condition: shown && focusWhenShown }} open={shown}>
 	<div class="dialog-wrapper" use:clickOutside on:outside={handleClickOutside}>
 		<div class="dialog-header">
 			<div class="dialog-header-wrapper">

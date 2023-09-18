@@ -29,9 +29,7 @@ export type FormItemMessageReason =
 			[key: string]: any;
 	  }
 	| {
-			type:
-				| FormItemMessageReasonType.FormValidation
-				| FormItemMessageReasonType.FormFieldValidation;
+			type: FormItemMessageReasonType.FormValidation | FormItemMessageReasonType.FormFieldValidation;
 			metrics: {
 				rule: any;
 			};
