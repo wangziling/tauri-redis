@@ -1,20 +1,21 @@
-import type { FormField, FormFieldPicker } from '$lib/types';
-import { createEventDispatcher, getContext, hasContext, onDestroy, onMount } from 'svelte';
+import type { FormField, FormFieldPicker, FormItemValue } from '$lib/types';
+import { getContext, hasContext, onDestroy, onMount } from 'svelte';
 import { contextItemStoreKey, contextStoreKey, createItemStore, createStore } from '$lib/components/form/context';
-import { derived, get } from 'svelte/store';
-import { get as lodashGet, some } from 'lodash-es';
+import { derived, get, type Readable } from 'svelte/store';
+import { some, get as lodashGet } from 'lodash-es';
+import type { FormRuleTrigger } from '$lib/types';
 
 export function initialFormItemMisc(
 	condition: Required<FormFieldPicker>,
-	options?: Partial<{ useRestrictSetFieldValueMode: boolean }>
+	options?: Partial<{ useRestrictSetFieldValueMode: Readable<boolean> }>
 ) {
 	if (!hasContext(contextStoreKey)) {
 		return;
 	}
 
-	const dispatcher = createEventDispatcher();
-
 	const contextStore = getContext(contextStoreKey) as ReturnType<typeof createStore>;
+	const formUseRestrictSetFieldValueMode = contextStore.getters.useRestrictSetFieldValueMode;
+
 	const fieldDerived = contextStore.utils.getRegisteredFieldDerived(condition);
 
 	const fieldValueDerived = contextStore.utils.getFieldFormModelValueDerived(condition);
@@ -64,23 +65,6 @@ export function initialFormItemMisc(
 	);
 
 	const unSubscribers: Function[] = [];
-	unSubscribers.push(
-		fieldValueDerived.subscribe(function setFieldValue(value) {
-			if (lodashGet(options, 'useRestrictSetFieldValueMode')) {
-				if (
-					get(fieldDisabledDerived) ||
-					get(fieldReadonlyDerived) ||
-					get(fieldLoadingDerived) ||
-					get(fieldValidatingDerived)
-				) {
-					return;
-				}
-			}
-
-			dispatcher('setFieldValue', { ...condition, value });
-		})
-	);
-
 	const unsubscribe = function unsubscriber() {
 		unSubscribers.forEach(function (sub) {
 			sub();
@@ -111,6 +95,58 @@ export function initialFormItemMisc(
 		}
 
 		contextStore.mutations.setFieldMounted(field, mounted);
+	};
+
+	const handleFieldFocus = function handleFieldFocus(e: Event) {
+		const field = get(fieldDerived);
+		if (!field) {
+			return;
+		}
+
+		return contextStore.events.handleFieldFocus({ name: field.name });
+	};
+
+	const handleFieldBlur = function handleFieldBlur(e: Event) {
+		const field = get(fieldDerived);
+		if (!field) {
+			return;
+		}
+
+		return contextStore.events.handleFieldBlur({ name: field.name });
+	};
+
+	const handleFieldSetValue = function handleFieldSetValue(
+		curValue: FormItemValue,
+		trigger: FormRuleTrigger.Input | FormRuleTrigger.Change
+	) {
+		const field = get(fieldDerived);
+		if (!field) {
+			return;
+		}
+
+		// If set. Cannot update field data when 'disabled', 'readonly', 'loading' and 'validating'.
+		const isForciblySetFieldValue = [
+			formUseRestrictSetFieldValueMode,
+			lodashGet(options, 'useRestrictSetFieldValueMode')
+		].every(function (enabled) {
+			if (!enabled) {
+				return true;
+			}
+
+			return get(enabled);
+		});
+		if (isForciblySetFieldValue) {
+			if (
+				get(fieldDisabledDerived) ||
+				get(fieldReadonlyDerived) ||
+				get(fieldLoadingDerived) ||
+				get(fieldValidatingDerived)
+			) {
+				return;
+			}
+		}
+
+		return contextStore.events.handleSetFieldValue({ prop: field.prop }, curValue, get(fieldValueDerived), { trigger });
 	};
 
 	// Register.
@@ -167,37 +203,30 @@ export function initialFormItemMisc(
 		},
 		utils: {
 			unsubscribe
+		},
+		events: {
+			handleFieldFocus,
+			handleFieldBlur,
+			handleFieldSetValue
 		}
 	};
 }
 
-export function initialFormItemFieldMisc(type: string) {
+export function initialFormItemFieldMisc(options: { fieldType: string }) {
 	if (!hasContext(contextItemStoreKey)) {
 		return;
 	}
 
 	const contextItemStore = getContext(contextItemStoreKey) as ReturnType<typeof createItemStore>;
-	if (contextItemStore) {
+	if (!contextItemStore) {
 		return;
 	}
 
-	const name = contextItemStore.getters.name;
-
-	const handleFieldFocus = function handleFieldFocus() {};
-
-	const handleFieldBlur = function handleFieldBlur() {};
-
-	const handleFieldSetValue = function handleFieldSetValue() {};
-
 	return {
 		state: {
+			name: contextItemStore.getters.name,
 			bindings: contextItemStore.getters.bindings
 		},
-		mutations: {},
-		utils: {
-			handleFieldFocus,
-			handleFieldBlur,
-			handleFieldSetValue
-		}
+		events: contextItemStore.getters.events
 	};
 }

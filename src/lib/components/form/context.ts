@@ -5,7 +5,9 @@ import type {
 	FormItemNamedRules,
 	FormItemRules,
 	FormItemStoreState,
+	FormItemValue,
 	FormRuleItem,
+	FormStoreOptions,
 	FormStoreState,
 	FormValidatePromiseError,
 	PropWritable,
@@ -113,13 +115,14 @@ export function generateRulesValidator(rules: FormItemNamedRules) {
 	return new Schema(rules);
 }
 
-export const createStore = function createStore() {
+export const createStore = function createStore(options: FormStoreOptions) {
 	const store = {
 		name: writable(''),
 		fields: writable([]),
 		model: writable({}),
 		rules: writable({}),
-		labelPosition: writable(FormLabelPosition.Top)
+		labelPosition: writable(FormLabelPosition.Top),
+		useRestrictSetFieldValueMode: writable(false)
 	} as PropWritable<FormStoreState>;
 
 	const mutations = {
@@ -134,6 +137,9 @@ export const createStore = function createStore() {
 		},
 		setLabelPosition(payload: FormStoreState['labelPosition']) {
 			store.labelPosition.set(payload);
+		},
+		setUseRestrictSetFieldValueMode(payload: FormStoreState['useRestrictSetFieldValueMode']) {
+			store.useRestrictSetFieldValueMode.set(payload);
 		},
 		registerField(payload: TArrayMember<FormStoreState['fields']>) {
 			store.fields.update(function registerField(fields) {
@@ -246,12 +252,22 @@ export const createStore = function createStore() {
 
 				return fields;
 			});
+		},
+		setFieldValue(fieldProp: TArrayMember<FormStoreState['fields']>['prop'], curValue: FormItemValue) {
+			store.model.update(function (model) {
+				lodashSet(model, fieldProp, curValue);
+				return model;
+			});
 		}
 	};
 
 	const actions = {};
 
-	const getters = {};
+	const getters = {
+		useRestrictSetFieldValueMode: derived(store.useRestrictSetFieldValueMode, function (useRestrictSetFieldValueMode) {
+			return useRestrictSetFieldValueMode;
+		})
+	};
 
 	const utils = {
 		updateRegisteredField(
@@ -323,19 +339,33 @@ export const createStore = function createStore() {
 				}
 			);
 
-			return validatorUtils.validator.validate(get(store.model), options, callback).then(function (model) {
-				return {
-					model, // It returns the model which we sent in.
-					rules: validatorUtils.rules,
-					fields: validatorUtils.fields
-				};
-			});
+			return validatorUtils.validator
+				.validate(get(store.model), options, callback)
+				.then(function (model) {
+					validatorUtils.fields.forEach(function (field) {
+						mutations.setFieldValidating(field, false);
+					});
+
+					return {
+						model, // It returns the model which we sent in.
+						rules: validatorUtils.rules,
+						fields: validatorUtils.fields
+					};
+				})
+				.catch(function (e) {
+					validatorUtils.fields.forEach(function (field) {
+						mutations.setFieldValidating(field, false);
+					});
+					throw e;
+				});
 		},
 		validateFields(
 			conditions: TArrayOrPrimitive<FormFieldPicker>,
 			callback?: ValidateCallback,
 			options?: ValidateOption,
-			ruleOptions?: Partial<{ trigger: FormRuleItem['trigger'] }>
+			ruleOptions?: Partial<{
+				trigger: FormRuleItem['trigger'];
+			}>
 		) {
 			const validatorUtils = generateFieldRuleValidatorUtils(
 				get(store.rules),
@@ -346,13 +376,25 @@ export const createStore = function createStore() {
 				ruleOptions
 			);
 
-			return validatorUtils.validator.validate(get(store.model), options, callback).then(function (model) {
-				return {
-					model, // It returns the model which we sent in.
-					rules: validatorUtils.rules,
-					fields: validatorUtils.fields
-				};
-			});
+			return validatorUtils.validator
+				.validate(get(store.model), options, callback)
+				.then(function (model) {
+					validatorUtils.fields.forEach(function (field) {
+						mutations.setFieldValidating(field, false);
+					});
+
+					return {
+						model, // It returns the model which we sent in.
+						rules: validatorUtils.rules,
+						fields: validatorUtils.fields
+					};
+				})
+				.catch(function (e) {
+					validatorUtils.fields.forEach(function (field) {
+						mutations.setFieldValidating(field, false);
+					});
+					throw e;
+				});
 		},
 		getFieldFormModelValue(condition: FormFieldPicker) {
 			const model = get(store.model);
@@ -383,6 +425,27 @@ export const createStore = function createStore() {
 		}
 	};
 
+	const dispatches = {
+		dispatchValidateField(
+			fieldProp: FormField['prop'],
+			isValid: boolean,
+			error: null | Pick<FormField['messageInfo'], 'message' | 'type'>
+		) {
+			return options.dispatchCallback('validateField', {
+				prop: fieldProp,
+				isValid,
+				error
+			});
+		},
+		dispatchChangeFieldValue(fieldProp: FormField['prop'], curValue: FormItemValue, oldValue: FormItemValue) {
+			return options.dispatchCallback('changeFieldValue', {
+				prop: fieldProp,
+				curValue,
+				oldValue
+			});
+		}
+	};
+
 	const events = {
 		handleValidate(...args: Parameters<(typeof utils)['validate']>) {
 			const [callback, options] = args;
@@ -398,6 +461,9 @@ export const createStore = function createStore() {
 					// Try to clear.
 					fields.forEach(function (field) {
 						mutations.setFieldMessageInfo(field, undefined);
+
+						// Propagation.
+						dispatches.dispatchValidateField(field.prop, true, null);
 					});
 
 					return res;
@@ -408,15 +474,19 @@ export const createStore = function createStore() {
 					}
 
 					e.errors.forEach(function (err) {
-						if (!err.field) {
+						const prop = err.field;
+						if (!prop) {
 							return;
 						}
 
-						utils.updateRegisteredField({ prop: err.field }, function setMessageInfo(field) {
-							if (!field) {
-								return;
-							}
+						// Propagation.
+						dispatches.dispatchValidateField(prop, false, {
+							type: FormItemMessageType.Error,
+							message: err.message
+						});
 
+						// Record.
+						utils.updateRegisteredField({ prop }, function setMessageInfo(field) {
 							field.messageInfo = {
 								type: FormItemMessageType.Error,
 								message: err.message,
@@ -444,6 +514,9 @@ export const createStore = function createStore() {
 					// Try to clear.
 					fields.forEach(function (field) {
 						mutations.setFieldMessageInfo(field, undefined);
+
+						// Propagation.
+						dispatches.dispatchValidateField(field.prop, true, null);
 					});
 
 					return res;
@@ -454,11 +527,18 @@ export const createStore = function createStore() {
 					}
 
 					e.errors.forEach(function (err) {
-						if (!err.field) {
+						const prop = err.field;
+						if (!prop) {
 							return;
 						}
 
-						utils.updateRegisteredField({ prop: err.field }, function setMessageInfo(field) {
+						// Propagation.
+						dispatches.dispatchValidateField(prop, false, {
+							type: FormItemMessageType.Error,
+							message: err.message
+						});
+
+						utils.updateRegisteredField({ prop }, function setMessageInfo(field) {
 							if (!field) {
 								return;
 							}
@@ -476,15 +556,40 @@ export const createStore = function createStore() {
 					throw e;
 				});
 		},
-		handleSetFieldValue(condition: FormFieldPicker, options?: Pick<FormRuleItem, 'trigger'>) {
+		handleSetFieldValue(
+			condition: FormFieldPicker & {
+				prop: TArrayMember<FormStoreState['fields']>['prop'];
+			},
+			curValue: FormItemValue,
+			oldValue: FormItemValue,
+			options?: Pick<FormRuleItem, 'trigger'>
+		) {
+			// Set value.
+			mutations.setFieldValue(condition.prop, curValue);
+
+			// Dispatch.
+			dispatches.dispatchChangeFieldValue(condition.prop, curValue, oldValue);
+
 			// Trigger validation.
-			return events.handleValidateFields(condition, undefined, undefined, { trigger: lodashGet(options, 'trigger') });
+			return events
+				.handleValidateFields(condition, undefined, undefined, { trigger: lodashGet(options, 'trigger') })
+				.catch(function (e) {
+					return;
+				});
 		},
 		handleFieldBlur(condition: FormFieldPicker) {
-			return events.handleValidateFields(condition, undefined, undefined, { trigger: FormRuleTrigger.Blur });
+			return events
+				.handleValidateFields(condition, undefined, undefined, { trigger: FormRuleTrigger.Blur })
+				.catch(function (e) {
+					return;
+				});
 		},
 		handleFieldFocus(condition: FormFieldPicker) {
-			return events.handleValidateFields(condition, undefined, undefined, { trigger: FormRuleTrigger.Focus });
+			return events
+				.handleValidateFields(condition, undefined, undefined, { trigger: FormRuleTrigger.Focus })
+				.catch(function (e) {
+					return;
+				});
 		},
 		handleSetFieldLoading(...args: Parameters<(typeof mutations)['setFieldLoading']>) {
 			return mutations.setFieldLoading(...args);
@@ -496,7 +601,8 @@ export const createStore = function createStore() {
 		actions,
 		getters,
 		utils,
-		events
+		events,
+		dispatches
 	};
 
 	return new Proxy(target, {
@@ -510,28 +616,35 @@ export const contextStoreKey = Symbol('formContext');
 
 export const createItemStore = function createItemStore() {
 	const store = {
-		name: writable(''),
-		bindings: writable({})
-	} as PropWritable<FormItemStoreState>;
+		name: '',
+		bindings: {},
+		events: {}
+	} as FormItemStoreState;
 
 	const mutations = {
 		setName(payload: FormItemStoreState['name']) {
-			store.name.set(payload);
+			store.name = payload;
 		},
 		setBindings(payload: FormItemStoreState['bindings']) {
-			store.bindings.set(payload);
+			store.bindings = payload;
+		},
+		setEvents(payload: FormItemStoreState['events']) {
+			store.events = payload;
 		}
 	};
 
 	const actions = {};
 
 	const getters = {
-		bindings: derived(store.bindings, function (bindings) {
-			return bindings;
-		}),
-		name: derived(store.name, function (name) {
-			return name;
-		})
+		get bindings() {
+			return store.bindings;
+		},
+		get name() {
+			return store.name;
+		},
+		get events() {
+			return store.events;
+		}
 	};
 
 	const utils = {};

@@ -1,5 +1,6 @@
 import type { RuleItem, ValidateError, ValidateFieldsError, Values } from 'async-validator/dist-types/interface';
 import type { TArrayOrPrimitive, TArrayMember, PropReadable } from '$lib/types';
+import type { createEventDispatcher } from 'svelte';
 
 export interface SelectOptionItem {
 	label: string;
@@ -90,18 +91,29 @@ export interface FormStoreState {
 	model: Record<FormFieldProp, FormItemValue>; // Can be Deep level data.
 	fields: Array<FormField>;
 	rules: FormItemNamedRules;
+	useRestrictSetFieldValueMode: boolean;
 }
 
 export type FormFieldPicker = Partial<Pick<TArrayMember<FormStoreState['fields']>, 'name' | 'prop'>>;
 
+export interface FormStoreOptions {
+	dispatchCallback: ReturnType<typeof createEventDispatcher>;
+}
+
 export type FormItemStoreState = {
-	name: FormField['name']; // Field name.
+	// Field name.
+	name: FormField['name'];
+	// Here will be Readonly.
 	bindings: PropReadable<
 		{
-			// Here will be Readonly.
 			value: FormItemValue;
 		} & Pick<FormField, 'loading' | 'readonly' | 'disabled' | 'validating' | 'prop'>
 	>;
+	events: {
+		handleFieldFocus: (e: Event) => any;
+		handleFieldBlur: (e: Event) => any;
+		handleFieldSetValue: (curValue: FormItemValue, trigger: FormRuleTrigger.Change | FormRuleTrigger.Input) => any;
+	};
 };
 
 export type FormValidatePromiseError = Error & {

@@ -5,6 +5,7 @@
 	import { initialFormItemMisc } from '$lib/components/form/utils';
 	import { contextItemStoreKey, createItemStore } from '$lib/components/form/context';
 	import { setContext } from 'svelte';
+	import { readable } from 'svelte/store';
 
 	export let label = '';
 	export let prop = '';
@@ -12,10 +13,16 @@
 	// This is a high-priority rules.
 	// It will be used no matter whether we set the form rules or not.
 	export let rules: FormField['rules'] = [];
+	export let useRestrictSetFieldValueMode: boolean = true;
 
 	// Name is for the internal use.
 	const name = `form-item-fake-name-${randomString(6)}`;
-	const formItemMisc = initialFormItemMisc({ prop, name });
+
+	const readableUseRestrictSetFieldValueMode = readable(useRestrictSetFieldValueMode);
+	const formItemMisc = initialFormItemMisc(
+		{ prop, name },
+		{ useRestrictSetFieldValueMode: readableUseRestrictSetFieldValueMode }
+	);
 
 	const {
 		propDerived,
@@ -59,6 +66,11 @@
 		disabled: disabledDerived,
 		loading: loadingDerived,
 		prop: propDerived
+	});
+	$: contextItemStore.mutations.setEvents({
+		handleFieldBlur: formItemMisc.events.handleFieldBlur,
+		handleFieldFocus: formItemMisc.events.handleFieldFocus,
+		handleFieldSetValue: formItemMisc.events.handleFieldSetValue
 	});
 
 	setContext(contextItemStoreKey, contextItemStore);

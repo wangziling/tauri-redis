@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { calcDynamicClasses, randomString } from '$lib/utils/calculators';
-	import { onMount, setContext } from 'svelte';
+	import { createEventDispatcher, onMount, setContext } from 'svelte';
 	import { contextStoreKey, createStore } from '$lib/components/form/context';
 	import type { FormStoreState } from '$lib/types';
 	import { FormLabelPosition } from '$lib/types';
@@ -9,6 +9,7 @@
 	export let name = `form-${randomString(6)}`;
 	export let model: FormStoreState['model'] = {};
 	export let labelPosition = FormLabelPosition.Top;
+	export let useRestrictSetFieldValueMode: boolean = true;
 	export let rules: FormStoreState['rules'] = {};
 
 	$: dynamicClasses = calcDynamicClasses([
@@ -19,12 +20,18 @@
 		$$restProps.class
 	]);
 
-	const store = createStore();
+	const dispatch = createEventDispatcher();
+	const dispatchCallback: typeof dispatch = function dispatchCallback(...args) {
+		return dispatch(...args);
+	};
+
+	const store = createStore({ dispatchCallback });
 
 	$: store.mutations.setName(name);
 	$: store.mutations.setModel(model);
 	$: store.mutations.setRules(rules);
 	$: store.mutations.setLabelPosition(labelPosition);
+	$: store.mutations.setUseRestrictSetFieldValueMode(useRestrictSetFieldValueMode);
 
 	setContext(contextStoreKey, store);
 
