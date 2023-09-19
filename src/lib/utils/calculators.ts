@@ -7,6 +7,10 @@ export function randomString(len: number) {
 	}).join('');
 }
 
+export function calcRandomCompNameSuffix() {
+	return randomString(8);
+}
+
 export function calcDynamicClasses(params: CalcDynamicClassesParams) {
 	if (typeof params === 'string' && params) {
 		return params;

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { calcDynamicClasses, randomString } from '$lib/utils/calculators';
+	import { calcDynamicClasses, calcRandomCompNameSuffix } from '$lib/utils/calculators';
 	import type { FormField } from '$lib/types';
 	import { lowerCase } from 'lodash-es';
 	import { initialFormItemMisc } from '$lib/components/form/utils';
@@ -16,7 +16,7 @@
 	export let useRestrictSetFieldValueMode: boolean = true;
 
 	// Name is for the internal use.
-	const name = `form-item-fake-name-${randomString(6)}`;
+	const name = `form-item-${calcRandomCompNameSuffix()}`;
 
 	const readableUseRestrictSetFieldValueMode = readable(useRestrictSetFieldValueMode);
 	const formItemMisc = initialFormItemMisc(

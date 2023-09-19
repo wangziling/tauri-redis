@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { calcDynamicClasses, randomString } from '$lib/utils/calculators';
+	import { calcDynamicClasses, calcRandomCompNameSuffix } from '$lib/utils/calculators';
 
-	export let name = `checkbox-${randomString(6)}`;
+	export let name = `checkbox-${calcRandomCompNameSuffix()}`;
 	export let label = '';
 
 	$: dynamicClasses = calcDynamicClasses(['checkbox', $$restProps.class]);

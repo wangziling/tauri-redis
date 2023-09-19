@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { calcDynamicClasses, randomString } from '$lib/utils/calculators';
+	import { calcDynamicClasses, calcRandomCompNameSuffix } from '$lib/utils/calculators';
 	import { createEventDispatcher } from 'svelte';
 	import { initialFormItemFieldMisc } from '$lib/components/form/utils';
 	import { FormRuleTrigger } from '$lib/types';
@@ -13,7 +13,7 @@
 	// Consider that the component is a pure component. Will not straightly manipulate the props.
 	export let value = '';
 	export let type = 'text';
-	export let name = `input-${randomString(6)}`;
+	export let name = `input-${calcRandomCompNameSuffix()}`;
 
 	const formItemFieldMisc = initialFormItemFieldMisc({ fieldType: 'input' });
 

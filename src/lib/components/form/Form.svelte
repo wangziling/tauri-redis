@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { calcDynamicClasses, randomString } from '$lib/utils/calculators';
+	import { calcDynamicClasses, calcRandomCompNameSuffix } from '$lib/utils/calculators';
 	import { createEventDispatcher, onMount, setContext } from 'svelte';
 	import { contextStoreKey, createStore } from '$lib/components/form/context';
 	import type { FormStoreState } from '$lib/types';
 	import { FormLabelPosition } from '$lib/types';
 	import { lowerCase } from 'lodash-es';
 
-	export let name = `form-${randomString(6)}`;
+	export let name = `form-${calcRandomCompNameSuffix()}`;
 	export let model: FormStoreState['model'] = {};
 	export let labelPosition = FormLabelPosition.Top;
 	export let useRestrictSetFieldValueMode: boolean = true;

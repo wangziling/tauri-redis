@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { calcDynamicClasses, randomString } from '$lib/utils/calculators';
+	import { calcDynamicClasses, calcRandomCompNameSuffix } from '$lib/utils/calculators';
 	import type { SelectOptionItem, SelectOptions } from '$lib/types';
 	import { createEventDispatcher } from 'svelte';
 	import Input from '$lib/components/Input.svelte';
@@ -9,7 +9,7 @@
 
 	export let disabled = false;
 	export let readonly = disabled;
-	export let name = `input-${randomString(6)}`;
+	export let name = `select-${calcRandomCompNameSuffix()}`;
 	export let searchPlaceholder = 'Search...';
 	export let searchable = false;
 	export let defaultOptionVisible = false;
