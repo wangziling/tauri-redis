@@ -1,15 +1,3 @@
-:root {
-	--input-padding: 1.2rem 1.5rem;
-}
-
-input,
-textarea {
-	outline: 0;
-	padding: var(--input-padding);
-	border-radius: var(--base-border-radius);
-	border-width: 1px;
-}
-
 p {
 	margin-bottom: 1rem;
 }
