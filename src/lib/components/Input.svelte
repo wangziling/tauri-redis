@@ -49,7 +49,6 @@
 	$: innerReadonly = miscReadonly || readonly;
 	$: innerLoading = miscLoading || loading;
 
-
 	$: dynamicClasses = calcDynamicClasses([
 		'input',
 		{
