@@ -1,3 +1,94 @@
+:root {
+	--input-padding: 1.2rem 1.5rem;
+	--input-operation-color: #{$color-grey-dark};
+	--input-operation-active-color: #{$color-grey-dark-3};
+}
+
 .input {
 	display: inline-block;
+
+	input,
+	textarea {
+		display: block; // Use this to avoid the textarea default `margin-bottom: 4px;`
+		width: 100%;
+		background-color: transparent;
+		border: 0;
+	}
+
+	input {
+		padding: 0;
+	}
+
+	&-wrapper {
+		display: flex;
+		align-items: center;
+		border: 1px solid var(--input-border-color);
+		border-radius: var(--base-border-radius);
+		padding: var(--input-padding);
+	}
+
+	&__input,
+	&__textarea {
+		overflow: hidden;
+		flex-grow: 1;
+		position: relative;
+	}
+
+	&__prefix,
+	&__suffix {
+		height: 100%;
+
+		> * + * {
+			margin-left: 0.5rem;
+		}
+
+		&:empty {
+			display: none;
+		}
+	}
+
+	&__prefix {
+		margin-right: 0.5rem;
+	}
+
+	&__suffix {
+		margin-left: 0.5rem;
+	}
+
+	&__operation {
+		cursor: pointer;
+		color: var(--input-operation-color);
+		user-select: none;
+
+		&:hover,
+		&:focus {
+			color: var(--input-operation-active-color);
+		}
+	}
+
+	&__operation-group {
+		user-select: none;
+
+		> * + * {
+			margin-left: 0.5rem;
+		}
+	}
+
+	&--resizable {
+		textarea {
+			resize: vertical;
+		}
+	}
+
+	&--type-textarea {
+		.input-wrapper {
+			padding: 0;
+		}
+	}
+
+	&--invalid-num {
+		.input__input-el {
+			text-decoration: line-through;
+		}
+	}
 }

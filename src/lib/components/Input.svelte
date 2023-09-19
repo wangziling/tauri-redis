@@ -10,10 +10,21 @@
 	export let disabled = false;
 	export let readonly = false;
 	export let loading = false;
+
+	// For textarea.
+	export let resizable = true;
+
 	// Consider that the component is a pure component. Will not straightly manipulate the props.
 	export let value = '';
-	export let type = 'text';
+	export let type: 'text' | 'textarea' | 'password' = 'text';
 	export let name = `input-${calcRandomCompNameSuffix()}`;
+
+	let innerType = type;
+	$: {
+		innerType = type;
+	}
+
+	let isPwdVisible = false;
 
 	const formItemFieldMisc = initialFormItemFieldMisc({ fieldType: 'input' });
 
@@ -55,7 +66,9 @@
 		{
 			'input--disabled': innerDisabled,
 			'input--readonly': innerReadonly,
-			'input--loading': innerLoading
+			'input--loading': innerLoading,
+			['input--type-' + type]: type,
+			'input--resizable': resizable
 		},
 		$$restProps.class
 	]);
@@ -115,19 +128,61 @@
 
 		dispatch('blur', e);
 	}
+
+	function handleTogglePwdVisible() {
+		innerType = isPwdVisible ? 'password' : 'text';
+		isPwdVisible = !isPwdVisible;
+	}
 </script>
 
-<input
-	{type}
-	class={dynamicClasses}
-	{placeholder}
-	disabled={innerDisabled}
-	readonly={innerReadonly}
-	{value}
-	name={innerName}
-	id={name}
-	on:input={handleInput}
-	on:focus={handleFocus}
-	on:blur={handleBlur}
-	on:change={handleChange}
-/>
+<div class={dynamicClasses}>
+	<div class="input-wrapper">
+		{#if innerType === 'textarea'}
+			<div class="input__textarea">
+				<textarea
+					class="input__textarea-el"
+					{placeholder}
+					disabled={innerDisabled}
+					readonly={innerReadonly}
+					{value}
+					name={innerName}
+					id={name}
+					on:input={handleInput}
+					on:focus={handleFocus}
+					on:blur={handleBlur}
+					on:change={handleChange}
+				/>
+			</div>
+		{:else}
+			<div class="input__prefix">
+				<slot name="prefix" />
+			</div>
+			<div class="input__input">
+				<input
+					type={innerType}
+					class="input__input-el"
+					{placeholder}
+					disabled={innerDisabled}
+					readonly={innerReadonly}
+					{value}
+					name={innerName}
+					id={name}
+					on:input={handleInput}
+					on:focus={handleFocus}
+					on:blur={handleBlur}
+					on:change={handleChange}
+				/>
+			</div>
+			<div class="input__suffix">
+				{#if type === 'password'}
+					<span
+						class="input__operation input__operation-pwd-visible fa {isPwdVisible ? 'fa-eye-slash' : 'fa-eye'}"
+						role="button"
+						on:click={handleTogglePwdVisible}
+					/>
+				{/if}
+				<slot name="suffix" />
+			</div>
+		{/if}
+	</div>
+</div>
