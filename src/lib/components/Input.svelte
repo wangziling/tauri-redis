@@ -1,41 +1,99 @@
 <script lang="ts">
 	import { calcDynamicClasses, randomString } from '$lib/utils/calculators';
 	import { createEventDispatcher } from 'svelte';
+	import { initialFormItemFieldMisc } from '$lib/components/form/utils';
+	import { FormRuleTrigger } from '$lib/types';
 
 	const dispatch = createEventDispatcher();
 
 	export let placeholder = '';
 	export let disabled = false;
+	export let readonly = false;
+	export let loading = false;
+	// Consider that the component is a pure component. Will not straightly manipulate the props.
 	export let value = '';
 	export let type = 'text';
 	export let name = `input-${randomString(6)}`;
 
-	let innerValue = value;
+	const formItemFieldMisc = initialFormItemFieldMisc({ fieldType: 'input' });
+
+	let miscName = '';
+	if (formItemFieldMisc) {
+		formItemFieldMisc.state.bindings.prop.subscribe(function (value) {
+			miscName = value;
+		});
+	}
+
+	let miscDisabled = disabled;
+	if (formItemFieldMisc) {
+		formItemFieldMisc.state.bindings.disabled.subscribe(function (value) {
+			miscDisabled = value;
+		});
+	}
+
+	let miscReadonly = readonly;
+	if (formItemFieldMisc) {
+		formItemFieldMisc.state.bindings.readonly.subscribe(function (value) {
+			miscReadonly = value;
+		});
+	}
+
+	let miscLoading = loading;
+	if (formItemFieldMisc) {
+		formItemFieldMisc.state.bindings.loading.subscribe(function (value) {
+			miscLoading = value;
+		});
+	}
 
 	$: dynamicClasses = calcDynamicClasses([
 		'input',
 		{
-			'input--disabled': disabled
+			'input--disabled': miscDisabled || disabled,
+			'input--readonly': miscReadonly || readonly,
+			'input--loading': miscLoading || loading
 		},
 		$$restProps.class
 	]);
-
-	$: {
-		innerValue = value;
-	}
 
 	function handleInput(e: Event) {
 		if (disabled) {
 			return;
 		}
 
-		innerValue = (e.target as HTMLInputElement).value;
-		dispatch('input', innerValue);
+		const curValue = (e.target as HTMLInputElement).value;
+		if (formItemFieldMisc) {
+			formItemFieldMisc.events.handleFieldSetValue(curValue, FormRuleTrigger.Input);
+		}
+
+		// A pure component shouldn't manipulate the prop straightly.
+		// value = curValue;
+
+		dispatch('input', value);
+	}
+
+	function handleChange(e: Event) {
+		if (disabled) {
+			return;
+		}
+
+		const curValue = (e.target as HTMLInputElement).value;
+		if (formItemFieldMisc) {
+			formItemFieldMisc.events.handleFieldSetValue(curValue, FormRuleTrigger.Change);
+		}
+
+		// A pure component shouldn't manipulate the prop straightly.
+		// value = curValue;
+
+		dispatch('change', value);
 	}
 
 	function handleFocus(e: Event) {
 		if (disabled) {
 			return;
+		}
+
+		if (formItemFieldMisc) {
+			formItemFieldMisc.events.handleFieldFocus(e);
 		}
 
 		dispatch('focus', e);
@@ -46,6 +104,10 @@
 			return;
 		}
 
+		if (formItemFieldMisc) {
+			formItemFieldMisc.events.handleFieldBlur(e);
+		}
+
 		dispatch('blur', e);
 	}
 </script>
@@ -54,11 +116,13 @@
 	{type}
 	class={dynamicClasses}
 	{placeholder}
-	{disabled}
-	value={innerValue}
-	{name}
+	disabled={miscDisabled || disabled}
+	readonly={miscReadonly || readonly}
+	{value}
+	name={miscName || name}
 	id={name}
 	on:input={handleInput}
 	on:focus={handleFocus}
 	on:blur={handleBlur}
+	on:change={handleChange}
 />
