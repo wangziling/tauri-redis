@@ -10,6 +10,8 @@
 	export let model: FormStoreState['model'] = {};
 	export let labelPosition = FormLabelPosition.Top;
 	export let useRestrictSetFieldValueMode: boolean = true;
+	export let disabled: boolean = false;
+	export let readonly: boolean = false;
 	export let rules: FormStoreState['rules'] = {};
 
 	$: dynamicClasses = calcDynamicClasses([
@@ -32,6 +34,8 @@
 	$: store.mutations.setRules(rules);
 	$: store.mutations.setLabelPosition(labelPosition);
 	$: store.mutations.setUseRestrictSetFieldValueMode(useRestrictSetFieldValueMode);
+	$: store.mutations.setDisabled(disabled);
+	$: store.mutations.setReadonly(readonly);
 
 	setContext(contextStoreKey, store);
 

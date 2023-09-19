@@ -122,7 +122,9 @@ export const createStore = function createStore(options: FormStoreOptions) {
 		model: writable({}),
 		rules: writable({}),
 		labelPosition: writable(FormLabelPosition.Top),
-		useRestrictSetFieldValueMode: writable(false)
+		useRestrictSetFieldValueMode: writable(false),
+		disabled: writable(false),
+		readonly: writable(false)
 	} as PropWritable<FormStoreState>;
 
 	const mutations = {
@@ -140,6 +142,12 @@ export const createStore = function createStore(options: FormStoreOptions) {
 		},
 		setUseRestrictSetFieldValueMode(payload: FormStoreState['useRestrictSetFieldValueMode']) {
 			store.useRestrictSetFieldValueMode.set(payload);
+		},
+		setDisabled(payload: FormStoreState['disabled']) {
+			store.disabled.set(payload);
+		},
+		setReadonly(payload: FormStoreState['readonly']) {
+			store.readonly.set(payload);
 		},
 		registerField(payload: TArrayMember<FormStoreState['fields']>) {
 			store.fields.update(function registerField(fields) {
@@ -266,6 +274,12 @@ export const createStore = function createStore(options: FormStoreOptions) {
 	const getters = {
 		useRestrictSetFieldValueMode: derived(store.useRestrictSetFieldValueMode, function (useRestrictSetFieldValueMode) {
 			return useRestrictSetFieldValueMode;
+		}),
+		disabled: derived(store.disabled, function (disabled) {
+			return disabled;
+		}),
+		readonly: derived(store.readonly, function (readonly) {
+			return readonly;
 		})
 	};
 

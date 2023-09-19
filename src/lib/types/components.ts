@@ -92,6 +92,8 @@ export interface FormStoreState {
 	fields: Array<FormField>;
 	rules: FormItemNamedRules;
 	useRestrictSetFieldValueMode: boolean;
+	disabled: boolean;
+	readonly: boolean;
 }
 
 export type FormFieldPicker = Partial<Pick<TArrayMember<FormStoreState['fields']>, 'name' | 'prop'>>;

@@ -93,7 +93,7 @@
 	}
 
 	function handleFocus(e: Event) {
-		if (innerDisabled || innerLoading) {
+		if (innerDisabled || innerReadonly) {
 			return;
 		}
 
@@ -105,7 +105,7 @@
 	}
 
 	function handleBlur(e: Event) {
-		if (innerDisabled || innerLoading) {
+		if (innerDisabled || innerReadonly) {
 			return;
 		}
 

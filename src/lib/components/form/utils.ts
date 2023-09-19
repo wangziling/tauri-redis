@@ -63,6 +63,20 @@ export function initialFormItemMisc(
 			);
 		}
 	);
+	// FormDisabled || FieldDisabled.
+	const modifiedFieldDisabledDerived = derived(
+		[fieldDisabledDerived, contextStore.getters.disabled],
+		function ([fieldDisabled, formDisabled]) {
+			return fieldDisabled || formDisabled;
+		}
+	);
+	// FormReadonly || FieldReadonly.
+	const modifiedFieldReadonlyDerived = derived(
+		[fieldReadonlyDerived, contextStore.getters.readonly],
+		function ([fieldReadonly, formReadonly]) {
+			return fieldReadonly || formReadonly;
+		}
+	);
 
 	const unSubscribers: Function[] = [];
 	const unsubscribe = function unsubscriber() {
@@ -103,12 +117,20 @@ export function initialFormItemMisc(
 			return;
 		}
 
+		if (get(modifiedFieldDisabledDerived) || get(modifiedFieldReadonlyDerived)) {
+			return;
+		}
+
 		return contextStore.events.handleFieldFocus({ name: field.name });
 	};
 
 	const handleFieldBlur = function handleFieldBlur(e: Event) {
 		const field = get(fieldDerived);
 		if (!field) {
+			return;
+		}
+
+		if (get(modifiedFieldDisabledDerived) || get(modifiedFieldReadonlyDerived)) {
 			return;
 		}
 
@@ -137,8 +159,8 @@ export function initialFormItemMisc(
 		});
 		if (isForciblySetFieldValue) {
 			if (
-				get(fieldDisabledDerived) ||
-				get(fieldReadonlyDerived) ||
+				get(modifiedFieldDisabledDerived) ||
+				get(modifiedFieldReadonlyDerived) ||
 				get(fieldLoadingDerived) ||
 				get(fieldValidatingDerived)
 			) {
@@ -188,8 +210,8 @@ export function initialFormItemMisc(
 			propDerived: fieldPropDerived,
 			messageInfoDerived: fieldMessageInfoDerived,
 			valueDerived: fieldValueDerived,
-			disabledDerived: fieldDisabledDerived,
-			readonlyDerived: fieldReadonlyDerived,
+			disabledDerived: modifiedFieldDisabledDerived,
+			readonlyDerived: modifiedFieldReadonlyDerived,
 			loadingDerived: fieldLoadingDerived,
 			validatingDerived: fieldValidatingDerived,
 			requiredDerived: modifiedFieldRequiredDerived,
