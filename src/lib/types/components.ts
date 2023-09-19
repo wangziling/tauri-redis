@@ -1,6 +1,7 @@
 import type { RuleItem, ValidateError, ValidateFieldsError, Values } from 'async-validator/dist-types/interface';
 import type { TArrayOrPrimitive, TArrayMember, PropReadable } from '$lib/types';
 import type { createEventDispatcher } from 'svelte';
+import type { Writable } from 'svelte/store';
 
 export interface SelectOptionItem {
 	label: string;
@@ -88,9 +89,9 @@ export enum FormLabelPosition {
 export interface FormStoreState {
 	labelPosition: FormLabelPosition;
 	name: string; // Form name.
-	model: Record<FormFieldProp, FormItemValue>; // Can be Deep level data.
+	model: Writable<Record<FormFieldProp, FormItemValue>>; // Can be Deep level data.
 	fields: Array<FormField>;
-	rules: FormItemNamedRules;
+	rules: Writable<FormItemNamedRules>;
 	useRestrictSetFieldValueMode: boolean;
 	disabled: boolean;
 	readonly: boolean;

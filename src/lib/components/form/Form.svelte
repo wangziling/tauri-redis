@@ -5,14 +5,15 @@
 	import type { FormStoreState } from '$lib/types';
 	import { FormLabelPosition } from '$lib/types';
 	import { lowerCase } from 'lodash-es';
+	import { writable } from 'svelte/store';
 
 	export let name = `form-${calcRandomCompNameSuffix()}`;
-	export let model: FormStoreState['model'] = {};
+	export let model: FormStoreState['model'] = writable({});
 	export let labelPosition = FormLabelPosition.Top;
 	export let useRestrictSetFieldValueMode: boolean = true;
 	export let disabled: boolean = false;
 	export let readonly: boolean = false;
-	export let rules: FormStoreState['rules'] = {};
+	export let rules: FormStoreState['rules'] = writable({});
 
 	$: dynamicClasses = calcDynamicClasses([
 		'form',

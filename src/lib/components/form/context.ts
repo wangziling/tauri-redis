@@ -11,6 +11,7 @@ import type {
 	FormStoreState,
 	FormValidatePromiseError,
 	PropWritable,
+	Raw,
 	TArrayMember,
 	TArrayOrPrimitive
 } from '$lib/types';
@@ -42,7 +43,7 @@ function filterRegisteredFields(fields: FormStoreState['fields'], conditions: TA
 }
 
 function generateFieldRuleValidatorUtils(
-	formRules: FormStoreState['rules'],
+	formRules: Raw<FormStoreState['rules']>,
 	fields: TArrayOrPrimitive<FormStoreState['fields']>,
 	iterationCallback?: (field: TArrayMember<FormStoreState['fields']>) => any,
 	options?: Pick<FormRuleItem, 'trigger'>
@@ -132,10 +133,10 @@ export const createStore = function createStore(options: FormStoreOptions) {
 			store.name.set(payload);
 		},
 		setModel(payload: FormStoreState['model']) {
-			store.model.set(payload);
+			store.model = payload;
 		},
 		setRules(payload: FormStoreState['rules']) {
-			store.rules.set(payload);
+			store.rules = payload;
 		},
 		setLabelPosition(payload: FormStoreState['labelPosition']) {
 			store.labelPosition.set(payload);
