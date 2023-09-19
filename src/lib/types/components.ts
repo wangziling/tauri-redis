@@ -63,7 +63,7 @@ export type FormFieldProp = string;
 
 export type FormItemNamedRules = Record<FormFieldProp, FormItemRules>;
 
-export type FormItemValue = TArrayOrPrimitive<string | number | File | undefined | null>;
+export type FormItemValue = TArrayOrPrimitive<string | number | File | undefined | null | boolean>;
 
 export type FormField = {
 	prop: FormFieldProp;
