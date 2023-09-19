@@ -7,16 +7,16 @@ import type {
 	FormItemStoreState,
 	FormRuleItem,
 	FormStoreState,
+	FormValidatePromiseError,
 	PropWritable,
 	TArrayMember,
 	TArrayOrPrimitive
 } from '$lib/types';
-import { FormLabelPosition, FormRuleTrigger } from '$lib/types';
-import { get as lodashGet, isEmpty, isMatch, set as lodashSet } from 'lodash-es';
+import { FormItemMessageReasonType, FormItemMessageType, FormLabelPosition, FormRuleTrigger } from '$lib/types';
+import { get as lodashGet, isEmpty, isMatch, merge, set as lodashSet } from 'lodash-es';
 import Schema, { type ValidateOption } from 'async-validator';
 import type { ValidateCallback } from 'async-validator/dist-types/interface';
 import { noop } from '$lib/utils/miscs';
-import { generateOperablePromise } from '$lib/utils/async';
 
 type FormFieldDerived = Readable<TArrayMember<FormStoreState['fields']>> | undefined;
 
@@ -39,7 +39,7 @@ function filterRegisteredFields(fields: FormStoreState['fields'], conditions: TA
 		.filter(Boolean);
 }
 
-function generateFieldRuleValidator(
+function generateFieldRuleValidatorUtils(
 	formRules: FormStoreState['rules'],
 	fields: TArrayOrPrimitive<FormStoreState['fields']>,
 	iterationCallback?: (field: TArrayMember<FormStoreState['fields']>) => any,
@@ -53,6 +53,7 @@ function generateFieldRuleValidator(
 	const isUsedTriggersValid = !isEmpty(usedTriggers);
 
 	const rules = {} as FormItemNamedRules;
+	const needToValidateFields = [] as FormStoreState['fields'];
 	const recordUsedRules = function (usedRules: FormItemRules, field: FormField) {
 		if (isUsedTriggersValid) {
 			usedRules = usedRules.filter(function (rule) {
@@ -86,15 +87,26 @@ function generateFieldRuleValidator(
 			return;
 		}
 
-		const isRecorded = recordUsedRules(field.rules, field);
+		let isRecorded = recordUsedRules(field.rules, field);
 		if (isRecorded) {
+			needToValidateFields.push(field);
+
 			return;
 		}
 
-		recordUsedRules(lodashGet(formRules, field.prop), field);
+		isRecorded = recordUsedRules(lodashGet(formRules, field.prop), field);
+		if (isRecorded) {
+			needToValidateFields.push(field);
+
+			return;
+		}
 	});
 
-	return generateRulesValidator(rules);
+	return {
+		validator: generateRulesValidator(rules),
+		rules,
+		fields: needToValidateFields
+	};
 }
 
 export function generateRulesValidator(rules: FormItemNamedRules) {
@@ -224,6 +236,16 @@ export const createStore = function createStore() {
 
 				return fields;
 			});
+		},
+		setFieldMessageInfo(
+			field: TArrayMember<FormStoreState['fields']>,
+			payload: TArrayMember<FormStoreState['fields']>['messageInfo']
+		) {
+			store.fields.update(function updateRegisteredField(fields) {
+				field.messageInfo = payload;
+
+				return fields;
+			});
 		}
 	};
 
@@ -293,7 +315,7 @@ export const createStore = function createStore() {
 			return lodashGet(field, propPath);
 		},
 		validate(callback?: ValidateCallback, options?: ValidateOption) {
-			const validator = generateFieldRuleValidator(
+			const validatorUtils = generateFieldRuleValidatorUtils(
 				get(store.rules),
 				get(store.fields),
 				function iterationCallback(field) {
@@ -301,39 +323,36 @@ export const createStore = function createStore() {
 				}
 			);
 
-			return validator.validate(get(store.model), options, callback);
+			return validatorUtils.validator.validate(get(store.model), options, callback).then(function (model) {
+				return {
+					model, // It returns the model which we sent in.
+					rules: validatorUtils.rules,
+					fields: validatorUtils.fields
+				};
+			});
 		},
 		validateFields(
 			conditions: TArrayOrPrimitive<FormFieldPicker>,
 			callback?: ValidateCallback,
-			options?: ValidateOption
+			options?: ValidateOption,
+			ruleOptions?: Partial<{ trigger: FormRuleItem['trigger'] }>
 		) {
-			const validator = generateFieldRuleValidator(
-				get(store.rules),
-				filterRegisteredFields(get(store.fields), conditions),
-				function iterationCallback(field) {
-					mutations.setFieldValidating(field, true);
-				}
-			);
-
-			return validator.validate(get(store.model), options, callback);
-		},
-		validateFieldsWithTrigger(
-			conditions: TArrayOrPrimitive<FormFieldPicker>,
-			trigger: FormRuleItem['trigger'],
-			callback?: ValidateCallback,
-			options?: ValidateOption
-		) {
-			const validator = generateFieldRuleValidator(
+			const validatorUtils = generateFieldRuleValidatorUtils(
 				get(store.rules),
 				filterRegisteredFields(get(store.fields), conditions),
 				function iterationCallback(field) {
 					mutations.setFieldValidating(field, true);
 				},
-				{ trigger }
+				ruleOptions
 			);
 
-			return validator.validate(get(store.model), options, callback);
+			return validatorUtils.validator.validate(get(store.model), options, callback).then(function (model) {
+				return {
+					model, // It returns the model which we sent in.
+					rules: validatorUtils.rules,
+					fields: validatorUtils.fields
+				};
+			});
 		},
 		getFieldFormModelValue(condition: FormFieldPicker) {
 			const model = get(store.model);
@@ -365,27 +384,110 @@ export const createStore = function createStore() {
 	};
 
 	const events = {
-		handleValidateFields(conditions: TArrayOrPrimitive<FormFieldPicker>) {
-			const { p, resolve, reject } = generateOperablePromise<undefined>();
-			utils.validateFields(
-				conditions,
-				function (errors, fields) {
-					if (!errors) {
-						resolve(undefined);
+		handleValidate(...args: Parameters<(typeof utils)['validate']>) {
+			const [callback, options] = args;
 
-						return;
+			return utils
+				.validate(callback, merge({ first: true } as Partial<ValidateOption>, options))
+				.then(function (res) {
+					const fields = lodashGet(res, 'fields');
+					if (!fields.length) {
+						return res;
 					}
 
-					reject(errors);
-				},
-				{ first: true }
-			);
+					// Try to clear.
+					fields.forEach(function (field) {
+						mutations.setFieldMessageInfo(field, undefined);
+					});
 
-			return p;
+					return res;
+				})
+				.catch(function (e: FormValidatePromiseError) {
+					if (!e.errors) {
+						return e.fields;
+					}
+
+					e.errors.forEach(function (err) {
+						if (!err.field) {
+							return;
+						}
+
+						utils.updateRegisteredField({ prop: err.field }, function setMessageInfo(field) {
+							if (!field) {
+								return;
+							}
+
+							field.messageInfo = {
+								type: FormItemMessageType.Error,
+								message: err.message,
+								reason: {
+									type: FormItemMessageReasonType.FormValidation
+								}
+							};
+						});
+					});
+
+					throw e;
+				});
 		},
-		handleSetFieldValue(condition: FormFieldPicker, options: Pick<FormRuleItem, 'trigger'>) {
+		handleValidateFields(...args: Parameters<(typeof utils)['validateFields']>) {
+			const [conditions, callback, options, ruleOptions] = args;
+
+			return utils
+				.validateFields(conditions, callback, merge({ first: true } as Partial<ValidateOption>, options), ruleOptions)
+				.then(function (res) {
+					const fields = lodashGet(res, 'fields');
+					if (!fields.length) {
+						return res;
+					}
+
+					// Try to clear.
+					fields.forEach(function (field) {
+						mutations.setFieldMessageInfo(field, undefined);
+					});
+
+					return res;
+				})
+				.catch(function (e: FormValidatePromiseError) {
+					if (!e.errors) {
+						return e.fields;
+					}
+
+					e.errors.forEach(function (err) {
+						if (!err.field) {
+							return;
+						}
+
+						utils.updateRegisteredField({ prop: err.field }, function setMessageInfo(field) {
+							if (!field) {
+								return;
+							}
+
+							field.messageInfo = {
+								type: FormItemMessageType.Error,
+								message: err.message,
+								reason: {
+									type: FormItemMessageReasonType.FormFieldValidation
+								}
+							};
+						});
+					});
+
+					throw e;
+				});
+		},
+		handleSetFieldValue(condition: FormFieldPicker, options?: Pick<FormRuleItem, 'trigger'>) {
 			// Trigger validation.
-			return utils.validateFields(condition);
+			return events.handleValidateFields(condition, undefined, undefined, { trigger: lodashGet(options, 'trigger') });
+		},
+		handleFieldBlur(condition: FormFieldPicker) {
+			return events.handleValidateFields(condition, undefined, undefined, { trigger: FormRuleTrigger.Blur });
+		},
+		handleFieldFocus(condition: FormFieldPicker) {
+			return events.handleValidateFields(condition, undefined, undefined, { trigger: FormRuleTrigger.Focus });
+		},
+		handleSetFieldLoading(...args: Parameters<(typeof mutations)['setFieldLoading']>) {
+			return mutations.setFieldLoading(...args);
 		}
 	};
 

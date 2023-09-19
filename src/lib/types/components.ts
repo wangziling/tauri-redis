@@ -1,5 +1,5 @@
-import type { RuleItem } from 'async-validator/dist-types/interface';
-import type { TArrayOrPrimitive, TArrayMember, PropWritable, PropReadable } from '$lib/types';
+import type { RuleItem, ValidateError, ValidateFieldsError, Values } from 'async-validator/dist-types/interface';
+import type { TArrayOrPrimitive, TArrayMember, PropReadable } from '$lib/types';
 
 export interface SelectOptionItem {
 	label: string;
@@ -31,9 +31,10 @@ export type FormItemMessageReason =
 	  }
 	| {
 			type: FormItemMessageReasonType.FormValidation | FormItemMessageReasonType.FormFieldValidation;
-			metrics: {
+			metrics?: Partial<{
+				// Cannot get when using async-validator.
 				rule: any;
-			};
+			}>;
 	  };
 
 export interface FormItemMessageInfo {
@@ -44,7 +45,9 @@ export interface FormItemMessageInfo {
 
 export enum FormRuleTrigger {
 	Change = 'Change',
-	Input = 'Input'
+	Input = 'Input',
+	Blur = 'Blur',
+	Focus = 'Focus'
 }
 
 export type FormRuleItem = RuleItem & {
@@ -99,4 +102,9 @@ export type FormItemStoreState = {
 			value: FormItemValue;
 		} & Pick<FormField, 'loading' | 'readonly' | 'disabled' | 'validating' | 'prop'>
 	>;
+};
+
+export type FormValidatePromiseError = Error & {
+	errors: ValidateError[] | null;
+	fields: ValidateFieldsError | Values;
 };

@@ -29,15 +29,17 @@
 	setContext(contextStoreKey, store);
 
 	onMount(function onMount() {
-		// store.utils.validateFieldsWithTrigger([{ prop: 'hosts' }], [FormRuleTrigger.Input]).catch(function () {
-		// 	console.log.apply(console, arguments);
-		// });
+		// store.events
+		// 	.handleValidateFields([{ prop: 'hosts' }], undefined, undefined, { trigger: [FormRuleTrigger.Change] })
+		// 	.catch(function () {
+		// 		console.log.apply(console, arguments);
+		// 	});
 	});
 
 	// Exports.
-	export const setFieldLoading = store.mutations.setFieldLoading;
-	export const validateFields = store.utils.validateFields;
-	export const validate = store.utils.validate;
+	export const setFieldLoading = store.events.handleSetFieldLoading;
+	export const validateFields = store.events.handleValidateFields;
+	export const validate = store.events.handleValidate;
 </script>
 
 <form class={dynamicClasses} {name} action="#" on:submit|preventDefault|stopPropagation>
