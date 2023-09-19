@@ -45,18 +45,23 @@
 		});
 	}
 
+	$: innerDisabled = miscDisabled || disabled;
+	$: innerReadonly = miscReadonly || readonly;
+	$: innerLoading = miscLoading || loading;
+
+
 	$: dynamicClasses = calcDynamicClasses([
 		'input',
 		{
-			'input--disabled': miscDisabled || disabled,
-			'input--readonly': miscReadonly || readonly,
-			'input--loading': miscLoading || loading
+			'input--disabled': innerDisabled,
+			'input--readonly': innerReadonly,
+			'input--loading': innerLoading
 		},
 		$$restProps.class
 	]);
 
 	function handleInput(e: Event) {
-		if (disabled) {
+		if (innerDisabled || innerReadonly) {
 			return;
 		}
 
@@ -72,7 +77,7 @@
 	}
 
 	function handleChange(e: Event) {
-		if (disabled) {
+		if (innerDisabled || innerReadonly) {
 			return;
 		}
 
@@ -88,7 +93,7 @@
 	}
 
 	function handleFocus(e: Event) {
-		if (disabled) {
+		if (innerDisabled || innerLoading) {
 			return;
 		}
 
@@ -100,7 +105,7 @@
 	}
 
 	function handleBlur(e: Event) {
-		if (disabled) {
+		if (innerDisabled || innerLoading) {
 			return;
 		}
 
@@ -116,8 +121,8 @@
 	{type}
 	class={dynamicClasses}
 	{placeholder}
-	disabled={miscDisabled || disabled}
-	readonly={miscReadonly || readonly}
+	disabled={innerDisabled}
+	readonly={innerReadonly}
 	{value}
 	name={miscName || name}
 	id={name}
