@@ -48,6 +48,7 @@
 	$: innerDisabled = miscDisabled || disabled;
 	$: innerReadonly = miscReadonly || readonly;
 	$: innerLoading = miscLoading || loading;
+	$: innerName = miscName || name;
 
 	$: dynamicClasses = calcDynamicClasses([
 		'input',
@@ -123,7 +124,7 @@
 	disabled={innerDisabled}
 	readonly={innerReadonly}
 	{value}
-	name={miscName || name}
+	name={innerName}
 	id={name}
 	on:input={handleInput}
 	on:focus={handleFocus}
