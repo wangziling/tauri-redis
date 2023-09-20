@@ -12,7 +12,7 @@
 
 	&::after {
 		content: '';
-		height: 95%;
+		height: 100%;
 		vertical-align: middle;
 		display: inline-block;
 	}
@@ -25,6 +25,8 @@
 		text-align: left;
 		text-align: initial;
 		display: inline-block;
+		display: inline-flex;
+		flex-direction: column;
 		vertical-align: middle;
 		width: 95%;
 		max-width: var(--dialog-wrapper-max-width);
@@ -32,6 +34,8 @@
 		box-shadow: var(--dialog-wrapper-box-shadow);
 		border-radius: var(--base-border-radius);
 		background-color: var(--dialog-wrapper-bg-color);
+		max-height: 95%;
+		overflow: auto;
 	}
 
 	&-header {
@@ -57,6 +61,8 @@
 	}
 
 	&-content {
+		flex-grow: 1;
+		overflow: auto;
 	}
 
 	&-footer {
