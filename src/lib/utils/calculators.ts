@@ -40,3 +40,7 @@ export function calcDynamicClasses(params: CalcDynamicClassesParams) {
 
 	return uniq(result).filter(Boolean).join(' ');
 }
+
+export function parseNumLikeStr(str: string): number {
+	return parseFloat(str);
+}

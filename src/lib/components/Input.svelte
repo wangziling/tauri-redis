@@ -5,6 +5,9 @@
 	import { FormRuleTrigger } from '$lib/types';
 
 	const dispatch = createEventDispatcher();
+	const calcDisplayValue = function calcDisplayValue(value: string) {
+		return value;
+	};
 
 	export let placeholder = '';
 	export let disabled = false;
@@ -20,11 +23,16 @@
 	export let name = `input-${calcRandomCompNameSuffix()}`;
 
 	let innerType = type;
-	$: {
-		innerType = type;
-	}
+	$: innerType = type;
+
+	let innerValue = value;
+	$: innerValue = value;
+
+	let displayValue = (innerValue = value);
+	$: displayValue = calcDisplayValue(innerValue);
 
 	let isPwdVisible = false;
+	let inputEl: undefined | HTMLInputElement;
 
 	const formItemFieldMisc = initialFormItemFieldMisc({ fieldType: 'input' });
 
@@ -75,6 +83,10 @@
 
 	function handleInput(e: Event) {
 		if (innerDisabled || innerReadonly) {
+			if (inputEl) {
+				inputEl.value = innerValue;
+			}
+
 			return;
 		}
 
@@ -91,6 +103,10 @@
 
 	function handleChange(e: Event) {
 		if (innerDisabled || innerReadonly) {
+			if (inputEl) {
+				inputEl.value = innerValue;
+			}
+
 			return;
 		}
 
@@ -107,6 +123,10 @@
 
 	function handleFocus(e: Event) {
 		if (innerDisabled || innerReadonly) {
+			if (inputEl) {
+				inputEl.value = innerValue = value;
+			}
+
 			return;
 		}
 
@@ -119,6 +139,10 @@
 
 	function handleBlur(e: Event) {
 		if (innerDisabled || innerReadonly) {
+			if (inputEl) {
+				inputEl.value = innerValue = value;
+			}
+
 			return;
 		}
 
@@ -164,9 +188,10 @@
 					{placeholder}
 					disabled={innerDisabled}
 					readonly={innerReadonly}
-					{value}
+					value={displayValue}
 					name={innerName}
 					id={name}
+					bind:this={inputEl}
 					on:input={handleInput}
 					on:focus={handleFocus}
 					on:blur={handleBlur}

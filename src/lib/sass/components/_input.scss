@@ -2,6 +2,7 @@
 	--input-padding: 1.2rem 1.5rem;
 	--input-operation-color: #{$color-grey-dark};
 	--input-operation-active-color: #{$color-grey-dark-3};
+	--input-operation-inactive-color: #{$color-grey-light-3};
 }
 
 .input {
@@ -60,9 +61,16 @@
 		color: var(--input-operation-color);
 		user-select: none;
 
-		&:hover,
-		&:focus {
-			color: var(--input-operation-active-color);
+		&--disabled {
+			color: var(--input-operation-inactive-color);
+			cursor: not-allowed;
+		}
+
+		&:not(.input__operation--disabled) {
+			&:hover,
+			&:focus {
+				color: var(--input-operation-active-color);
+			}
 		}
 	}
 

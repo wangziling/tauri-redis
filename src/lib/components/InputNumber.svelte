@@ -1,28 +1,59 @@
 <script lang="ts">
-	import { calcDynamicClasses, calcRandomCompNameSuffix } from '$lib/utils/calculators';
-	import { createEventDispatcher } from 'svelte';
+	import { calcDynamicClasses, calcRandomCompNameSuffix, parseNumLikeStr } from '$lib/utils/calculators';
+	import { createEventDispatcher, onMount } from 'svelte';
 	import { initialFormItemFieldMisc } from '$lib/components/form/utils';
 	import { FormRuleTrigger } from '$lib/types';
-	import { judgeValidNumLikeStr } from '$lib/utils/judgements';
+	import { judgeValidNum, judgeValidNumLikeStr } from '$lib/utils/judgements';
+	import { get as lodashGet } from 'lodash-es';
 
 	const dispatch = createEventDispatcher();
+	const defaultValue = 0;
+
+	const calcDisplayValue = function calcDisplayValue(value: number, precise: number) {
+		return precise > 0 ? value.toFixed(precise) : value + '';
+	};
 
 	export let placeholder = '';
 	export let disabled = false;
 	export let readonly = false;
 	export let loading = false;
-	export let maximum = Infinity;
-	export let minimum = -Infinity;
+	export let maximum = Number.MAX_SAFE_INTEGER;
+	export let minimum = Number.MIN_SAFE_INTEGER;
 	export let precise = 0; // 0 means Int.
 	export let stepGap = 1;
 	export let showStepOperations = true;
 
 	// Consider that the component is a pure component. Will not straightly manipulate the props.
-	export let value = '';
+	export let value: number = defaultValue;
 	export let name = `input-number-${calcRandomCompNameSuffix()}`;
 
-	let innerValue = value;
-	$: isValidNumLikeStr = judgeValidNumLikeStr(innerValue);
+	let innerValue: number = value;
+	$: innerValue = value;
+
+	let displayValue: string = calcDisplayValue(value, precise);
+	let inputEl: HTMLInputElement | undefined;
+	$: isInnerValueValid = judgeValidNum(innerValue);
+	$: isDisplayValueValid = judgeValidNumLikeStr(displayValue, { precise, maximum, minimum });
+	$: isStepOperationPlusDisabled = innerValue === maximum;
+	$: isStepOperationMinusDisabled = innerValue === minimum;
+	$: stepOperationPlusDynamicClasses = calcDynamicClasses([
+		'input__operation',
+		'input__operation-step-plus',
+		'fa',
+		'fa-plus',
+		{
+			'input__operation--disabled': isStepOperationPlusDisabled
+		}
+	]);
+	$: stepOperationMinusDynamicClasses = calcDynamicClasses([
+		'input__operation',
+		'input__operation-step-minus',
+		'fa',
+		'fa-minus',
+		{
+			'input__operation--disabled': isStepOperationMinusDisabled
+		}
+	]);
 
 	const formItemFieldMisc = initialFormItemFieldMisc({ fieldType: 'input' });
 
@@ -66,73 +97,103 @@
 			'input--disabled': innerDisabled,
 			'input--readonly': innerReadonly,
 			'input--loading': innerLoading,
-			'input--invalid-num': !isValidNumLikeStr
+			'input--invalid-num': !isDisplayValueValid
 		},
 		$$restProps.class
 	]);
 
-	function parseValue(val: string): number {
-		return parseFloat(val);
-	}
-
-	function input(val: string) {
+	function input(val: string | number, options?: { silent: boolean }) {
 		if (innerDisabled || innerReadonly) {
+			if (inputEl) {
+				inputEl.value = displayValue;
+			}
+
 			return;
 		}
 
-		innerValue = val;
-		if (!judgeValidNumLikeStr(innerValue)) {
-			return;
+		displayValue = val + '';
+
+		if (typeof val === 'number') {
+			innerValue = val;
+		} else {
+			if (judgeValidNumLikeStr(val)) {
+				innerValue = parseNumLikeStr(val);
+			} else {
+				if (inputEl) {
+					inputEl.value = displayValue;
+				}
+
+				return;
+			}
 		}
 
-		if (formItemFieldMisc) {
+		const silent = lodashGet(options, 'silent');
+
+		if (formItemFieldMisc && !silent) {
 			formItemFieldMisc.events.handleFieldSetValue(innerValue, FormRuleTrigger.Input);
 		}
 
 		// A pure component shouldn't manipulate the prop straightly.
 		// value = curValue;
 
-		dispatch('input', value);
+		if (!silent) {
+			dispatch('input', innerValue);
+		}
 	}
 
-	function change(val: string) {
+	function change(val: string | number, options?: { silent: boolean }) {
 		if (innerDisabled || innerReadonly) {
+			if (inputEl) {
+				inputEl.value = displayValue;
+			}
+
 			return;
 		}
 
-		innerValue = val;
-		if (!judgeValidNumLikeStr(innerValue)) {
-			return;
-		}
+		displayValue = val + '';
 
-		let finalValue: string | undefined = undefined;
-		if (innerValue !== '') {
-			let curValue = parseValue(innerValue);
+		const curValue = innerValue;
 
-			if (curValue > maximum) {
-				curValue = maximum;
-			}
-
-			if (curValue < minimum) {
-				curValue = minimum;
-			}
-
-			if (precise > 0) {
-				finalValue = curValue.toFixed(precise);
+		if (typeof val === 'number') {
+			innerValue = val;
+		} else {
+			if (judgeValidNumLikeStr(val)) {
+				innerValue = parseNumLikeStr(val);
 			} else {
-				finalValue = curValue + '';
+				innerValue = defaultValue;
 			}
 		}
 
-		finalValue = finalValue == null ? innerValue : finalValue;
-		if (formItemFieldMisc) {
-			formItemFieldMisc.events.handleFieldSetValue(finalValue, FormRuleTrigger.Input);
+		if (innerValue > maximum) {
+			innerValue = maximum;
+		}
+
+		if (innerValue < minimum) {
+			innerValue = minimum;
+		}
+
+		if (precise > 0) {
+			innerValue = parseNumLikeStr(innerValue.toFixed(precise));
+		}
+
+		if (curValue === innerValue) {
+			displayValue = calcDisplayValue(innerValue, precise);
+
+			return;
+		}
+
+		const silent = lodashGet(options, 'silent');
+		if (formItemFieldMisc && !silent) {
+			formItemFieldMisc.events.handleFieldSetValue(innerValue, FormRuleTrigger.Change);
 		}
 
 		// A pure component shouldn't manipulate the prop straightly.
 		// value = curValue;
 
-		dispatch('change', finalValue);
+		displayValue = calcDisplayValue(innerValue, precise);
+		if (!silent) {
+			dispatch('change', innerValue);
+		}
 	}
 
 	function handleInput(e: Event) {
@@ -145,6 +206,10 @@
 
 	function handleFocus(e: Event) {
 		if (innerDisabled || innerReadonly) {
+			if (inputEl) {
+				inputEl.value = displayValue;
+			}
+
 			return;
 		}
 
@@ -157,15 +222,30 @@
 
 	function handleBlur(e: Event) {
 		if (innerDisabled || innerReadonly) {
+			if (inputEl) {
+				inputEl.value = displayValue;
+			}
+
 			return;
 		}
 
-		if (!isValidNumLikeStr) {
-			innerValue = value;
-			if (formItemFieldMisc) {
-				formItemFieldMisc.events.handleFieldSetValue(innerValue + '', FormRuleTrigger.Change);
-			}
+		const curValue = innerValue;
+		if (!isInnerValueValid) {
+			innerValue = defaultValue;
 		}
+		if (innerValue > maximum) {
+			innerValue = maximum;
+		}
+
+		if (innerValue < minimum) {
+			innerValue = minimum;
+		}
+
+		if (innerValue !== curValue) {
+			change(innerValue);
+		}
+
+		displayValue = calcDisplayValue(innerValue, precise);
 
 		if (formItemFieldMisc) {
 			formItemFieldMisc.events.handleFieldBlur(e);
@@ -175,25 +255,40 @@
 	}
 
 	function handleExecStepGapMinus() {
-		if (!judgeValidNumLikeStr(value)) {
+		if (!isInnerValueValid) {
+			innerValue = defaultValue;
+		}
+
+		if (!showStepOperations) {
 			return;
 		}
 
-		return change(!value ? (0 > minimum ? 0 : minimum) + '' : parseValue(value) - 1 + '');
+		if (isStepOperationMinusDisabled) {
+			return;
+		}
+
+		return change(innerValue - stepGap);
 	}
 
 	function handleExecStepGapPlus() {
-		if (!judgeValidNumLikeStr(value)) {
+		if (!isInnerValueValid) {
+			innerValue = defaultValue;
+		}
+
+		if (!showStepOperations) {
 			return;
 		}
 
-		let innerValue = value;
-		if (!innerValue) {
-			innerValue = (0 > minimum ? 0 : minimum) + '';
+		if (isStepOperationPlusDisabled) {
+			return;
 		}
 
-		return change(!value ? (0 > minimum ? 0 : minimum) + '' : parseValue(value) + 1 + '');
+		return change(innerValue + stepGap);
 	}
+
+	onMount(function () {
+		change(displayValue, { silent: true });
+	});
 </script>
 
 <div class={dynamicClasses}>
@@ -208,9 +303,10 @@
 				{placeholder}
 				disabled={innerDisabled}
 				readonly={innerReadonly}
-				{value}
+				value={displayValue}
 				name={innerName}
 				id={name}
+				bind:this={inputEl}
 				on:input={handleInput}
 				on:focus={handleFocus}
 				on:blur={handleBlur}
@@ -218,18 +314,12 @@
 			/>
 		</div>
 		<div class="input__suffix">
-			<div class="input__operation-group">
-				<span
-					class="input__operation input__operation-step-minus fa fa-minus"
-					role="button"
-					on:click={handleExecStepGapMinus}
-				/>
-				<span
-					class="input__operation input__operation-step-minus fa fa-plus"
-					role="button"
-					on:click={handleExecStepGapPlus}
-				/>
-			</div>
+			{#if showStepOperations}
+				<div class="input__operation-group">
+					<span class={stepOperationMinusDynamicClasses} role="button" on:click={handleExecStepGapMinus} />
+					<span class={stepOperationPlusDynamicClasses} role="button" on:click={handleExecStepGapPlus} />
+				</div>
+			{/if}
 			<slot name="suffix" />
 		</div>
 	</div>
