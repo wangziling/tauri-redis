@@ -104,11 +104,16 @@
 				innerValue = parseNumLikeStr(val);
 			} else {
 				if (inputEl) {
+					innerValue = defaultValue;
 					inputEl.value = displayValue;
 				}
 
 				return;
 			}
+		}
+
+		if (!judgeValidNum(innerValue, { maximum, minimum })) {
+			return;
 		}
 
 		const silent = lodashGet(options, 'silent');
@@ -163,6 +168,10 @@
 		if (curValue === innerValue) {
 			displayValue = calcDisplayValue(innerValue, precise);
 
+			return;
+		}
+
+		if (judgeValidNum(innerValue, { maximum, minimum })) {
 			return;
 		}
 

@@ -29,7 +29,7 @@
 	let innerValue = value;
 	$: innerValue = value;
 
-	let displayValue = (innerValue = value);
+	let displayValue = calcDisplayValue(innerValue);
 	$: displayValue = calcDisplayValue(innerValue);
 
 	let isPwdVisible = false;
@@ -73,15 +73,15 @@
 			return;
 		}
 
-		const curValue = (e.target as HTMLInputElement).value;
+		innerValue = (e.target as HTMLInputElement).value;
 		if (isFormItemFieldMiscValid) {
-			formItemFieldMisc.events.handleFieldSetValue(curValue, FormRuleTrigger.Input);
+			formItemFieldMisc.events.handleFieldSetValue(innerValue, FormRuleTrigger.Input);
 		}
 
 		// A pure component shouldn't manipulate the prop straightly.
-		// value = curValue;
+		// value = innerValue;
 
-		dispatch('input', value);
+		dispatch('input', innerValue);
 	}
 
 	function handleChange(e: Event) {
@@ -93,15 +93,15 @@
 			return;
 		}
 
-		const curValue = (e.target as HTMLInputElement).value;
+		innerValue = (e.target as HTMLInputElement).value;
 		if (isFormItemFieldMiscValid) {
-			formItemFieldMisc.events.handleFieldSetValue(curValue, FormRuleTrigger.Change);
+			formItemFieldMisc.events.handleFieldSetValue(innerValue, FormRuleTrigger.Change);
 		}
 
 		// A pure component shouldn't manipulate the prop straightly.
-		// value = curValue;
+		// value = innerValue;
 
-		dispatch('change', value);
+		dispatch('change', innerValue);
 	}
 
 	function handleFocus(e: Event) {
