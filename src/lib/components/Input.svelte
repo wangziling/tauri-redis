@@ -10,6 +10,8 @@
 		return value;
 	};
 
+	const defaultName = `input-${calcRandomCompNameSuffix()}`;
+
 	export let placeholder = '';
 	export let disabled = false;
 	export let readonly = false;
@@ -18,10 +20,13 @@
 	// For textarea.
 	export let resizable = true;
 
+	// Is a pure component, will not change the prop-value straightly
+	export let pure = false;
 	// Consider that the component is a pure component. Will not straightly manipulate the props.
 	export let value = '';
+
 	export let type: 'text' | 'textarea' | 'password' = 'text';
-	export let name = `input-${calcRandomCompNameSuffix()}`;
+	export let name = defaultName;
 
 	let innerType = type;
 	$: innerType = type;
@@ -43,14 +48,23 @@
 	$: readonlyWatched.set(readonly);
 	const loadingWatched = writable(loading);
 	$: loadingWatched.set(loading);
+	const pureWatched = writable(pure);
+	$: pureWatched.set(pure);
 
 	const formItemFieldMisc = initialFormItemFieldMisc(
-		{ disabledWatched, readonlyWatched, loadingWatched, nameWatched },
+		{ disabledWatched, readonlyWatched, loadingWatched, nameWatched, defaultName, pureWatched },
 		{ fieldType: 'input' }
 	);
 	const isFormItemFieldMiscValid = formItemFieldMisc.metrics.valid;
-	const { finalNameDerived, finalLoadingDerived, finalReadonlyDerived, finalDisabledDerived } =
-		formItemFieldMisc.getters;
+	const {
+		finalNameDerived,
+		finalLoadingDerived,
+		finalReadonlyDerived,
+		finalDisabledDerived,
+		isNameOrFormFieldPropPresetDerived,
+		isPuredDerived,
+		miscClasses
+	} = formItemFieldMisc.getters;
 
 	$: dynamicClasses = calcDynamicClasses([
 		'input',
@@ -61,6 +75,7 @@
 			['input--type-' + type]: type,
 			'input--resizable': resizable
 		},
+		$miscClasses,
 		$$restProps.class
 	]);
 
@@ -74,12 +89,24 @@
 		}
 
 		innerValue = (e.target as HTMLInputElement).value;
-		if (isFormItemFieldMiscValid) {
+		if ($isFormItemFieldMiscValid) {
+			if (!$isNameOrFormFieldPropPresetDerived) {
+				// If form context found, but field didn't set the 'prop' value.
+				// Means: <FormItem prop=""> or <FormItem></FormItem>.
+				// Revert the changes.
+				(e.target as HTMLInputElement).value = value;
+				innerValue = value;
+
+				return;
+			}
+
 			formItemFieldMisc.events.handleFieldSetValue(innerValue, FormRuleTrigger.Input);
 		}
 
 		// A pure component shouldn't manipulate the prop straightly.
-		// value = innerValue;
+		if (!$isPuredDerived) {
+			value = innerValue;
+		}
 
 		dispatch('input', innerValue);
 	}
@@ -94,12 +121,24 @@
 		}
 
 		innerValue = (e.target as HTMLInputElement).value;
-		if (isFormItemFieldMiscValid) {
+		if ($isFormItemFieldMiscValid) {
+			if (!$isNameOrFormFieldPropPresetDerived) {
+				// If form context found, but field didn't set the 'prop' value.
+				// Means: <FormItem prop=""> or <FormItem></FormItem>.
+				// Revert the changes.
+				(e.target as HTMLInputElement).value = value;
+				innerValue = value;
+
+				return;
+			}
+
 			formItemFieldMisc.events.handleFieldSetValue(innerValue, FormRuleTrigger.Change);
 		}
 
 		// A pure component shouldn't manipulate the prop straightly.
-		// value = innerValue;
+		if (!$isPuredDerived) {
+			value = innerValue;
+		}
 
 		dispatch('change', innerValue);
 	}
@@ -113,7 +152,7 @@
 			return;
 		}
 
-		if (isFormItemFieldMiscValid) {
+		if ($isFormItemFieldMiscValid) {
 			formItemFieldMisc.events.handleFieldFocus(e);
 		}
 
@@ -129,7 +168,7 @@
 			return;
 		}
 
-		if (isFormItemFieldMiscValid) {
+		if ($isFormItemFieldMiscValid) {
 			formItemFieldMisc.events.handleFieldBlur(e);
 		}
 

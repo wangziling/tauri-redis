@@ -270,6 +270,8 @@ export function initialFormItemFieldMisc(
 		readonlyWatched: Writable<FormField['readonly']>;
 		loadingWatched: Writable<FormField['loading']>;
 		nameWatched: Writable<FormField['prop']>;
+		defaultName: string;
+		pureWatched: Writable<boolean>;
 	},
 	options: {
 		fieldType: string;
@@ -309,6 +311,36 @@ export function initialFormItemFieldMisc(
 		}
 	);
 
+	// Did this final name is the same as the default name.
+	// If true, okay, means the component didn't get the name from the upper component or form field.
+	const isNameOrFormFieldPropPresetDerived: Readable<boolean> = derived(finalNameDerived, function (finalName) {
+		return finalName !== initialState.defaultName;
+	});
+
+	// If we set the form field name, means the field is under the form context.
+	// Ok, we need to make the field as a pure component.
+	// The prop-value from upper stream cannot be straightly modified,
+	// must to and will only be modified through the unified form event handler.
+	const isPuredDerived: Readable<boolean> = derived(
+		[miscNameWatched, initialState.pureWatched],
+		function ([miscName, pured]) {
+			if (miscName && miscName !== initialState.defaultName) {
+				return true;
+			}
+
+			return pured;
+		}
+	);
+
+	// If under form context but without set the 'prop'.
+	// Set an uniq class name.
+	const miscClasses: Readable<string> = derived(
+		[isNameOrFormFieldPropPresetDerived, valid],
+		function ([isNameOrFormFieldPropPreset, valid]) {
+			return valid && !isNameOrFormFieldPropPreset ? 'form-item-field--without-prop' : '';
+		}
+	);
+
 	const result = {
 		state: {
 			name: '',
@@ -319,10 +351,13 @@ export function initialFormItemFieldMisc(
 			miscLoadingWatch,
 			miscReadonlyWatched,
 			miscDisabledWatched,
+			miscClasses,
 			finalNameDerived,
 			finalLoadingDerived,
 			finalReadonlyDerived,
-			finalDisabledDerived
+			finalDisabledDerived,
+			isNameOrFormFieldPropPresetDerived,
+			isPuredDerived
 		},
 		metrics: {
 			valid
@@ -331,16 +366,16 @@ export function initialFormItemFieldMisc(
 	};
 
 	if (!hasContext(contextItemStoreKey)) {
-		return;
+		return result;
 	}
 
 	const contextItemStore = getContext(contextItemStoreKey) as ContextItemStore;
 	if (!contextItemStore) {
-		return;
+		return result;
 	}
 
 	if (contextItemStore.utils.judgeConsumed()) {
-		return;
+		return result;
 	}
 
 	contextItemStore.utils.setConsumed();

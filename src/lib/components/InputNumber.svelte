@@ -9,6 +9,7 @@
 
 	const dispatch = createEventDispatcher();
 	const defaultValue = 0;
+	const defaultName = `input-number-${calcRandomCompNameSuffix()}`;
 
 	const calcDisplayValue = function calcDisplayValue(value: number, precise: number) {
 		return precise > 0 ? value.toFixed(precise) : value + '';
@@ -24,9 +25,12 @@
 	export let stepGap = 1;
 	export let showStepOperations = true;
 
+	// Is a pure component, will not change the prop-value straightly
+	export let pure = false;
 	// Consider that the component is a pure component. Will not straightly manipulate the props.
 	export let value: number = defaultValue;
-	export let name = `input-number-${calcRandomCompNameSuffix()}`;
+
+	export let name = defaultName;
 
 	let innerValue: number = value;
 	$: innerValue = value;
@@ -42,14 +46,23 @@
 	$: readonlyWatched.set(readonly);
 	const loadingWatched = writable(loading);
 	$: loadingWatched.set(loading);
+	const pureWatched = writable(pure);
+	$: pureWatched.set(pure);
 
 	const formItemFieldMisc = initialFormItemFieldMisc(
-		{ disabledWatched, readonlyWatched, loadingWatched, nameWatched },
+		{ disabledWatched, readonlyWatched, loadingWatched, nameWatched, defaultName, pureWatched },
 		{ fieldType: 'inputNumber' }
 	);
 	const isFormItemFieldMiscValid = formItemFieldMisc.metrics.valid;
-	const { finalNameDerived, finalLoadingDerived, finalReadonlyDerived, finalDisabledDerived } =
-		formItemFieldMisc.getters;
+	const {
+		finalNameDerived,
+		finalLoadingDerived,
+		finalReadonlyDerived,
+		finalDisabledDerived,
+		isNameOrFormFieldPropPresetDerived,
+		isPuredDerived,
+		miscClasses
+	} = formItemFieldMisc.getters;
 
 	$: isInnerValueValid = judgeValidNum(innerValue);
 	$: isDisplayValueValid = judgeValidNumLikeStr(displayValue, { precise, maximum, minimum });
@@ -83,6 +96,7 @@
 			'input--loading': $finalLoadingDerived,
 			'input--invalid-num': !isDisplayValueValid
 		},
+		$miscClasses,
 		$$restProps.class
 	]);
 
@@ -118,12 +132,26 @@
 
 		const silent = lodashGet(options, 'silent');
 
-		if (formItemFieldMisc && !silent) {
-			formItemFieldMisc.events.handleFieldSetValue(innerValue, FormRuleTrigger.Input);
+		if ($isFormItemFieldMiscValid) {
+			if (!$isNameOrFormFieldPropPresetDerived) {
+				// If form context found, but field didn't set the 'prop' value.
+				// Means: <FormItem prop=""> or <FormItem></FormItem>.
+				// Revert the changes.
+				displayValue = inputEl.value = calcDisplayValue(value, precise);
+				innerValue = value;
+
+				return;
+			}
+
+			if (!silent) {
+				formItemFieldMisc.events.handleFieldSetValue(innerValue, FormRuleTrigger.Input);
+			}
 		}
 
 		// A pure component shouldn't manipulate the prop straightly.
-		// value = curValue;
+		if (!$isPuredDerived) {
+			value = innerValue;
+		}
 
 		if (!silent) {
 			dispatch('input', innerValue);
@@ -176,12 +204,26 @@
 		}
 
 		const silent = lodashGet(options, 'silent');
-		if (formItemFieldMisc && !silent) {
-			formItemFieldMisc.events.handleFieldSetValue(innerValue, FormRuleTrigger.Change);
+		if ($isFormItemFieldMiscValid) {
+			if (!$isNameOrFormFieldPropPresetDerived) {
+				// If form context found, but field didn't set the 'prop' value.
+				// Means: <FormItem prop=""> or <FormItem></FormItem>.
+				// Revert the changes.
+				inputEl.value = displayValue = calcDisplayValue(value, precise);
+				innerValue = value;
+
+				return;
+			}
+
+			if (!silent) {
+				formItemFieldMisc.events.handleFieldSetValue(innerValue, FormRuleTrigger.Change);
+			}
 		}
 
 		// A pure component shouldn't manipulate the prop straightly.
-		// value = curValue;
+		if (!$isPuredDerived) {
+			value = innerValue;
+		}
 
 		displayValue = calcDisplayValue(innerValue, precise);
 		if (!silent) {
@@ -206,7 +248,7 @@
 			return;
 		}
 
-		if (isFormItemFieldMiscValid) {
+		if ($isFormItemFieldMiscValid) {
 			formItemFieldMisc.events.handleFieldFocus(e);
 		}
 
@@ -240,7 +282,7 @@
 
 		displayValue = calcDisplayValue(innerValue, precise);
 
-		if (isFormItemFieldMiscValid) {
+		if ($isFormItemFieldMiscValid) {
 			formItemFieldMisc.events.handleFieldBlur(e);
 		}
 
