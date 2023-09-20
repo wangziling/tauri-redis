@@ -270,6 +270,10 @@ export const createStore = function createStore(options: FormStoreOptions) {
 		}
 	};
 
+	const metrics = {
+		consumed: false
+	};
+
 	const actions = {};
 
 	const getters = {
@@ -437,6 +441,12 @@ export const createStore = function createStore(options: FormStoreOptions) {
 
 				return lodashGet(model, registeredField.prop);
 			});
+		},
+		setConsumed() {
+			metrics.consumed = true;
+		},
+		judgeConsumed() {
+			return metrics.consumed;
 		}
 	};
 
@@ -633,7 +643,8 @@ export const createItemStore = function createItemStore() {
 	const store = {
 		name: '',
 		bindings: {},
-		events: {}
+		events: {},
+		mutations: {}
 	} as FormItemStoreState;
 
 	const mutations = {
@@ -645,7 +656,14 @@ export const createItemStore = function createItemStore() {
 		},
 		setEvents(payload: FormItemStoreState['events']) {
 			store.events = payload;
+		},
+		setMutations(payload: FormItemStoreState['mutations']) {
+			store.mutations = payload;
 		}
+	};
+
+	const metrics = {
+		consumed: false
 	};
 
 	const actions = {};
@@ -659,10 +677,20 @@ export const createItemStore = function createItemStore() {
 		},
 		get events() {
 			return store.events;
+		},
+		get mutations() {
+			return store.mutations;
 		}
 	};
 
-	const utils = {};
+	const utils = {
+		setConsumed() {
+			metrics.consumed = true;
+		},
+		judgeConsumed() {
+			return metrics.consumed;
+		}
+	};
 
 	const target = {
 		mutations,

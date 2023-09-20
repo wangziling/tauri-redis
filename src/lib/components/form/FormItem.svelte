@@ -72,6 +72,11 @@
 		handleFieldFocus: formItemMisc.events.handleFieldFocus,
 		handleFieldSetValue: formItemMisc.events.handleFieldSetValue
 	});
+	$: contextItemStore.mutations.setMutations({
+		setFieldDisabled: formItemMisc.mutations.setFieldDisabled,
+		setFieldReadonly: formItemMisc.mutations.setFieldReadonly,
+		setFieldLoading: formItemMisc.mutations.setFieldLoading
+	});
 
 	setContext(contextItemStoreKey, contextItemStore);
 </script>

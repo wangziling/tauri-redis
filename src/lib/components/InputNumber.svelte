@@ -5,6 +5,7 @@
 	import { FormRuleTrigger } from '$lib/types';
 	import { judgeValidNum, judgeValidNumLikeStr } from '$lib/utils/judgements';
 	import { get as lodashGet } from 'lodash-es';
+	import { writable } from 'svelte/store';
 
 	const dispatch = createEventDispatcher();
 	const defaultValue = 0;
@@ -32,6 +33,24 @@
 
 	let displayValue: string = calcDisplayValue(value, precise);
 	let inputEl: HTMLInputElement | undefined;
+
+	const nameWatched = writable(name);
+	$: nameWatched.set(name);
+	const disabledWatched = writable(disabled);
+	$: disabledWatched.set(disabled);
+	const readonlyWatched = writable(readonly);
+	$: readonlyWatched.set(readonly);
+	const loadingWatched = writable(loading);
+	$: loadingWatched.set(loading);
+
+	const formItemFieldMisc = initialFormItemFieldMisc(
+		{ disabledWatched, readonlyWatched, loadingWatched, nameWatched },
+		{ fieldType: 'inputNumber' }
+	);
+	const isFormItemFieldMiscValid = formItemFieldMisc.metrics.valid;
+	const { finalNameDerived, finalLoadingDerived, finalReadonlyDerived, finalDisabledDerived } =
+		formItemFieldMisc.getters;
+
 	$: isInnerValueValid = judgeValidNum(innerValue);
 	$: isDisplayValueValid = judgeValidNumLikeStr(displayValue, { precise, maximum, minimum });
 	$: isStepOperationPlusDisabled = innerValue === maximum;
@@ -55,55 +74,20 @@
 		}
 	]);
 
-	const formItemFieldMisc = initialFormItemFieldMisc({ fieldType: 'input' });
-
-	let miscName = '';
-	if (formItemFieldMisc) {
-		formItemFieldMisc.state.bindings.prop.subscribe(function (value) {
-			miscName = value;
-		});
-	}
-
-	let miscDisabled = disabled;
-	if (formItemFieldMisc) {
-		formItemFieldMisc.state.bindings.disabled.subscribe(function (value) {
-			miscDisabled = value;
-		});
-	}
-
-	let miscReadonly = readonly;
-	if (formItemFieldMisc) {
-		formItemFieldMisc.state.bindings.readonly.subscribe(function (value) {
-			miscReadonly = value;
-		});
-	}
-
-	let miscLoading = loading;
-	if (formItemFieldMisc) {
-		formItemFieldMisc.state.bindings.loading.subscribe(function (value) {
-			miscLoading = value;
-		});
-	}
-
-	$: innerDisabled = miscDisabled || disabled;
-	$: innerReadonly = miscReadonly || readonly;
-	$: innerLoading = miscLoading || loading;
-	$: innerName = miscName || name;
-
 	$: dynamicClasses = calcDynamicClasses([
 		'input',
 		'input--type-number',
 		{
-			'input--disabled': innerDisabled,
-			'input--readonly': innerReadonly,
-			'input--loading': innerLoading,
+			'input--disabled': $finalDisabledDerived,
+			'input--readonly': $finalReadonlyDerived,
+			'input--loading': $finalLoadingDerived,
 			'input--invalid-num': !isDisplayValueValid
 		},
 		$$restProps.class
 	]);
 
 	function input(val: string | number, options?: { silent: boolean }) {
-		if (innerDisabled || innerReadonly) {
+		if ($finalDisabledDerived || $finalReadonlyDerived) {
 			if (inputEl) {
 				inputEl.value = displayValue;
 			}
@@ -142,7 +126,7 @@
 	}
 
 	function change(val: string | number, options?: { silent: boolean }) {
-		if (innerDisabled || innerReadonly) {
+		if ($finalDisabledDerived || $finalReadonlyDerived) {
 			if (inputEl) {
 				inputEl.value = displayValue;
 			}
@@ -205,15 +189,15 @@
 	}
 
 	function handleFocus(e: Event) {
-		if (innerDisabled || innerReadonly) {
-			if (inputEl) {
-				inputEl.value = displayValue;
-			}
+		if (inputEl) {
+			inputEl.value = displayValue;
+		}
 
+		if ($finalDisabledDerived || $finalReadonlyDerived) {
 			return;
 		}
 
-		if (formItemFieldMisc) {
+		if (isFormItemFieldMiscValid) {
 			formItemFieldMisc.events.handleFieldFocus(e);
 		}
 
@@ -221,11 +205,11 @@
 	}
 
 	function handleBlur(e: Event) {
-		if (innerDisabled || innerReadonly) {
-			if (inputEl) {
-				inputEl.value = displayValue;
-			}
+		if (inputEl) {
+			inputEl.value = displayValue;
+		}
 
+		if ($finalDisabledDerived || $finalReadonlyDerived) {
 			return;
 		}
 
@@ -247,7 +231,7 @@
 
 		displayValue = calcDisplayValue(innerValue, precise);
 
-		if (formItemFieldMisc) {
+		if (isFormItemFieldMiscValid) {
 			formItemFieldMisc.events.handleFieldBlur(e);
 		}
 
@@ -255,6 +239,10 @@
 	}
 
 	function handleExecStepGapMinus() {
+		if (inputEl) {
+			inputEl.value = displayValue;
+		}
+
 		if (!isInnerValueValid) {
 			innerValue = defaultValue;
 		}
@@ -271,6 +259,10 @@
 	}
 
 	function handleExecStepGapPlus() {
+		if (inputEl) {
+			inputEl.value = displayValue;
+		}
+
 		if (!isInnerValueValid) {
 			innerValue = defaultValue;
 		}
@@ -301,10 +293,10 @@
 				type="text"
 				class="input__input-el"
 				{placeholder}
-				disabled={innerDisabled}
-				readonly={innerReadonly}
+				disabled={$finalDisabledDerived}
+				readonly={$finalReadonlyDerived}
 				value={displayValue}
-				name={innerName}
+				name={$finalNameDerived}
 				id={name}
 				bind:this={inputEl}
 				on:input={handleInput}

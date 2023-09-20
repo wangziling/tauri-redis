@@ -117,6 +117,11 @@ export type FormItemStoreState = {
 		handleFieldBlur: (e: Event) => any;
 		handleFieldSetValue: (curValue: FormItemValue, trigger: FormRuleTrigger.Change | FormRuleTrigger.Input) => any;
 	};
+	mutations: {
+		setFieldDisabled: (payload: FormField['disabled']) => any;
+		setFieldReadonly: (payload: FormField['readonly']) => any;
+		setFieldLoading: (payload: FormField['loading']) => any;
+	};
 };
 
 export type FormValidatePromiseError = Error & {

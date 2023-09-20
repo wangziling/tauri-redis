@@ -3,6 +3,7 @@
 	import { createEventDispatcher } from 'svelte';
 	import { initialFormItemFieldMisc } from '$lib/components/form/utils';
 	import { FormRuleTrigger } from '$lib/types';
+	import { writable } from 'svelte/store';
 
 	const dispatch = createEventDispatcher();
 	const calcDisplayValue = function calcDisplayValue(value: string) {
@@ -34,47 +35,29 @@
 	let isPwdVisible = false;
 	let inputEl: undefined | HTMLInputElement;
 
-	const formItemFieldMisc = initialFormItemFieldMisc({ fieldType: 'input' });
+	const nameWatched = writable(name);
+	$: nameWatched.set(name);
+	const disabledWatched = writable(disabled);
+	$: disabledWatched.set(disabled);
+	const readonlyWatched = writable(readonly);
+	$: readonlyWatched.set(readonly);
+	const loadingWatched = writable(loading);
+	$: loadingWatched.set(loading);
 
-	let miscName = '';
-	if (formItemFieldMisc) {
-		formItemFieldMisc.state.bindings.prop.subscribe(function (value) {
-			miscName = value;
-		});
-	}
-
-	let miscDisabled = disabled;
-	if (formItemFieldMisc) {
-		formItemFieldMisc.state.bindings.disabled.subscribe(function (value) {
-			miscDisabled = value;
-		});
-	}
-
-	let miscReadonly = readonly;
-	if (formItemFieldMisc) {
-		formItemFieldMisc.state.bindings.readonly.subscribe(function (value) {
-			miscReadonly = value;
-		});
-	}
-
-	let miscLoading = loading;
-	if (formItemFieldMisc) {
-		formItemFieldMisc.state.bindings.loading.subscribe(function (value) {
-			miscLoading = value;
-		});
-	}
-
-	$: innerDisabled = miscDisabled || disabled;
-	$: innerReadonly = miscReadonly || readonly;
-	$: innerLoading = miscLoading || loading;
-	$: innerName = miscName || name;
+	const formItemFieldMisc = initialFormItemFieldMisc(
+		{ disabledWatched, readonlyWatched, loadingWatched, nameWatched },
+		{ fieldType: 'input' }
+	);
+	const isFormItemFieldMiscValid = formItemFieldMisc.metrics.valid;
+	const { finalNameDerived, finalLoadingDerived, finalReadonlyDerived, finalDisabledDerived } =
+		formItemFieldMisc.getters;
 
 	$: dynamicClasses = calcDynamicClasses([
 		'input',
 		{
-			'input--disabled': innerDisabled,
-			'input--readonly': innerReadonly,
-			'input--loading': innerLoading,
+			'input--disabled': $finalDisabledDerived,
+			'input--readonly': $finalReadonlyDerived,
+			'input--loading': $finalLoadingDerived,
 			['input--type-' + type]: type,
 			'input--resizable': resizable
 		},
@@ -82,7 +65,7 @@
 	]);
 
 	function handleInput(e: Event) {
-		if (innerDisabled || innerReadonly) {
+		if ($finalDisabledDerived || $finalReadonlyDerived) {
 			if (inputEl) {
 				inputEl.value = innerValue;
 			}
@@ -91,7 +74,7 @@
 		}
 
 		const curValue = (e.target as HTMLInputElement).value;
-		if (formItemFieldMisc) {
+		if (isFormItemFieldMiscValid) {
 			formItemFieldMisc.events.handleFieldSetValue(curValue, FormRuleTrigger.Input);
 		}
 
@@ -102,7 +85,7 @@
 	}
 
 	function handleChange(e: Event) {
-		if (innerDisabled || innerReadonly) {
+		if ($finalDisabledDerived || $finalReadonlyDerived) {
 			if (inputEl) {
 				inputEl.value = innerValue;
 			}
@@ -111,7 +94,7 @@
 		}
 
 		const curValue = (e.target as HTMLInputElement).value;
-		if (formItemFieldMisc) {
+		if (isFormItemFieldMiscValid) {
 			formItemFieldMisc.events.handleFieldSetValue(curValue, FormRuleTrigger.Change);
 		}
 
@@ -122,15 +105,15 @@
 	}
 
 	function handleFocus(e: Event) {
-		if (innerDisabled || innerReadonly) {
-			if (inputEl) {
-				inputEl.value = innerValue = value;
-			}
+		if (inputEl) {
+			inputEl.value = displayValue;
+		}
 
+		if ($finalDisabledDerived || $finalReadonlyDerived) {
 			return;
 		}
 
-		if (formItemFieldMisc) {
+		if (isFormItemFieldMiscValid) {
 			formItemFieldMisc.events.handleFieldFocus(e);
 		}
 
@@ -138,15 +121,15 @@
 	}
 
 	function handleBlur(e: Event) {
-		if (innerDisabled || innerReadonly) {
-			if (inputEl) {
-				inputEl.value = innerValue = value;
-			}
+		if (inputEl) {
+			inputEl.value = displayValue;
+		}
 
+		if ($finalDisabledDerived || $finalReadonlyDerived) {
 			return;
 		}
 
-		if (formItemFieldMisc) {
+		if (isFormItemFieldMiscValid) {
 			formItemFieldMisc.events.handleFieldBlur(e);
 		}
 
@@ -166,10 +149,10 @@
 				<textarea
 					class="input__textarea-el"
 					{placeholder}
-					disabled={innerDisabled}
-					readonly={innerReadonly}
+					disabled={$finalDisabledDerived}
+					readonly={$finalReadonlyDerived}
 					{value}
-					name={innerName}
+					name={$finalNameDerived}
 					id={name}
 					on:input={handleInput}
 					on:focus={handleFocus}
@@ -186,10 +169,10 @@
 					type={innerType}
 					class="input__input-el"
 					{placeholder}
-					disabled={innerDisabled}
-					readonly={innerReadonly}
+					disabled={$finalDisabledDerived}
+					readonly={$finalReadonlyDerived}
 					value={displayValue}
-					name={innerName}
+					name={$finalNameDerived}
 					id={name}
 					bind:this={inputEl}
 					on:input={handleInput}

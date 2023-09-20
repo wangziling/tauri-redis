@@ -1,13 +1,16 @@
 import type { FormField, FormFieldPicker, FormItemValue } from '$lib/types';
 import { getContext, hasContext, onDestroy, onMount } from 'svelte';
 import { contextItemStoreKey, contextStoreKey, createItemStore, createStore } from '$lib/components/form/context';
-import { derived, get, type Readable } from 'svelte/store';
+import { derived, get, readable, type Readable, type Writable, writable } from 'svelte/store';
 import { some, get as lodashGet } from 'lodash-es';
 import type { FormRuleTrigger } from '$lib/types';
+import { SubscribeManager } from '$lib/utils/subscriber';
 
 export function initialFormItemMisc(
 	condition: Required<FormFieldPicker>,
-	options?: Partial<{ useRestrictSetFieldValueMode: Readable<boolean> }>
+	options?: Partial<{
+		useRestrictSetFieldValueMode: Readable<boolean>;
+	}>
 ) {
 	if (!hasContext(contextStoreKey)) {
 		return;
@@ -78,12 +81,8 @@ export function initialFormItemMisc(
 		}
 	);
 
-	const unSubscribers: Function[] = [];
-	const unsubscribe = function unsubscriber() {
-		unSubscribers.forEach(function (sub) {
-			sub();
-		});
-	};
+	const subscribeManager = new SubscribeManager();
+
 	const setFieldRules = function setFieldRules(rules: FormField['rules']) {
 		const field = get(fieldDerived);
 		if (!field) {
@@ -100,6 +99,33 @@ export function initialFormItemMisc(
 		}
 
 		contextStore.mutations.setFieldRequired(field, required);
+	};
+
+	const setFieldDisabled = function setFieldDisabled(required: FormField['required']) {
+		const field = get(fieldDerived);
+		if (!field) {
+			return;
+		}
+
+		contextStore.mutations.setFieldDisabled(field, required);
+	};
+
+	const setFieldReadonly = function setFieldReadonly(required: FormField['required']) {
+		const field = get(fieldDerived);
+		if (!field) {
+			return;
+		}
+
+		contextStore.mutations.setFieldReadonly(field, required);
+	};
+
+	const setFieldLoading = function setFieldLoading(required: FormField['required']) {
+		const field = get(fieldDerived);
+		if (!field) {
+			return;
+		}
+
+		contextStore.mutations.setFieldLoading(field, required);
 	};
 
 	const setFieldMounted = function setFieldMounted(mounted: FormField['mounted']) {
@@ -187,7 +213,7 @@ export function initialFormItemMisc(
 	onDestroy(function onDestroy() {
 		contextStore.mutations.unregisterField(condition);
 
-		unsubscribe();
+		subscribeManager.unsubscribe();
 	});
 
 	onMount(function onMount() {
@@ -221,34 +247,157 @@ export function initialFormItemMisc(
 		},
 		mutations: {
 			setFieldRules,
-			setFieldRequired
-		},
-		utils: {
-			unsubscribe
+			setFieldRequired,
+			setFieldDisabled,
+			setFieldReadonly,
+			setFieldLoading
 		},
 		events: {
 			handleFieldFocus,
 			handleFieldBlur,
 			handleFieldSetValue
+		},
+		utils: {
+			judgeConsumed: contextStore.utils.judgeConsumed,
+			setConsumed: contextStore.utils.setConsumed
 		}
 	};
 }
 
-export function initialFormItemFieldMisc(options: { fieldType: string }) {
+export function initialFormItemFieldMisc(
+	initialState: {
+		disabledWatched: Writable<FormField['disabled']>;
+		readonlyWatched: Writable<FormField['readonly']>;
+		loadingWatched: Writable<FormField['loading']>;
+		nameWatched: Writable<FormField['prop']>;
+	},
+	options: {
+		fieldType: string;
+	}
+) {
+	type ContextItemStore = ReturnType<typeof createItemStore>;
+
+	const valid = writable(false);
+
+	const miscNameWatched: Writable<FormField['prop']> = writable('');
+	const miscLoadingWatch: Writable<FormField['loading']> = writable(false);
+	const miscReadonlyWatched: Writable<FormField['readonly']> = writable(false);
+	const miscDisabledWatched: Writable<FormField['disabled']> = writable(false);
+
+	const finalNameDerived: Readable<FormField['prop']> = derived(
+		[miscNameWatched, initialState.nameWatched],
+		function ([miscName, name]) {
+			return miscName || name;
+		}
+	);
+	const finalLoadingDerived: Readable<FormField['loading']> = derived(
+		[miscLoadingWatch, initialState.loadingWatched],
+		function ([miscLoading, loading]) {
+			return miscLoading || loading;
+		}
+	);
+	const finalReadonlyDerived: Readable<FormField['readonly']> = derived(
+		[miscReadonlyWatched, initialState.readonlyWatched],
+		function ([miscReadonly, readonly]) {
+			return miscReadonly || readonly;
+		}
+	);
+	const finalDisabledDerived: Readable<FormField['disabled']> = derived(
+		[miscDisabledWatched, initialState.disabledWatched],
+		function ([miscDisabled, disabled]) {
+			return miscDisabled || disabled;
+		}
+	);
+
+	const result = {
+		state: {
+			name: '',
+			bindings: {} as ContextItemStore['getters']['bindings']
+		},
+		getters: {
+			miscNameWatched,
+			miscLoadingWatch,
+			miscReadonlyWatched,
+			miscDisabledWatched,
+			finalNameDerived,
+			finalLoadingDerived,
+			finalReadonlyDerived,
+			finalDisabledDerived
+		},
+		metrics: {
+			valid
+		},
+		events: {} as ContextItemStore['getters']['events']
+	};
+
 	if (!hasContext(contextItemStoreKey)) {
 		return;
 	}
 
-	const contextItemStore = getContext(contextItemStoreKey) as ReturnType<typeof createItemStore>;
+	const contextItemStore = getContext(contextItemStoreKey) as ContextItemStore;
 	if (!contextItemStore) {
 		return;
 	}
 
-	return {
-		state: {
-			name: contextItemStore.getters.name,
-			bindings: contextItemStore.getters.bindings
-		},
-		events: contextItemStore.getters.events
-	};
+	if (contextItemStore.utils.judgeConsumed()) {
+		return;
+	}
+
+	contextItemStore.utils.setConsumed();
+	valid.set(true);
+
+	const bindings = contextItemStore.getters.bindings;
+	result.state.name = contextItemStore.getters.name;
+	result.state.bindings = bindings;
+	result.events = contextItemStore.getters.events;
+
+	const subscribeManager = new SubscribeManager();
+
+	subscribeManager.subscribe(
+		bindings.prop.subscribe(function (prop) {
+			miscNameWatched.set(prop);
+		})
+	);
+
+	subscribeManager.subscribe(
+		bindings.loading.subscribe(function (loading) {
+			miscLoadingWatch.set(loading);
+		})
+	);
+
+	subscribeManager.subscribe(
+		bindings.disabled.subscribe(function (disabled) {
+			miscDisabledWatched.set(disabled);
+		})
+	);
+
+	subscribeManager.subscribe(
+		bindings.readonly.subscribe(function (readonly) {
+			miscReadonlyWatched.set(readonly);
+		})
+	);
+
+	subscribeManager.subscribe(
+		initialState.disabledWatched.subscribe(function (disabled) {
+			contextItemStore.getters.mutations.setFieldDisabled(disabled);
+		})
+	);
+
+	subscribeManager.subscribe(
+		initialState.readonlyWatched.subscribe(function (readonly) {
+			contextItemStore.getters.mutations.setFieldReadonly(readonly);
+		})
+	);
+
+	subscribeManager.subscribe(
+		initialState.loadingWatched.subscribe(function (loading) {
+			contextItemStore.getters.mutations.setFieldLoading(loading);
+		})
+	);
+
+	onDestroy(function onDestroy() {
+		subscribeManager.unsubscribe();
+	});
+
+	return result;
 }

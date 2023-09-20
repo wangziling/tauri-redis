@@ -99,4 +99,27 @@
 			text-decoration: line-through;
 		}
 	}
+
+	&--disabled,
+	&--readonly {
+		.input-wrapper {
+			background-color: var(--input-disabled-bg-color);
+			color: var(--base-disabled-font-color);
+		}
+
+		.input__operation,
+		.input__operation-group {
+			display: none;
+		}
+
+		input,
+		textarea {
+			color: inherit;
+			text-decoration-color: currentColor;
+		}
+
+		textarea {
+			resize: none;
+		}
+	}
 }
