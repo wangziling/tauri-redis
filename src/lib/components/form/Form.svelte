@@ -55,5 +55,13 @@
 </script>
 
 <form class={dynamicClasses} {name} action="#" on:submit|preventDefault|stopPropagation>
-	<slot />
+	<div class="form__caption">
+		<slot name="caption" />
+	</div>
+	<div class="form__main">
+		<slot />
+	</div>
+	<div class="form__footer">
+		<slot name="footer" />
+	</div>
 </form>

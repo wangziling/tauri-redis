@@ -1,6 +1,18 @@
 .form {
 	width: 100%;
 
+	&__caption,
+	&__main,
+	&__footer {
+		+ * {
+			margin-top: 1.5rem;
+		}
+
+		&:empty {
+			display: none;
+		}
+	}
+
 	&-item {
 		&-label {
 			&:empty {
