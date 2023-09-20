@@ -58,24 +58,24 @@ function generateFieldRuleValidatorUtils(
 	const rules = {} as FormItemNamedRules;
 	const needToValidateFields = [] as FormStoreState['fields'];
 	const recordUsedRules = function (usedRules: FormItemRules, field: FormField) {
-		if (isUsedTriggersValid) {
-			usedRules = usedRules.filter(function (rule) {
-				const ruleTriggers = rule.trigger;
-				if (!ruleTriggers) {
-					return true;
-				}
-
-				if (!Array.isArray(ruleTriggers)) {
-					return usedTriggers.includes(ruleTriggers);
-				}
-
-				return ruleTriggers.some(function (tr: FormRuleTrigger) {
-					return usedTriggers.includes(tr);
-				});
-			});
-		}
-
 		if (Array.isArray(usedRules) && usedRules.length) {
+			if (isUsedTriggersValid) {
+				usedRules = usedRules.filter(function (rule) {
+					const ruleTriggers = rule.trigger;
+					if (!ruleTriggers) {
+						return true;
+					}
+
+					if (!Array.isArray(ruleTriggers)) {
+						return usedTriggers.includes(ruleTriggers);
+					}
+
+					return ruleTriggers.some(function (tr: FormRuleTrigger) {
+						return usedTriggers.includes(tr);
+					});
+				});
+			}
+
 			lodashSet(rules, field.prop, usedRules);
 			usedIterationCallback(field);
 
