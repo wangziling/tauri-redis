@@ -29,5 +29,12 @@
 	}
 
 	.tauri-redis-new-connection {
+		.form__footer {
+			text-align: right;
+
+			.btn + .btn {
+				margin-left: 1.2rem;
+			}
+		}
 	}
 }
