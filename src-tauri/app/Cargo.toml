@@ -22,6 +22,7 @@ serde_json.workspace = true
 anyhow.workspace = true
 thiserror.workspace = true
 tauri_redis_core.workspace = true
+tauri_redis_config.workspace = true
 reqwest = "0.11"
 
 [features]

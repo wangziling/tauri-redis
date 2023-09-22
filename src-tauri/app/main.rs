@@ -5,6 +5,7 @@
 mod command;
 mod context;
 mod features;
+mod utils;
 
 fn main() {
     context::run_with_context(command::register_commands(tauri::Builder::default()))

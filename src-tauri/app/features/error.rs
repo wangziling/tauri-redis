@@ -1,7 +1,25 @@
+use crate::features::response::Response;
+
+#[allow(dead_code)]
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("Failed to send the http request.")]
     FailedToSendHTTPRequest,
+
+    #[error("Internal error.")]
+    InternalError,
+
+    #[error("Failed to get related config")]
+    FailedToGetRelatedConfig(#[from] tauri_redis_config::ConfigError),
+
+    #[error("Failed to get the cached connections info.")]
+    FailedToGetCachedConnectionsInfo,
+    #[error("Failed to parse the cached connections info.")]
+    FailedToParseCachedConnectionsInfo,
+    #[error("Failed to parse the connection info.")]
+    FailedToParseConnectionInfo,
+    #[error("Failed to save the connection info.")]
+    FailedToSaveConnectionInfo,
 }
 
 impl Error {
@@ -17,5 +35,13 @@ impl serde::Serialize for Error {
         S: serde::Serializer,
     {
         serializer.serialize_str(self.to_string().as_ref())
+    }
+}
+
+pub type Result<T, E = Error> = std::result::Result<T, E>;
+
+impl<Data> From<Error> for Response<Data> {
+    fn from(value: Error) -> Self {
+        Response::<Data>::failed(value.to_string(), None)
     }
 }
