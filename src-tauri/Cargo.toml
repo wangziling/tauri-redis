@@ -21,3 +21,4 @@ anyhow = "1.0"
 thiserror = "1.0"
 config = { version = "0.13.3", features = ["toml"] }
 once_cell = "1.18.0"
+fs_extra = "1.3.0"
