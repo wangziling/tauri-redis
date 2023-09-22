@@ -22,6 +22,12 @@ textarea {
 		background-color: var(--input-disabled-bg-color);
 	}
 
+	// No need ms-browsers' native btn.
+	&::-ms-reveal,
+	&::-ms-clear {
+		display: none;
+	}
+
 	// Chrome
 	&::-webkit-input-placeholder,
     // Firefox 19+
