@@ -415,6 +415,29 @@ export const createStore = function createStore(options: FormStoreOptions) {
 					throw e;
 				});
 		},
+		resetValidation() {
+			store.fields.update(function (fields) {
+				fields.forEach(function (field) {
+					field.messageInfo = undefined;
+				});
+
+				return fields;
+			});
+		},
+		resetFieldsValidation(conditions: TArrayOrPrimitive<FormFieldPicker>) {
+			store.fields.update(function (fields) {
+				const filteredFields = filterRegisteredFields(fields, conditions);
+				if (!filteredFields.length) {
+					return fields;
+				}
+
+				filteredFields.forEach(function (field) {
+					field.messageInfo = undefined;
+				});
+
+				return fields;
+			});
+		},
 		getFieldFormModelValue(condition: FormFieldPicker) {
 			const model = get(store.model);
 			if (condition.prop) {
@@ -580,6 +603,12 @@ export const createStore = function createStore(options: FormStoreOptions) {
 
 					throw e;
 				});
+		},
+		handleResetValidation(...args: Parameters<(typeof utils)['resetValidation']>) {
+			return utils.resetValidation(...args);
+		},
+		handleResetFieldsValidation(...args: Parameters<(typeof utils)['resetFieldsValidation']>) {
+			return utils.resetFieldsValidation(...args);
 		},
 		handleSetFieldValue(
 			condition: FormFieldPicker & {

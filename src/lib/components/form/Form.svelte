@@ -52,6 +52,8 @@
 	export const setFieldLoading = store.events.handleSetFieldLoading;
 	export const validateFields = store.events.handleValidateFields;
 	export const validate = store.events.handleValidate;
+	export const resetFieldsValidation = store.events.handleResetFieldsValidation;
+	export const resetValidation = store.events.handleResetValidation;
 </script>
 
 <form class={dynamicClasses} {name} action="#" on:submit|preventDefault|stopPropagation>
