@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Button from '$lib/components/Button.svelte';
 	import { createEventDispatcher } from 'svelte';
-	import type { IpcConnections } from '$lib/types/ipc';
+	import type { IpcConnections } from '$lib/types';
 	import { merge } from 'lodash-es';
 	import { translator } from '$lib/utils/translator';
 	import type { TranslateResults } from '$lib/types';

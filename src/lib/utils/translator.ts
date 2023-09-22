@@ -2,7 +2,7 @@ import type { TranslationContent, TranslationLanguage, Translations } from '$lib
 import { derived, get, type Readable, type Writable, writable } from 'svelte/store';
 import { get as lodashGet, has, isEmpty } from 'lodash-es';
 import { GLOBAL_TRANSLATION_VARIABLE_PATH, TRANSLATION_KEY_DEFAULT_SPLITTER } from '$lib/constants/strings';
-import type { IpcTranslations } from '$lib/types/ipc';
+import type { IpcTranslations } from '$lib/types';
 import constants from '$lib/constants';
 
 const defaultTranslations = getDefaultTranslations();

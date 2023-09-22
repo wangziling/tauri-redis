@@ -13,7 +13,7 @@
 	import Button from '$lib/components/Button.svelte';
 	import { translator } from '$lib/utils/translator';
 	import { cloneDeep, merge } from 'lodash-es';
-	import type { IpcConnection, IpcConnections } from '$lib/types/ipc';
+	import type { IpcConnection, IpcConnections } from '$lib/types';
 	import { fetchSaveConnection, fetchGetConnections } from '$lib/apis';
 
 	const MAX_PORT_NUM = constants.numbers.MAX_PORT_NUM;

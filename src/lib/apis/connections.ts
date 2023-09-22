@@ -1,4 +1,4 @@
-import type { IpcConnection, IpcConnections } from '$lib/types/ipc';
+import type { IpcConnection, IpcConnections } from '$lib/types';
 import { fetchIpc } from '$lib/utils/async';
 
 export function fetchSaveConnection(payload: IpcConnection) {

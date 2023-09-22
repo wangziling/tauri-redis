@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/tauri';
-import type { IpcResponse } from '$lib/types/ipc';
+import type { IpcResponse } from '$lib/types';
 
 export function generateOperablePromise<T>(invoker?: Function) {
 	let resolve: Parameters<ConstructorParameters<typeof Promise<T>>[0]>[0] | undefined = undefined,
