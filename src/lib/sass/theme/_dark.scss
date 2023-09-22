@@ -1,0 +1,46 @@
+:root.theme-dark {
+	color-scheme: dark;
+
+	--page-font-color: #{$color-white};
+	--page-font-size: #{$default-font-size};
+	--page-bg-color: #{$color-black};
+	--page-font-revert-color: #{$color-black};
+	--page-bg-revert-color: #{$color-white};
+
+	--base-selection-bg-color: #{$color-highlight-light};
+	--base-selection-font-color: #{$color-black};
+	--base-disabled-font-color: #{$color-grey-dark-2};
+	--base-success-font-color: #{$color-green-dark};
+	--base-warning-font-color: #{$color-yellow-dark};
+	--base-danger-font-color: #{$color-red-dark};
+
+	--button-bg-color: #{$color-white};
+	--button-hover-bg-color: #{$color-grey-light-3};
+	--button-primary-bg-color: #{$color-blue-dark};
+	--button-primary-border-color: #{$color-blue-dark};
+	--button-primary-hover-bg-color: #{$color-blue-light};
+	--button-primary-hover-border-color: #{$color-blue-light};
+
+	--button-success-bg-color: #{$color-green-dark};
+	--button-success-border-color: #{$color-green-dark};
+	--button-success-hover-bg-color: #{$color-green-light};
+	--button-success-hover-border-color: #{$color-green-light};
+
+	--button-warning-bg-color: #{$color-yellow-dark};
+	--button-warning-border-color: #{$color-yellow-dark};
+	--button-warning-hover-bg-color: #{$color-yellow-light};
+	--button-warning-hover-border-color: #{$color-yellow-light};
+
+	--button-danger-bg-color: #{$color-red-dark};
+	--button-danger-border-color: #{$color-red-dark};
+	--button-danger-hover-bg-color: #{$color-red-light};
+	--button-danger-hover-border-color: #{$color-red-light};
+
+	--dialog-layered-bg-color: rgba(255, 255, 255, 0.1);
+	--dialog-wrapper-box-shadow: 0 2px 10px 0 rgba(255, 255, 255, 0.2);
+
+	--input-border-color: #{$color-grey-light-3};
+	--input-operation-color: #{$color-grey-light-4};
+	--input-operation-active-color: #{$color-grey-light-3};
+	--input-operation-inactive-color: #{$color-grey-dark-2};
+}

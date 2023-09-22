@@ -1,8 +1,9 @@
 :root {
-	--button-bg-color: #{$color-white};
+	--button-bg-color: #{$color-black};
 	--button-hover-bg-color: #{$color-grey};
 	--button-padding: 1.2rem 1.5rem;
 	--button-border-color: #{$color-grey};
+	--button-font-color: var(--page-font-revert-color);
 
 	--button-primary-bg-color: #{$color-blue};
 	--button-primary-border-color: #{$color-blue-dark};

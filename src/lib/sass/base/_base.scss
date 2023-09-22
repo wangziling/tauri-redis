@@ -8,21 +8,21 @@
 	--page-font-size: #{$default-font-size};
 	--page-bg-color: #{$color-white};
 	--page-font-revert-color: #{$color-white};
-	--page-bg-revert-color: #{$color-black};
+	--page-bg-revert-color: #{$color-grey-dark-3};
 
 	--base-selection-bg-color: #{$color-highlight-dark};
 	--base-selection-font-color: #{$color-white};
 	--base-scrollbar-height: 6px;
 	--base-scrollbar-width: 6px;
-	--base-scrollbar-border-radius: 4px;
+	--base-scrollbar-border-radius: 6px;
 	--base-scrollbar-track-bg-color: #{$color-grey-light-2};
 	--base-scrollbar-button-bg-color: #{$color-grey-light-2};
 	--base-scrollbar-thumb-bg-color: #{$color-grey-light-3};
-	--base-border-radius: 4px;
-	--base-disabled-font-color: #{$color-grey-dark-2};
-	--base-success-font-color: #{$color-green-dark};
-	--base-warning-font-color: #{$color-yellow-dark};
-	--base-danger-font-color: #{$color-red-dark};
+	--base-border-radius: 6px;
+	--base-disabled-font-color: #{$color-grey-light-2};
+	--base-success-font-color: #{$color-green-light};
+	--base-warning-font-color: #{$color-yellow-light};
+	--base-danger-font-color: #{$color-red-light};
 }
 
 html {
