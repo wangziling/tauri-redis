@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { invoke } from '@tauri-apps/api/tauri';
 	import Aside from './Aside.svelte';
 	import Dialog from '$lib/components/Dialog.svelte';
 	import Form from '$lib/components/form/Form.svelte';
@@ -13,36 +12,27 @@
 	import constants from '$lib/constants';
 	import Button from '$lib/components/Button.svelte';
 	import { translator } from '$lib/utils/translator';
-	import { merge } from 'lodash-es';
+	import { cloneDeep, merge } from 'lodash-es';
+	import type { IpcConnection, IpcConnections } from '$lib/types/ipc';
+	import { fetchSaveConnection, fetchGetConnections } from '$lib/apis';
 
 	const MAX_PORT_NUM = constants.numbers.MAX_PORT_NUM;
 	const MIN_PORT_NUM = constants.numbers.MIN_PORT_NUM;
 
-	let name = 'Sling';
-	let greetMsg = '';
 	let dialogOpened = false;
+	let connections: IpcConnections = [];
 	const selectOptions: SelectOptions = [
 		{ label: 'Sling', value: 1 },
 		{ label: 'Wang', value: 2 }
 	];
 	let formIns: undefined | Form;
 
-	async function greet() {
-		// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-		greetMsg = await invoke('greet', { name });
-	}
-
-	async function async_greet() {
-		console.log(await invoke('async_greet', { name, test: '1' }));
-	}
-
-	async function get_web_content() {
-		console.log(await invoke('get_web_content', { name, uri: 'https://baidu.com' }));
-	}
-
 	function handleNewConnection() {
 		dialogOpened = true;
-		// return Promise.allSettled([async_greet(), greet(), get_web_content()]);
+	}
+
+	function handleConfirmConnection() {
+		// Nothing yet.
 	}
 
 	function handleDialogClose() {
@@ -56,20 +46,50 @@
 
 		formIns
 			.validate()
-			.then(function validateThen(res) {
-				console.log(get(model));
+			.then(function validateThen() {
+				let result = get(model);
+				if (!result.connectionName) {
+					result = cloneDeep(result);
+
+					result.connectionName = result.host + '@' + result.port;
+				}
+
+				return fetchSaveConnection(result);
 			})
-			.catch(function validateCatch(e) {});
+			.then(function () {
+				return getConnections();
+			})
+			.then(function () {
+				handleDialogClose();
+			})
+			.catch(function validateCatch(e) {
+				console.error(e);
+			});
 	}
 
 	function handleTriggerCancel() {
 		handleDialogClose();
 	}
 
+	function getConnections() {
+		return fetchGetConnections().then(function (res) {
+			if (Array.isArray(res.data)) {
+				connections = res.data;
+
+				// connections = connections;
+			}
+
+			return res;
+		});
+	}
+
+	// Trigger immediately.
+	getConnections();
+
 	const translations = {} as TranslateResults;
 	const calcTranslations = function calcTranslations() {
 		merge(translations, {
-			'new connection': translator.translate('new connection|New Connection'),
+			'new connection': translator.translate('new connection|New connection'),
 			host: translator.translate('host|Host'),
 			port: translator.translate('port|Port'),
 			username: translator.translate('username|Username'),
@@ -93,7 +113,7 @@
 		connectionName: '',
 		separator: ':',
 		readonly: false
-	});
+	} as IpcConnection);
 	const rules = writable({
 		host: [{ required: true }],
 		port: [{ required: true }],
@@ -110,7 +130,7 @@
 </svelte:head>
 
 <section class="tauri-redis-page tauri-redis-page-main">
-	<Aside on:newConnection={handleNewConnection} />
+	<Aside bind:connections on:newConnection={handleNewConnection} on:confirmConnection={handleConfirmConnection} />
 	<div class="tauri-redis-content">Main.</div>
 	{#if dialogOpened}
 		<Dialog

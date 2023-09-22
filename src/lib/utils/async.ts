@@ -1,3 +1,6 @@
+import { invoke } from '@tauri-apps/api/tauri';
+import type { IpcResponse } from '$lib/types/ipc';
+
 export function generateOperablePromise<T>(invoker?: Function) {
 	let resolve: Parameters<ConstructorParameters<typeof Promise<T>>[0]>[0] | undefined = undefined,
 		reject: Parameters<ConstructorParameters<typeof Promise<T>>[0]>[1] | undefined = undefined;
@@ -13,4 +16,8 @@ export function generateOperablePromise<T>(invoker?: Function) {
 		resolve: resolve!,
 		reject: reject!
 	};
+}
+
+export function fetchIpc<T = any>(cmd: string, args?: Record<string, unknown>): Promise<IpcResponse<T>> {
+	return invoke(cmd, args);
 }
