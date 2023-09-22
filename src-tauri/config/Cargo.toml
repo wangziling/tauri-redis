@@ -10,3 +10,7 @@ readme.workspace = true
 
 [lib]
 path = "lib.rs"
+
+[dependencies]
+config.workspace = true
+once_cell.workspace = true

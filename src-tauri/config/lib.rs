@@ -1,14 +1,20 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+use crate::impls::CrateConfig;
+use once_cell::sync::Lazy;
+
+pub use config::ConfigError;
+
+pub mod impls;
+
+pub static CFG: Lazy<CrateConfig> = Lazy::new(|| CrateConfig::new());
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::CFG;
 
     #[test]
     fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+        let result = CFG.get_int("redis.max_pool_size").unwrap();
+
+        assert_eq!(result, 15_i64);
     }
 }
