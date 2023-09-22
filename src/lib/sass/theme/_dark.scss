@@ -15,23 +15,25 @@
 	--base-danger-font-color: #{$color-red-dark};
 
 	--button-bg-color: #{$color-white};
+	--button-font-color: var(--page-font-revert-color);
 	--button-hover-bg-color: #{$color-grey-light-3};
 	--button-primary-bg-color: #{$color-blue-dark};
+	--button-primary-font-color: var(--page-font-color);
 	--button-primary-border-color: #{$color-blue-dark};
 	--button-primary-hover-bg-color: #{$color-blue-light};
 	--button-primary-hover-border-color: #{$color-blue-light};
-
 	--button-success-bg-color: #{$color-green-dark};
+	--button-success-font-color: var(--page-font-color);
 	--button-success-border-color: #{$color-green-dark};
 	--button-success-hover-bg-color: #{$color-green-light};
 	--button-success-hover-border-color: #{$color-green-light};
-
 	--button-warning-bg-color: #{$color-yellow-dark};
+	--button-warning-font-color: var(--page-font-color);
 	--button-warning-border-color: #{$color-yellow-dark};
 	--button-warning-hover-bg-color: #{$color-yellow-light};
 	--button-warning-hover-border-color: #{$color-yellow-light};
-
 	--button-danger-bg-color: #{$color-red-dark};
+	--button-danger-font-color: var(--page-font-color);
 	--button-danger-border-color: #{$color-red-dark};
 	--button-danger-hover-bg-color: #{$color-red-light};
 	--button-danger-hover-border-color: #{$color-red-light};
