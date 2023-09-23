@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Button from '$lib/components/Button.svelte';
 	import { createEventDispatcher } from 'svelte';
-	import type { IpcConnections } from '$lib/types';
+	import type { IpcConnection, IpcConnections } from '$lib/types';
 	import { merge } from 'lodash-es';
 	import { translator } from '$lib/utils/translator';
 	import type { TranslateResults } from '$lib/types';
@@ -24,8 +24,8 @@
 		dispatch.apply(this, ['newConnection', ...arguments]);
 	}
 
-	function handleConfirmConnection() {
-		dispatch.apply(this, ['confirmConnection', ...arguments]);
+	function handleConfirmConnection(connection: IpcConnection) {
+		dispatch('confirmConnection', connection);
 	}
 </script>
 
@@ -47,7 +47,7 @@
 			{#each connections as connection}
 				<li class="tauri-redis-aside__connection aside-connection">
 					<div class="aside-connection-wrapper">
-						<div class="aside-connection__header" on:click={handleConfirmConnection} tabindex="0">
+						<div class="aside-connection__header" on:click={() => handleConfirmConnection(connection)} tabindex="0">
 							<div class="aside-connection__name">{@html connection.connectionName}</div>
 							<div class="aside-connection__operations" />
 						</div>

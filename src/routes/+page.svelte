@@ -7,14 +7,20 @@
 	import Checkbox from '$lib/components/Checkbox.svelte';
 	// import Select from '$lib/components/Select.svelte';
 	import InputNumber from '$lib/components/InputNumber.svelte';
-	import type { SelectOptions, TranslateResults } from '$lib/types';
+	import type { SaveIpcConnectionPayload, SelectOptions, TranslateResults } from '$lib/types';
 	import { get, writable } from 'svelte/store';
 	import constants from '$lib/constants';
 	import Button from '$lib/components/Button.svelte';
 	import { translator } from '$lib/utils/translator';
 	import { cloneDeep, merge } from 'lodash-es';
 	import type { IpcConnection, IpcConnections } from '$lib/types';
-	import { fetchSaveConnection, fetchGetConnections } from '$lib/apis';
+	import {
+		fetchSaveConnection,
+		fetchGetConnections,
+		fetchEstablishConnection,
+		fetchReleaseConnection
+	} from '$lib/apis';
+	import { fetchListRedisClientMetrics } from '$lib/apis/redis-client';
 
 	const MAX_PORT_NUM = constants.numbers.MAX_PORT_NUM;
 	const MIN_PORT_NUM = constants.numbers.MIN_PORT_NUM;
@@ -31,8 +37,12 @@
 		dialogOpened = true;
 	}
 
-	function handleConfirmConnection() {
-		// Nothing yet.
+	function handleConfirmConnection(e: CustomEvent<IpcConnection>) {
+		const connection = e.detail;
+		fetchEstablishConnection(connection.guid)
+			.then(() => fetchListRedisClientMetrics(connection.guid).then(console.log))
+			.then(() => fetchReleaseConnection(connection.guid))
+			.catch(console.error);
 	}
 
 	function handleDialogClose() {
@@ -113,7 +123,7 @@
 		connectionName: '',
 		separator: ':',
 		readonly: false
-	} as IpcConnection);
+	} as SaveIpcConnectionPayload);
 	const rules = writable({
 		host: [{ required: true }],
 		port: [{ required: true }],

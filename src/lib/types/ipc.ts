@@ -5,14 +5,30 @@ export type IpcTranslations = {
 	language: TranslationLanguage;
 };
 
+export type SaveIpcConnectionPayload = {
+	host: IpcConnection['host'];
+	port: IpcConnection['port'];
+	password?: IpcConnection['password'];
+	username?: IpcConnection['username'];
+	connectionName?: IpcConnection['connectionName'];
+	separator?: IpcConnection['separator'];
+	readonly: IpcConnection['readonly'];
+	guid?: IpcConnection['guid'];
+};
+
 export type IpcConnection = {
 	host: string;
 	port: number;
-	password?: string;
-	username?: string;
+	password: string;
+	username: string;
 	connectionName: string;
-	separator?: string;
+	separator: string;
 	readonly: boolean;
+
+	guid: string;
+	createdAt: string;
+	connectedAt: string;
+	updatedAt: string;
 };
 
 export type IpcConnections = Array<IpcConnection>;
