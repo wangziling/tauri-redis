@@ -1,3 +1,7 @@
+[redis]
+max_pool_size = 5
+connection_timeout = 8
+
 [connections]
 filename = "connections.json"
 file_cache_manager_key = "connections"
