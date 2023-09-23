@@ -9,7 +9,13 @@ pub enum Error {
     #[error("Internal error.")]
     InternalError,
 
-    #[error("Failed to get related config")]
+    #[error("Unexpected issue.")]
+    UnexpectedIssue,
+
+    #[error("Invalid guid.")]
+    InvalidGuid,
+
+    #[error(transparent)]
     FailedToGetRelatedConfig(#[from] tauri_redis_config::ConfigError),
 
     #[error("Failed to get the cached connections info.")]
@@ -22,6 +28,13 @@ pub enum Error {
     FailedToSaveConnectionInfo,
     #[error("Failed to find the matched connection info.")]
     FailedToFindTheMatchedConnectionInfo,
+
+    #[error(transparent)]
+    R2d2InternalError(#[from] r2d2::Error),
+    #[error(transparent)]
+    RedisInternalError(#[from] redis::RedisError),
+    #[error("Failed to find existed redis connection.")]
+    FailedToFindExistedRedisConnection,
 }
 
 impl Error {

@@ -1,5 +1,6 @@
 use tauri::{Builder, Runtime};
 
+mod client;
 mod connections;
 mod demo;
 
@@ -13,5 +14,7 @@ where
         demo::get_web_content,
         connections::save_connection,
         connections::get_connections,
+        connections::establish_connection,
+        connections::release_connection,
     ])
 }

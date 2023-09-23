@@ -28,3 +28,5 @@ uuid = { version = "1", features = [
   "macro-diagnostics", # Enable better diagnostics for compile-time UUIDs
 ] }
 chrono = "0.4"
+redis = { version = "0.23.2", features = ["r2d2", "json", "tokio-comp", "connection-manager"] }
+r2d2 = "0.8.4"

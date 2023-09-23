@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 
 type LocalTimeString = String;
-type Guid = String;
+
+pub type Guid = String;
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
