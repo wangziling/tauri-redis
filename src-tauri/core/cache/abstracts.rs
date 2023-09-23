@@ -20,5 +20,5 @@ pub trait FileCacheBase {
     fn replace(&mut self, value: Value) -> Result<(), AnyError>;
     fn replace_se<T: Serialize>(&mut self, value: T) -> Result<(), AnyError>;
     fn load(&mut self, filename: String) -> Result<(), AnyError>;
-    fn save(&self) -> Result<(), AnyError>;
+    fn save(&self, pretty: bool) -> Result<(), AnyError>;
 }

@@ -162,7 +162,7 @@ impl FileCacheBase for FileCache {
         Ok(())
     }
 
-    fn save(&self) -> Result<(), AnyError> {
+    fn save(&self, pretty: bool) -> Result<(), AnyError> {
         if self.filepath.is_none() {
             return Err(AnyError::msg("Please correctly exec 'load' fn first."));
         }
@@ -188,7 +188,17 @@ impl FileCacheBase for FileCache {
 
         // Empty the file content.
         handle.set_len(0)?;
-        handle.write_all(serde_json::to_string(self.inner.as_ref().unwrap())?.as_bytes())?;
+
+        handle.write_all(
+            {
+                if pretty {
+                    serde_json::to_string_pretty(self.inner.as_ref().unwrap())
+                } else {
+                    serde_json::to_string(self.inner.as_ref().unwrap())
+                }
+            }?
+            .as_bytes(),
+        )?;
 
         Ok(())
     }
