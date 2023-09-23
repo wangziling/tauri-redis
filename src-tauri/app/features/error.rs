@@ -20,6 +20,8 @@ pub enum Error {
     FailedToParseConnectionInfo,
     #[error("Failed to save the connection info.")]
     FailedToSaveConnectionInfo,
+    #[error("Failed to find the matched connection info.")]
+    FailedToFindTheMatchedConnectionInfo,
 }
 
 impl Error {
