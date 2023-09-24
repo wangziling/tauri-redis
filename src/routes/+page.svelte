@@ -18,7 +18,8 @@
 		fetchSaveConnection,
 		fetchGetConnections,
 		fetchEstablishConnection,
-		fetchReleaseConnection
+		fetchReleaseConnection,
+		fetchRemoveConnection
 	} from '$lib/apis';
 	import { fetchListRedisClientMetrics } from '$lib/apis/redis-client';
 
@@ -42,6 +43,8 @@
 		fetchEstablishConnection(connection.guid)
 			.then(() => fetchListRedisClientMetrics(connection.guid).then(console.log))
 			.then(() => fetchReleaseConnection(connection.guid))
+			.then(() => fetchRemoveConnection(connection.guid))
+			.then(() => getConnections())
 			.catch(console.error);
 	}
 

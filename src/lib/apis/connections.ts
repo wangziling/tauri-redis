@@ -16,3 +16,7 @@ export function fetchReleaseConnection(guid: IpcConnection['guid']) {
 export function fetchEstablishConnection(guid: IpcConnection['guid']) {
 	return fetchIpc<IpcConnections>('establish_connection', { guid });
 }
+
+export function fetchRemoveConnection(guid: IpcConnection['guid']) {
+	return fetchIpc<IpcConnections>('remove_connection', { guid });
+}
