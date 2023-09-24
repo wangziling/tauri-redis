@@ -15,7 +15,10 @@ export default defineConfig(async () => ({
 	// 2. tauri expects a fixed port, fail if that port is not available
 	server: {
 		port: 9527,
-		strictPort: true
+		strictPort: true,
+		fs: {
+			strict: false
+		}
 	},
 	// 3. to make use of `TAURI_DEBUG` and other env variables
 	// https://tauri.studio/v1/api/config#buildconfig.beforedevcommand

@@ -7,12 +7,12 @@
 	import Checkbox from '$lib/components/Checkbox.svelte';
 	// import Select from '$lib/components/Select.svelte';
 	import InputNumber from '$lib/components/InputNumber.svelte';
-	import type { SaveIpcConnectionPayload, SelectOptions, TranslateResults } from '$lib/types';
+	import type { SaveIpcConnectionPayload, SelectOptions } from '$lib/types';
 	import { get, writable } from 'svelte/store';
 	import constants from '$lib/constants';
 	import Button from '$lib/components/Button.svelte';
-	import { translator } from '$lib/utils/translator';
-	import { cloneDeep, merge } from 'lodash-es';
+	import { translator } from 'tauri-redis-plugin-translation-api';
+	import { cloneDeep } from 'lodash-es';
 	import type { IpcConnection, IpcConnections } from '$lib/types';
 	import {
 		fetchSaveConnection,
@@ -99,9 +99,8 @@
 	// Trigger immediately.
 	getConnections();
 
-	const translations = {} as TranslateResults;
-	const calcTranslations = function calcTranslations() {
-		merge(translations, {
+	const translations = translator.derived(function() {
+		return {
 			'new connection': translator.translate('new connection|New connection'),
 			host: translator.translate('host|Host'),
 			port: translator.translate('port|Port'),
@@ -112,10 +111,7 @@
 			readonly: translator.translate('readonly|Readonly'),
 			create: translator.translate('create|Create'),
 			cancel: translator.translate('cancel|Cancel')
-		});
-	};
-	translator.subscribe(function (translations) {
-		calcTranslations();
+		};
 	});
 
 	const model = writable({
@@ -148,33 +144,33 @@
 	{#if dialogOpened}
 		<Dialog
 			class="tauri-redis-dialog tauri-redis-dialog__new-connection"
-			bind:header={translations['new connection']}
+			bind:header={$translations['new connection']}
 			still
 			on:close={handleDialogClose}
 		>
 			<div class="tauri-redis-new-connection">
 				<Form class="new-connection-form" {model} {rules} bind:this={formIns}>
-					<FormItem bind:label={translations['host']} required prop="host"><Input bind:value={$model.host} /></FormItem>
-					<FormItem bind:label={translations['port']} required prop="port">
+					<FormItem bind:label={$translations['host']} required prop="host"><Input bind:value={$model.host} /></FormItem>
+					<FormItem bind:label={$translations['port']} required prop="port">
 						<InputNumber bind:value={$model.port} maximum={MAX_PORT_NUM} minimum={MIN_PORT_NUM} />
 					</FormItem>
-					<FormItem bind:label={translations['username']} prop="username"
+					<FormItem bind:label={$translations['username']} prop="username"
 						><Input bind:value={$model.username} /></FormItem
 					>
-					<FormItem bind:label={translations['password']} prop="password"
+					<FormItem bind:label={$translations['password']} prop="password"
 						><Input type="password" bind:value={$model.password} /></FormItem
 					>
-					<FormItem bind:label={translations['connection nickname']} prop="connectionName"
+					<FormItem bind:label={$translations['connection nickname']} prop="connectionName"
 						><Input bind:value={$model.connectionName} type="textarea" /></FormItem
 					>
-					<FormItem bind:label={translations['key separator']}><Input bind:value={$model.separator} /></FormItem>
+					<FormItem bind:label={$translations['key separator']}><Input bind:value={$model.separator} /></FormItem>
 					<!--					<FormItem labe="Demo Select"><Select options={selectOptions} /></FormItem>-->
 					<FormItem prop="readonly">
-						<Checkbox bind:label={translations['readonly']} bind:checked={$model.readonly} />
+						<Checkbox bind:label={$translations['readonly']} bind:checked={$model.readonly} />
 					</FormItem>
 					<svelte:fragment slot="footer">
-						<Button type="primary" on:click={handleTriggerCreate}>{translations['create']}</Button>
-						<Button on:click={handleTriggerCancel}>{translations['cancel']}</Button>
+						<Button type="primary" on:click={handleTriggerCreate}>{$translations['create']}</Button>
+						<Button on:click={handleTriggerCancel}>{$translations['cancel']}</Button>
 					</svelte:fragment>
 				</Form>
 			</div>

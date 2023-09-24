@@ -2,22 +2,16 @@
 	import Button from '$lib/components/Button.svelte';
 	import { createEventDispatcher } from 'svelte';
 	import type { IpcConnection, IpcConnections } from '$lib/types';
-	import { merge } from 'lodash-es';
-	import { translator } from '$lib/utils/translator';
-	import type { TranslateResults } from '$lib/types';
+	import { translator } from 'tauri-redis-plugin-translation-api';
 
 	export let connections: IpcConnections = [];
 
 	const dispatch = createEventDispatcher();
 
-	const translations = {} as TranslateResults;
-	const calcTranslations = function calcTranslations() {
-		merge(translations, {
+	const translations = translator.derived(function() {
+		return {
 			'new connection': translator.translate('new connection|New connection')
-		});
-	};
-	translator.subscribe(function (translations) {
-		calcTranslations();
+		};
 	});
 
 	function handleNewConnection() {
@@ -37,7 +31,7 @@
 				type="primary"
 				on:click={handleNewConnection}
 			>
-				<span>{translations['new connection']}</span>
+				<span>{$translations['new connection']}</span>
 				<span class="fa fa-plus" />
 			</Button>
 		</div>

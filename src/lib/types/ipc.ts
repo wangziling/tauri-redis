@@ -1,10 +1,3 @@
-import type { TranslationLanguage, Translations } from '$lib/types/utils';
-
-export type IpcTranslations = {
-	translations: Translations;
-	language: TranslationLanguage;
-};
-
 export type SaveIpcConnectionPayload = {
 	host: IpcConnection['host'];
 	port: IpcConnection['port'];

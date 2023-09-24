@@ -19,7 +19,8 @@
 	"dependencies": {
 		"@tauri-apps/api": "^1.4.0",
 		"async-validator": "^4.2.5",
-		"lodash-es": "^4.17.21"
+		"lodash-es": "^4.17.21",
+		"tauri-redis-plugin-translation-api": "link:./src-tauri/plugins/translation"
 	},
 	"devDependencies": {
 		"@fontsource/fira-code": "^5.0.8",
