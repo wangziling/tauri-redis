@@ -38,8 +38,8 @@ fn invoke_find_connection<'a>(
 }
 
 fn invoke_establish_connection<'a>(
-    file_cache_manager: State<'_, Arc<Mutex<FileCacheManager>>>,
-    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    file_cache_manager: &State<'_, Arc<Mutex<FileCacheManager>>>,
+    redis_client_manager: &State<'_, Arc<Mutex<RedisClientManager>>>,
     guid: &'a Guid,
 ) -> Result<()> {
     let connections_info = invoke_get_connections(&file_cache_manager)?;
@@ -60,8 +60,8 @@ fn invoke_establish_connection<'a>(
 }
 
 fn invoke_release_connection<'a>(
-    file_cache_manager: State<'_, Arc<Mutex<FileCacheManager>>>,
-    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    file_cache_manager: &State<'_, Arc<Mutex<FileCacheManager>>>,
+    redis_client_manager: &State<'_, Arc<Mutex<RedisClientManager>>>,
     guid: &'a Guid,
 ) -> Result<()> {
     let mut connections_info = invoke_get_connections(&file_cache_manager)?;
@@ -106,7 +106,7 @@ fn invoke_release_connection<'a>(
 }
 
 fn invoke_save_connection(
-    file_cache_manager: State<'_, Arc<Mutex<FileCacheManager>>>,
+    file_cache_manager: &State<'_, Arc<Mutex<FileCacheManager>>>,
     info: SaveConnectionPayload,
 ) -> Result<()> {
     let connections_info = invoke_get_connections(&file_cache_manager);
@@ -176,7 +176,7 @@ pub async fn save_connection(
     serde_json::from_str(connection_info)
         .map_err(|_| Error::FailedToParseConnectionInfo)
         .and_then(|info: SaveConnectionPayload| {
-            invoke_save_connection(file_cache_manager, info)?;
+            invoke_save_connection(&file_cache_manager, info)?;
 
             Ok(Response::default())
         })
@@ -198,7 +198,7 @@ pub async fn establish_connection(
     redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
     guid: String,
 ) -> Result<Response<()>> {
-    invoke_establish_connection(file_cache_manager.clone(), redis_client_manager, &guid)
+    invoke_establish_connection(&file_cache_manager, &redis_client_manager, &guid)
         .and_then(|_| Ok(Response::default()))
         .or_else(|err| Ok(err.into()))
 }
@@ -209,7 +209,7 @@ pub async fn release_connection(
     redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
     guid: String,
 ) -> Result<Response<()>> {
-    invoke_release_connection(file_cache_manager, redis_client_manager, &guid)
+    invoke_release_connection(&file_cache_manager, &redis_client_manager, &guid)
         .and_then(|_| Ok(Response::default()))
         .or_else(|err| Ok(err.into()))
 }
