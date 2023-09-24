@@ -17,3 +17,4 @@ serde_json.workspace = true
 thiserror.workspace = true
 tauri_redis_core.workspace = true
 regex.workspace = true
+once_cell.workspace = true

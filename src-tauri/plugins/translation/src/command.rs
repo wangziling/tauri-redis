@@ -10,8 +10,9 @@ pub async fn translate<R: Runtime>(
     _window: Window<R>,
     state: State<'_, Arc<RwLock<Translations>>>,
     key: String,
+    rest: Option<Vec<String>>,
 ) -> Result<String> {
-    state.read().unwrap().translate(key)
+    state.read().unwrap().translate(key, rest)
 }
 
 #[tauri::command]
