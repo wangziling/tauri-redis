@@ -5,9 +5,12 @@
 mod command;
 mod context;
 mod features;
+mod plugins;
 mod utils;
 
 fn main() {
-    context::run_with_context(command::register_commands(tauri::Builder::default()))
-        .expect("error while running tauri application");
+    let builder = command::register_commands(tauri::Builder::default());
+    let builder = plugins::register_plugins(builder);
+
+    context::run_with_context(builder).expect("error while running tauri application");
 }
