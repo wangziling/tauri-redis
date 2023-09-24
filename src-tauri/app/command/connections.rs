@@ -168,6 +168,34 @@ fn invoke_save_connection(
     Ok(())
 }
 
+fn invoke_remove_connection<'a>(
+    file_cache_manager: &State<'_, Arc<Mutex<FileCacheManager>>>,
+    guid: &'a Guid,
+) -> Result<()> {
+    judge_guid_valid(guid)?;
+
+    let mut connections_info = invoke_get_connections(&file_cache_manager).unwrap_or_default();
+    let found = invoke_find_connection(&connections_info, guid)?;
+    connections_info.remove(found.0);
+
+    let mut lock = file_cache_manager.lock().unwrap();
+    let connections_file_cache = lock
+        .get_mut(&get_connections_file_cache_manager_key()?)
+        .ok_or_else(|| Error::FailedToGetCachedConnectionsInfo)?;
+
+    connections_file_cache
+        .replace_se(connections_info)
+        .map_err(|_| Error::FailedToSaveConnectionInfo)?;
+
+    connections_file_cache
+        .save(true)
+        .map_err(|_| Error::FailedToSaveConnectionInfo)?;
+
+    drop(lock);
+
+    Ok(())
+}
+
 #[tauri::command]
 pub async fn save_connection(
     file_cache_manager: State<'_, Arc<Mutex<FileCacheManager>>>,
@@ -210,6 +238,16 @@ pub async fn release_connection(
     guid: String,
 ) -> Result<Response<()>> {
     invoke_release_connection(&file_cache_manager, &redis_client_manager, &guid)
+        .and_then(|_| Ok(Response::default()))
+        .or_else(|err| Ok(err.into()))
+}
+
+#[tauri::command]
+pub async fn remove_connection(
+    file_cache_manager: State<'_, Arc<Mutex<FileCacheManager>>>,
+    guid: Guid,
+) -> Result<Response<()>> {
+    invoke_remove_connection(&file_cache_manager, &guid)
         .and_then(|_| Ok(Response::default()))
         .or_else(|err| Ok(err.into()))
 }

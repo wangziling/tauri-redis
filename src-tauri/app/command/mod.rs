@@ -16,6 +16,7 @@ where
         connections::get_connections,
         connections::establish_connection,
         connections::release_connection,
+        connections::remove_connection,
         client::list_client_metrics,
     ])
 }
