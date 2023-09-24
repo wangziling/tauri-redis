@@ -99,7 +99,7 @@
 	// Trigger immediately.
 	getConnections();
 
-	const translations = translator.derived(function() {
+	const translations = translator.derived(function () {
 		return {
 			'new connection': translator.translate('new connection|New connection'),
 			host: translator.translate('host|Host'),
@@ -150,7 +150,8 @@
 		>
 			<div class="tauri-redis-new-connection">
 				<Form class="new-connection-form" {model} {rules} bind:this={formIns}>
-					<FormItem bind:label={$translations['host']} required prop="host"><Input bind:value={$model.host} /></FormItem>
+					<FormItem bind:label={$translations['host']} required prop="host"><Input bind:value={$model.host} /></FormItem
+					>
 					<FormItem bind:label={$translations['port']} required prop="port">
 						<InputNumber bind:value={$model.port} maximum={MAX_PORT_NUM} minimum={MIN_PORT_NUM} />
 					</FormItem>

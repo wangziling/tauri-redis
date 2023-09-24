@@ -8,7 +8,7 @@
 
 	const dispatch = createEventDispatcher();
 
-	const translations = translator.derived(function() {
+	const translations = translator.derived(function () {
 		return {
 			'new connection': translator.translate('new connection|New connection')
 		};
