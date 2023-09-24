@@ -109,7 +109,12 @@ fn _translate(
         })
         .collect();
 
-    matches.join("")
+    // The matches may empty. When here's no "{aaa}" liked content in.
+    if matches.is_empty() {
+        content
+    } else {
+        matches.join("")
+    }
 }
 
 fn invoke_translate(
