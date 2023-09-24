@@ -4,12 +4,12 @@ export type TranslationContent = string;
 
 // Key: xxxx
 // Key: xxxx|Default content.
-export type TranslationKey = `${ Lowercase<string> }` | `${ Lowercase<string> }|${ TranslationContent }` | string;
+export type TranslationKey = `${Lowercase<string>}` | `${Lowercase<string>}|${TranslationContent}` | string;
 
 export type Translations = Record<TranslationKey, TranslationContent>;
 
 // zh-CN, en-US.
-export type TranslationLanguage = `${ string }-${ Uppercase<string> }`;
+export type TranslationLanguage = `${string}-${Uppercase<string>}`;
 
 export type IpcTranslations = {
 	translations: Translations;
