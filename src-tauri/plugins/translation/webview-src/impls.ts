@@ -1,30 +1,26 @@
-import type { TranslationContent, TranslationLanguage, Translations } from '$lib/types';
-import { derived, get, type Readable, type Writable, writable } from 'svelte/store';
-import { get as lodashGet, has, isEmpty } from 'lodash-es';
-import { GLOBAL_TRANSLATION_VARIABLE_PATH, TRANSLATION_KEY_DEFAULT_SPLITTER } from '$lib/constants/strings';
-import type { IpcTranslations } from '$lib/types';
-import constants from '$lib/constants';
-
-const defaultTranslations = getDefaultTranslations();
-
-function getDefaultTranslations(): IpcTranslations {
-	return (
-		lodashGet(window, GLOBAL_TRANSLATION_VARIABLE_PATH) || {
-			translations: {},
-			language: 'en-US'
-		}
-	);
-}
+import { TranslationContent, TranslationLanguage, Translations } from './types';
+import {
+	TRANSLATION_KEY_DEFAULT_SPLITTER,
+	translationKeyLikePlaceholderMatcher,
+	whitespaceReplacer
+} from './constants';
+import { isEmpty } from 'lodash-es';
+import { translationResources, translationSwitchTo } from './ipc';
+import { derived, type Readable, type Writable, writable, get } from 'svelte/store';
 
 export class Translator {
-	private translations = writable({});
+	private translations = writable({} as Translations);
 	private language = writable('en-US');
 
-	constructor(translations: Translations, language: TranslationLanguage) {
-		this.update(translations, language);
+	switchTo(language: TranslationLanguage) {
+		return translationSwitchTo(language).then((translations) => this._update(translations, language));
 	}
 
-	update(translations: Translations, language: TranslationLanguage) {
+	getResources() {
+		return translationResources();
+	}
+
+	private _update(translations: Translations, language: TranslationLanguage) {
 		if (!(translations && typeof translations === 'object')) {
 			return;
 		}
@@ -43,7 +39,7 @@ export class Translator {
 			return '';
 		}
 
-		if (!keyMayContainsDefaultContent.replace(constants.regexps.whitespaceReplacer, '').length) {
+		if (!keyMayContainsDefaultContent.replace(whitespaceReplacer, '').length) {
 			return '';
 		}
 
@@ -51,21 +47,16 @@ export class Translator {
 		const key = splitterIdx === -1 ? keyMayContainsDefaultContent : keyMayContainsDefaultContent.slice(0, splitterIdx);
 		const defaultContent = (splitterIdx === -1 ? '' : keyMayContainsDefaultContent.slice(splitterIdx + 1)) || `#${key}`;
 
-		if (!isEmpty(translations)) {
+		if (isEmpty(translations)) {
 			return defaultContent;
 		}
 
 		const translation = translations[key.toLowerCase()];
-		if (!has(translation, 'content')) {
+		if (typeof translation !== 'string') {
 			return defaultContent;
 		}
 
-		const translationContent = lodashGet(translation, 'content');
-		if (typeof translationContent !== 'string') {
-			return defaultContent;
-		}
-
-		return translationContent;
+		return translation;
 	}
 
 	private _translate(
@@ -86,7 +77,7 @@ export class Translator {
 		// Try to catch the translation key placeholder.
 		// E.g. Please give me some {advice}.
 		// The {advice} will be replaced by translate('advice').
-		const matcher = constants.regexps.translationKeyLikePlaceholderMatcher;
+		const matcher = translationKeyLikePlaceholderMatcher;
 		if (!matcher.test(content)) {
 			return content;
 		}
@@ -104,7 +95,7 @@ export class Translator {
 	translateDerived(keyMayContainsDefaultContent: keyof Translations, ...args: string[]): Readable<TranslationContent> {
 		const self = this;
 
-		return derived(this.translations, function (translations) {
+		return derived(this.translations, function (this: Translator, translations) {
 			return self._translate.apply(this, [translations, keyMayContainsDefaultContent, ...args]);
 		});
 	}
@@ -122,8 +113,14 @@ export class Translator {
 	}
 
 	subscribe(...args: Parameters<Writable<Translations>['subscribe']>) {
-		return this.translations.subscribe.apply(this.translations, args);
+		return this.translations.subscribe(...args);
+	}
+
+	derived(callback: (translations: Translations) => any) {
+		return derived<Writable<Translations>, Translations>(this.translations, function (translations) {
+			return callback(translations);
+		});
 	}
 }
 
-export const translator = new Translator(defaultTranslations.translations, defaultTranslations.language);
+export const translator = new Translator();

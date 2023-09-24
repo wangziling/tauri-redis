@@ -1,0 +1,12 @@
+{
+  "new connection": "New connection",
+  "host": "Host",
+  "port": "Port",
+  "username": "Username",
+  "password": "Password",
+  "connection nickname": "Connection nickname",
+  "key separator": "Separator",
+  "readonly": "Readonly",
+  "create": "Create",
+  "cancel": "Cancel"
+}

@@ -8,13 +8,15 @@ edition = "2021"
 readme = "README.md"
 
 [workspace]
-members = ["app", "core", "config"]
+members = ["app", "core", "config", "plugins/*"]
 resolver = "2"
 
 [workspace.dependencies]
 tauri_redis = { path = "./app" }
 tauri_redis_core = { path = "./core" }
 tauri_redis_config = { path = "./config" }
+tauri_plugin_tauri_redis_translation = { path = "./plugins/translation" }
+tauri = { version = "1.4", features = ["shell-open"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 anyhow = "1.0"
@@ -30,3 +32,4 @@ uuid = { version = "1", features = [
 chrono = "0.4"
 redis = { version = "0.23.2", features = ["r2d2", "json", "tokio-comp", "connection-manager"] }
 r2d2 = "0.8.4"
+regex = "1.9"
