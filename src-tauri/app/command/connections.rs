@@ -130,6 +130,7 @@ fn invoke_save_connection(
             found.password = info.password.unwrap_or(found.password);
             found.separator = info.separator.unwrap_or(found.separator);
             found.readonly = info.readonly.unwrap_or(found.readonly);
+            found.updated_at = Some(get_cur_time());
 
             found
         });
