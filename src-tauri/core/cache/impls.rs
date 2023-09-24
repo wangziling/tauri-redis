@@ -100,9 +100,9 @@ impl<K: Eq + Hash + Debug> Cache<K> {
 
 pub struct FileCache {
     inner: Option<Value>,
-    directory: PathBuf,
-    filename: Option<String>,
-    filepath: Option<PathBuf>,
+    pub directory: PathBuf,
+    pub filename: Option<String>,
+    pub filepath: Option<PathBuf>,
 }
 
 impl FileCacheBase for FileCache {
