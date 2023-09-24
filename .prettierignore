@@ -12,4 +12,7 @@ pnpm-lock.yaml
 package-lock.json
 yarn.lock
 
-/src-tauri
+# No dist. No others but plugins excepted.
+/src-tauri/*
+/src-tauri/plugins/**/webview-dist
+!/src-tauri/plugins/
