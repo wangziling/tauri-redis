@@ -3298,6 +3298,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri_plugin_tauri_redis_translation"
+version = "0.0.1"
+dependencies = [
+ "regex",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri_redis_core",
+ "thiserror",
+]
+
+[[package]]
 name = "tauri_redis"
 version = "0.0.1"
 dependencies = [
@@ -3310,6 +3322,7 @@ dependencies = [
  "serde_json",
  "tauri",
  "tauri-build",
+ "tauri_plugin_tauri_redis_translation",
  "tauri_redis_config",
  "tauri_redis_core",
  "thiserror",
