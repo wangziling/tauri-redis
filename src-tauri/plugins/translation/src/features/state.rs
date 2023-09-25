@@ -49,7 +49,10 @@ fn _base_translate(resources: &HashMap<String, String>, key: &String) -> String 
     )
 }
 
-fn _format(value: String, rest: Option<Vec<String>>) -> String {
+fn _format<R>(value: String, rest: Option<Vec<R>>) -> String
+where
+    R: Into<String>,
+{
     if rest.is_none() {
         return value;
     }
@@ -61,23 +64,22 @@ fn _format(value: String, rest: Option<Vec<String>>) -> String {
 
     // Here replace the "{0}, {1}" by the rest items with the mutual idx.
     let mut content = value;
-    for (idx, replacer) in rest.iter().enumerate() {
+    for (idx, replacer) in rest.into_iter().enumerate() {
         // Needs to be escaped.
         let regexp =
             regex::Regex::new(("\\{".to_string() + idx.to_string().as_str() + "\\}").as_str())
                 .unwrap();
 
-        content = regexp.replace(&content, replacer).to_string();
+        content = regexp.replace(&content, replacer.into()).to_string();
     }
 
     content
 }
 
-fn _translate(
-    resources: &HashMap<String, String>,
-    key: &String,
-    rest: Option<Vec<String>>,
-) -> String {
+fn _translate<R>(resources: &HashMap<String, String>, key: &String, rest: Option<Vec<R>>) -> String
+where
+    R: Into<String>,
+{
     let mut content = _base_translate(resources, key);
     if content.is_empty() {
         return content;
@@ -117,11 +119,14 @@ fn _translate(
     }
 }
 
-fn invoke_translate(
+fn invoke_translate<R>(
     resources: &HashMap<String, String>,
     key: &String,
-    rest: Option<Vec<String>>,
-) -> Result<String> {
+    rest: Option<Vec<R>>,
+) -> Result<String>
+where
+    R: Into<String>,
+{
     if key.is_empty() {
         return Err(Error::InvalidParameter);
     }
@@ -218,9 +223,10 @@ impl Translations {
             .map_or_else(|| Ok(Default::default()), |resources| Ok(resources.clone()))
     }
 
-    pub fn translate<K>(&self, key: K, rest: Option<Vec<String>>) -> Result<String>
+    pub fn translate<K, R>(&self, key: K, rest: Option<Vec<R>>) -> Result<String>
     where
         K: Into<String>,
+        R: Into<String>,
     {
         self.inner
             .as_ref()
@@ -240,7 +246,9 @@ impl Translations {
 
                 for key in keys.into_iter() {
                     let key = key.into();
-                    let res = invoke_translate(resources, &key, None);
+                    let rest: Option<Vec<String>> = None;
+
+                    let res = invoke_translate(resources, &key, rest);
                     if res.is_err() {
                         continue;
                     }
