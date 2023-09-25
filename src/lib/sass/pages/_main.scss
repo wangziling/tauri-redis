@@ -54,6 +54,7 @@
 
 	.tauri-redis-content {
 		grid-column: 2/-1;
+		overflow: auto;
 	}
 
 	.tauri-redis-dialog {

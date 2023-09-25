@@ -38,3 +38,5 @@ export interface IpcResponse<D extends unknown = unknown> {
 	status: IpcResponseStatus;
 	data?: D;
 }
+
+export type IpcClientMetrics = Record<string, string>;

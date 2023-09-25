@@ -7,27 +7,25 @@
 	import Checkbox from '$lib/components/Checkbox.svelte';
 	// import Select from '$lib/components/Select.svelte';
 	import InputNumber from '$lib/components/InputNumber.svelte';
-	import type { SaveIpcConnectionPayload, SelectOptions } from '$lib/types';
+	import type { IpcConnection, MainTabs, PageConnections, SaveIpcConnectionPayload, SelectOptions } from '$lib/types';
+	import { MainTabType } from '$lib/types';
 	import { get, writable } from 'svelte/store';
 	import constants from '$lib/constants';
 	import Button from '$lib/components/Button.svelte';
 	import { translator } from 'tauri-redis-plugin-translation-api';
 	import { cloneDeep } from 'lodash-es';
-	import type { IpcConnection, IpcConnections } from '$lib/types';
-	import {
-		fetchSaveConnection,
-		fetchGetConnections,
-		fetchEstablishConnection,
-		fetchReleaseConnection,
-		fetchRemoveConnection
-	} from '$lib/apis';
+	import { fetchEstablishConnection, fetchGetConnections, fetchSaveConnection } from '$lib/apis';
 	import { fetchListRedisClientMetrics } from '$lib/apis/redis-client';
+	import Main from './Main.svelte';
+	import { invokeErrorHandle } from '$lib/utils/page';
 
 	const MAX_PORT_NUM = constants.numbers.MAX_PORT_NUM;
 	const MIN_PORT_NUM = constants.numbers.MIN_PORT_NUM;
 
 	let dialogOpened = false;
-	let connections: IpcConnections = [];
+	let pageConnections: PageConnections = [];
+	let mainTabs: MainTabs = [];
+
 	const selectOptions: SelectOptions = [
 		{ label: 'Sling', value: 1 },
 		{ label: 'Wang', value: 2 }
@@ -40,12 +38,32 @@
 
 	function handleConfirmConnection(e: CustomEvent<IpcConnection>) {
 		const connection = e.detail;
+
 		fetchEstablishConnection(connection.guid)
-			.then(() => fetchListRedisClientMetrics(connection.guid).then(console.log))
-			.then(() => fetchReleaseConnection(connection.guid))
-			.then(() => fetchRemoveConnection(connection.guid))
-			.then(() => getConnections())
-			.catch(console.error);
+			.then(() =>
+				fetchListRedisClientMetrics(connection.guid).then((res) => {
+					const targetConnection = pageConnections.find(function (conn) {
+						return conn.info.guid === connection.guid;
+					});
+					if (targetConnection) {
+						targetConnection.selected = true;
+					}
+
+					mainTabs.push({
+						type: MainTabType.Dashboard,
+						data: {
+							metrics: res.data,
+							connectionInfo: connection
+						}
+					});
+
+					mainTabs = mainTabs;
+				})
+			)
+			// .then(() => fetchReleaseConnection(connection.guid))
+			// .then(() => fetchRemoveConnection(connection.guid))
+			// .then(() => getConnections())
+			.catch(invokeErrorHandle);
 	}
 
 	function handleDialogClose() {
@@ -76,7 +94,7 @@
 				handleDialogClose();
 			})
 			.catch(function validateCatch(e) {
-				console.error(e);
+				invokeErrorHandle(e);
 			});
 	}
 
@@ -87,10 +105,34 @@
 	function getConnections() {
 		return fetchGetConnections().then(function (res) {
 			if (Array.isArray(res.data)) {
-				connections = res.data;
+				if (pageConnections.length) {
+					pageConnections = res.data.map(function (info) {
+						const targetConnection = pageConnections.find(function (conn) {
+							return conn.info.guid === info.guid;
+						});
 
-				// connections = connections;
+						if (targetConnection) {
+							return {
+								info,
+								selected: targetConnection.selected
+							};
+						}
+						return {
+							info,
+							selected: false
+						};
+					});
+				} else {
+					pageConnections = res.data.map(function (info) {
+						return {
+							info,
+							selected: false
+						};
+					});
+				}
 			}
+
+			pageConnections = pageConnections;
 
 			return res;
 		});
@@ -98,6 +140,10 @@
 
 	// Trigger immediately.
 	getConnections();
+
+	$: connections = pageConnections.map(function (conn) {
+		return conn.info;
+	});
 
 	const translations = translator.derived(function () {
 		return {
@@ -140,7 +186,7 @@
 
 <section class="tauri-redis-page tauri-redis-page-main">
 	<Aside bind:connections on:newConnection={handleNewConnection} on:confirmConnection={handleConfirmConnection} />
-	<div class="tauri-redis-content">Main.</div>
+	<Main bind:tabs={mainTabs} />
 	{#if dialogOpened}
 		<Dialog
 			class="tauri-redis-dialog tauri-redis-dialog__new-connection"
