@@ -174,7 +174,12 @@ impl Translations {
         Ok(())
     }
 
-    pub fn load(&mut self, language: String) -> Result<()> {
+    pub fn load<L>(&mut self, language: L) -> Result<()>
+    where
+        L: Into<String>,
+    {
+        let language = language.into();
+
         if language.is_empty() {
             return Err(Error::InvalidParameter);
         }
@@ -198,7 +203,10 @@ impl Translations {
         Ok(())
     }
 
-    pub fn switch_to(&mut self, language: String) -> Result<HashMap<String, String>> {
+    pub fn switch_to<K>(&mut self, language: K) -> Result<HashMap<String, String>>
+    where
+        K: Into<String>,
+    {
         self.load(language)?;
 
         Ok(self.inner.as_ref().unwrap().clone())
@@ -210,22 +218,29 @@ impl Translations {
             .map_or_else(|| Ok(Default::default()), |resources| Ok(resources.clone()))
     }
 
-    pub fn translate(&self, key: String, rest: Option<Vec<String>>) -> Result<String> {
+    pub fn translate<K>(&self, key: K, rest: Option<Vec<String>>) -> Result<String>
+    where
+        K: Into<String>,
+    {
         self.inner
             .as_ref()
-            .and_then(|resources| invoke_translate(resources, &key, rest).ok())
+            .and_then(|resources| invoke_translate(resources, &key.into(), rest).ok())
             .ok_or_else(|| Error::FailedToFindMatchedTranslation)
     }
 
-    pub fn translate_group(&self, keys: Vec<String>) -> Result<HashMap<String, String>> {
+    pub fn translate_group<K>(&self, keys: Vec<K>) -> Result<HashMap<String, String>>
+    where
+        K: Into<String>,
+    {
         self.inner
             .as_ref()
             .ok_or_else(|| Error::EmptyTranslationSource)
             .and_then(|resources| {
                 let mut result = HashMap::new();
 
-                for key in keys.iter() {
-                    let res = invoke_translate(resources, key, None);
+                for key in keys.into_iter() {
+                    let key = key.into();
+                    let res = invoke_translate(resources, &key, None);
                     if res.is_err() {
                         continue;
                     }
