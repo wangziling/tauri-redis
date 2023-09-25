@@ -33,6 +33,8 @@ pub enum Error {
     R2d2InternalError(#[from] r2d2::Error),
     #[error(transparent)]
     RedisInternalError(#[from] redis::RedisError),
+    #[error(transparent)]
+    SerdeJsonError(#[from] serde_json::Error),
     #[error("Failed to find existed redis connection.")]
     FailedToFindExistedRedisConnection,
 }
