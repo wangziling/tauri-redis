@@ -1,0 +1,12 @@
+{
+	"new connection": "新连接",
+	"host": "主机",
+	"port": "端口",
+	"username": "用户名",
+	"password": "密码",
+	"connection nickname": "连接别名",
+	"key separator": "分隔符",
+	"readonly": "只读",
+	"create": "创建",
+	"cancel": "取消"
+}
