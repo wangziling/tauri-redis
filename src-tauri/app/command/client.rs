@@ -11,7 +11,7 @@ use tauri::State;
 pub async fn list_client_metrics(
     redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
     guid: Guid,
-) -> Result<Response<String>> {
+) -> Result<Response<HashMap<String, String>>> {
     let mut lock = redis_client_manager.lock().unwrap();
     let mut conn = lock
         .get_mut(&guid)
@@ -33,10 +33,5 @@ pub async fn list_client_metrics(
         );
     });
 
-    // Then serialize the HashMap to string.
-    // The data is a string not an object. So the frontend side may need to parse it.
-    Ok(Response::success(
-        Some(serde_json::to_string(&result).map_err(Error::SerdeJsonError)?),
-        None,
-    ))
+    Ok(Response::success(Some(result), None))
 }
