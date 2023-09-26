@@ -128,3 +128,33 @@ export type FormValidatePromiseError = Error & {
 	errors: ValidateError[] | null;
 	fields: ValidateFieldsError | Values;
 };
+
+export enum MessageManagerPlacement {
+	Top = 'Top',
+	TopLeft = 'TopLeft',
+	TopRight = 'TopRight',
+	Bottom = 'Bottom',
+	BottomLeft = 'BottomLeft',
+	BottomRight = 'BottomRight'
+}
+
+export enum MessageType {
+	Success = 'Success',
+	Info = 'Info',
+	Warning = 'Warning',
+	Error = 'Error',
+	Loading = 'Loading'
+}
+
+export interface MessageItem {
+	closable: boolean;
+	content: string;
+	type: MessageType;
+	duration: number; // Milliseconds.
+	id: string;
+	plain: boolean;
+}
+
+export type MessageManagerMessages = Array<MessageItem & { id: string }>;
+
+export interface MessageManagerAppendMessageParams extends MessageItem {}

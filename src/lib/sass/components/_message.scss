@@ -1,0 +1,189 @@
+:root {
+	--message-padding: 1.2rem 1.5rem;
+	--message-gap: 1.2rem;
+	--message-max-width: 72.5rem;
+	--message-max-height: 17.5rem;
+	--message-icon-operation-gap: 1rem;
+	--message-box-shadow: var(--base-box-shadow);
+	--message-operation-color: #{$color-grey-dark};
+	--message-operation-active-color: #{$color-grey-dark-3};
+	--message-operation-inactive-color: #{$color-grey-light-3};
+	--message-success-icon-color: #{$color-green-dark};
+	--message-info-icon-color: #{$color-blue-dark};
+	--message-error-icon-color: #{$color-red-dark};
+	--message-warning-icon-color: #{$color-yellow-dark};
+	--message-loading-icon-color: #{$color-blue-dark};
+	--message-success-plain-bg-color: #{$color-green-light};
+	--message-info-plain-bg-color: #{$color-blue-light};
+	--message-error-plain-bg-color: #{$color-red-light};
+	--message-warning-plain-bg-color: #{$color-yellow-light};
+	--message-loading-plain-bg-color: #{$color-blue-light};
+	--message-success-plain-border-color: var(--message-success-icon-color);
+	--message-info-plain-border-color: var(--message-info-icon-color);
+	--message-error-plain-border-color: var(--message-error-icon-color);
+	--message-warning-plain-border-color: var(--message-warning-icon-color);
+	--message-loading-plain-border-color: var(--message-loading-icon-color);
+
+	--message-manager-parent-gap: 1.2rem;
+}
+
+.message {
+	@extend %break-word;
+
+	display: inline-block;
+	padding: var(--message-padding);
+	box-shadow: var(--message-box-shadow);
+	border-radius: var(--base-border-radius);
+	max-width: var(--message-max-width);
+	background-color: var(--page-bg-color);
+
+	&:empty,
+	&:not(.message--visible) {
+		display: none;
+	}
+
+	&-wrapper {
+		display: flex;
+		align-items: center;
+	}
+
+	&__aside {
+	}
+
+	&__icon {
+		margin-right: var(--message-icon-operation-gap);
+	}
+
+	&__content {
+		flex-grow: 1;
+
+		max-height: var(--message-max-height);
+		overflow: auto;
+
+		&:empty {
+			display: none;
+		}
+	}
+
+	&__operations {
+		&:empty {
+			display: none;
+		}
+	}
+
+	&__operation {
+		color: var(--message-operation-color);
+		margin-left: var(--message-icon-operation-gap);
+		cursor: pointer;
+
+		&:hover,
+		&:focus {
+			color: var(--message-operation-active-color);
+		}
+	}
+
+	+ .message {
+		margin-top: var(--message-gap);
+	}
+
+	&--type {
+		&-success {
+			.message__icon {
+				color: var(--message-success-icon-color);
+			}
+		}
+
+		&-info {
+			.message__icon {
+				color: var(--message-info-icon-color);
+			}
+		}
+
+		&-error {
+			.message__icon {
+				color: var(--message-error-icon-color);
+			}
+		}
+
+		&-warning {
+			.message__icon {
+				color: var(--message-warning-icon-color);
+			}
+		}
+
+		&-loading {
+			.message__icon {
+				color: var(--message-loading-icon-color);
+			}
+		}
+	}
+
+	&--closable {
+	}
+
+	&--plain {
+		&.message--type-info {
+			background-color: var(--message-info-plain-bg-color);
+			border: 1px solid var(--message-info-plain-border-color);
+		}
+		&.message--type-success {
+			background-color: var(--message-success-plain-bg-color);
+			border: 1px solid var(--message-success-plain-border-color);
+		}
+		&.message--type-error {
+			background-color: var(--message-error-plain-bg-color);
+			border: 1px solid var(--message-error-plain-border-color);
+		}
+		&.message--type-warning {
+			background-color: var(--message-warning-plain-bg-color);
+			border: 1px solid var(--message-warning-plain-border-color);
+		}
+		&.message--type-loading {
+			background-color: var(--message-loading-plain-bg-color);
+			border: 1px solid var(--message-loading-plain-border-color);
+		}
+	}
+}
+
+.message-manager {
+	position: absolute;
+	&-wrapper {
+		display: inline-flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	&--placement {
+		&-top {
+			top: var(--message-manager-parent-gap);
+			left: 50%;
+			transform: translateX(-50%);
+		}
+
+		&-topleft {
+			top: var(--message-manager-parent-gap);
+			left: var(--message-manager-parent-gap);
+		}
+
+		&-topright {
+			top: var(--message-manager-parent-gap);
+			right: var(--message-manager-parent-gap);
+		}
+
+		&-bottom {
+			bottom: var(--message-manager-parent-gap);
+			left: 50%;
+			transform: translateX(-50%);
+		}
+
+		&-bottomleft {
+			bottom: var(--message-manager-parent-gap);
+			left: var(--message-manager-parent-gap);
+		}
+
+		&-bottom {
+			bottom: var(--message-manager-parent-gap);
+			right: var(--message-manager-parent-gap);
+		}
+	}
+}

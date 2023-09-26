@@ -13,3 +13,8 @@ export type PropReadable<T extends Record<string, any>> = {
 };
 
 export type Raw<T> = T extends Writable<infer V> ? V : T extends Readable<infer V> ? V : never;
+
+export interface ComponentsManualRenderingBaseEventsGenerateSlotParams {
+	target: string | HTMLElement | Element; // 'string' means dom query selector.
+	placeholder: string;
+}
