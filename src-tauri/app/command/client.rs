@@ -35,3 +35,30 @@ pub async fn list_client_metrics(
 
     Ok(Response::success(Some(result), None))
 }
+
+#[tauri::command]
+pub async fn list_all_keys(
+    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    guid: Guid,
+    condition_part: Option<String>,
+) -> Result<Response<Vec<String>>> {
+    let mut lock = redis_client_manager.lock().unwrap();
+    let mut conn = lock
+        .get_mut(&guid)
+        .ok_or_else(|| Error::FailedToFindExistedRedisConnection)?
+        .conn()?;
+
+    let res = conn
+        .req_command(
+            &cmd("KEYS").arg(
+                condition_part
+                    .and_then(|part| if part.is_empty() { None } else { Some(part) })
+                    .map_or_else(|| "*".to_string(), |part| "*".to_string() + &part + "*"),
+            ),
+        )
+        .map_err(Error::RedisInternalError)?;
+
+    let res: Vec<String> = Vec::from_redis_value(&res).map_err(Error::RedisInternalError)?;
+
+    Ok(Response::success(Some(res), None))
+}
