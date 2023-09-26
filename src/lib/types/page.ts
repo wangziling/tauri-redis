@@ -1,4 +1,4 @@
-import type { IpcClientMetrics, IpcConnection } from '$lib/types/ipc';
+import type { IpcClientKeys, IpcClientMetrics, IpcConnection } from '$lib/types/ipc';
 
 export enum PageTheme {
 	Light = 'Light',
@@ -8,6 +8,7 @@ export enum PageTheme {
 export type PageConnections = Array<{
 	info: IpcConnection;
 	selected: boolean;
+	keys: IpcClientKeys;
 }>;
 
 export enum MainTabType {
@@ -25,6 +26,7 @@ export type MainTab =
 			data: {
 				metrics: IpcClientMetrics;
 				connectionInfo: IpcConnection;
+				keys: IpcClientKeys;
 			};
 	  }
 	| {

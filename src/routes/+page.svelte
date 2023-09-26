@@ -15,7 +15,7 @@
 	import { translator } from 'tauri-redis-plugin-translation-api';
 	import { cloneDeep } from 'lodash-es';
 	import { fetchEstablishConnection, fetchGetConnections, fetchSaveConnection } from '$lib/apis';
-	import { fetchListRedisClientMetrics } from '$lib/apis/redis-client';
+	import { fetchListRedisClientMetrics, fetchListRedisAllKeys } from '$lib/apis/redis-client';
 	import Main from './Main.svelte';
 	import { invokeErrorHandle } from '$lib/utils/page';
 
@@ -40,26 +40,32 @@
 		const connection = e.detail;
 
 		fetchEstablishConnection(connection.guid)
-			.then(() =>
-				fetchListRedisClientMetrics(connection.guid).then((res) => {
-					const targetConnection = pageConnections.find(function (conn) {
-						return conn.info.guid === connection.guid;
-					});
-					if (targetConnection) {
-						targetConnection.selected = true;
+			.then(() => Promise.all([fetchListRedisClientMetrics(connection.guid), fetchListRedisAllKeys(connection.guid)]))
+			.then(([metricsRes, keysRes]) => {
+				const keys = keysRes.data;
+				const targetConnection = pageConnections.find(function (conn) {
+					return conn.info.guid === connection.guid;
+				});
+				if (targetConnection) {
+					targetConnection.selected = true;
+
+					if (Array.isArray(keys)) {
+						targetConnection.keys = keys;
 					}
+				}
 
-					mainTabs.push({
-						type: MainTabType.Dashboard,
-						data: {
-							metrics: res.data,
-							connectionInfo: connection
-						}
-					});
+				mainTabs.push({
+					type: MainTabType.Dashboard,
+					data: {
+						metrics: metricsRes.data,
+						connectionInfo: connection,
+						keys: targetConnection.keys
+					}
+				});
 
-					mainTabs = mainTabs;
-				})
-			)
+				pageConnections = pageConnections;
+				mainTabs = mainTabs;
+			})
 			// .then(() => fetchReleaseConnection(connection.guid))
 			// .then(() => fetchRemoveConnection(connection.guid))
 			// .then(() => getConnections())
@@ -114,19 +120,22 @@
 						if (targetConnection) {
 							return {
 								info,
-								selected: targetConnection.selected
+								selected: targetConnection.selected,
+								keys: []
 							};
 						}
 						return {
 							info,
-							selected: false
+							selected: false,
+							keys: []
 						};
 					});
 				} else {
 					pageConnections = res.data.map(function (info) {
 						return {
 							info,
-							selected: false
+							selected: false,
+							keys: []
 						};
 					});
 				}

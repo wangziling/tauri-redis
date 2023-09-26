@@ -40,3 +40,5 @@ export interface IpcResponse<D extends unknown = unknown> {
 }
 
 export type IpcClientMetrics = Record<string, string>;
+
+export type IpcClientKeys = Array<string>;
