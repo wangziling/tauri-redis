@@ -20,7 +20,16 @@ export function generateOperablePromise<T>(invoker?: Function) {
 }
 
 export function fetchIpc<T = any>(cmd: string, args?: Record<string, unknown>): Promise<IpcResponse<T>> {
-	return invoke(cmd, args).then(validateIpcResponse);
+	return invoke(cmd, args)
+		.then(validateIpcResponse)
+		.catch(function fetchIpcCatch(err) {
+			// It may be in string format.
+			if (typeof err === 'string') {
+				throw new Error(err);
+			}
+
+			throw err;
+		});
 }
 
 export function validateIpcResponse<T = any>(res: IpcResponse<T>): IpcResponse<T> {
