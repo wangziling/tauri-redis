@@ -30,8 +30,6 @@ pub enum Error {
     FailedToFindTheMatchedConnectionInfo,
 
     #[error(transparent)]
-    R2d2InternalError(#[from] r2d2::Error),
-    #[error(transparent)]
     RedisInternalError(#[from] redis::RedisError),
     #[error(transparent)]
     SerdeJsonError(#[from] serde_json::Error),

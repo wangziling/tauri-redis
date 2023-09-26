@@ -1,7 +1,7 @@
 use crate::features::cache::FileCacheManager;
 use crate::features::client::RedisClientManager;
 use crate::utils::config::{get_connections_file_cache_manager_key, get_connections_file_name};
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use tauri::{App, Manager, Result, Runtime};
 use tauri_redis_core::cache::abstracts::FileCacheBase;
 use tauri_redis_core::cache::impls::FileCache;
@@ -33,7 +33,7 @@ where
             file_cache
         });
 
-    handle.manage(Arc::new(Mutex::new(file_cache_manager)));
+    handle.manage(Arc::new(tokio::sync::Mutex::new(file_cache_manager)));
 
     Ok(())
 }
@@ -44,7 +44,7 @@ where
 {
     let handle = app.handle();
 
-    handle.manage(Arc::new(Mutex::new(RedisClientManager::new())));
+    handle.manage(Arc::new(tokio::sync::Mutex::new(RedisClientManager::new())));
 
     Ok(())
 }
