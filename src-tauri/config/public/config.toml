@@ -1,5 +1,4 @@
 [redis]
-max_pool_size = 5
 connection_timeout = 8
 
 [connections]
