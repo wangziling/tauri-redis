@@ -37,11 +37,6 @@
 	max-width: var(--message-max-width);
 	background-color: var(--page-bg-color);
 
-	&:empty,
-	&:not(.message--visible) {
-		display: none;
-	}
-
 	&-wrapper {
 		display: flex;
 		align-items: center;
@@ -146,11 +141,18 @@
 }
 
 .message-manager {
-	position: absolute;
+	position: fixed;
+	overflow: visible;
+	height: 0;
+
 	&-wrapper {
 		display: inline-flex;
 		flex-direction: column;
 		align-items: center;
+
+		&:empty {
+			display: none;
+		}
 	}
 
 	&--placement {
@@ -184,6 +186,16 @@
 		&-bottom {
 			bottom: var(--message-manager-parent-gap);
 			right: var(--message-manager-parent-gap);
+		}
+	}
+
+	.message-container {
+		&:empty {
+			display: none;
+		}
+
+		+ .message-container {
+			margin-top: var(--message-gap);
 		}
 	}
 }

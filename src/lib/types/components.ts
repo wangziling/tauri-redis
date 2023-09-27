@@ -155,6 +155,6 @@ export interface MessageItem {
 	plain: boolean;
 }
 
-export type MessageManagerMessages = Array<MessageItem & { id: string }>;
+export type MessageManagerMessages = Array<MessageItem>;
 
 export interface MessageManagerAppendMessageParams extends MessageItem {}

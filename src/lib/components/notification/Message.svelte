@@ -16,7 +16,7 @@
 
 	function handleClose() {
 		visible = false;
-		dispatch('close', { visible });
+		dispatch('close', { visible, id });
 	}
 
 	function calcIconClass(t: typeof type): TArrayOrPrimitive<string> {
