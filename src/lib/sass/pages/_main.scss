@@ -1,6 +1,7 @@
 :root {
 	--aside-min-width: 30rem;
 	--aside-bg-color: #{rgba($color-green, 0.2)};
+	--aside-item-active-color: #{$color-green};
 }
 
 .tauri-redis-page-main {
@@ -44,10 +45,11 @@
 			&__header {
 				padding: 1.2rem 0.5rem;
 				cursor: pointer;
+			}
 
-				&:hover {
-					background-color: $color-green;
-				}
+			&--selected .aside-connection__header,
+			.aside-connection__header:hover {
+				background-color: var(--aside-item-active-color);
 			}
 		}
 	}
@@ -55,6 +57,7 @@
 	.tauri-redis-content {
 		grid-column: 2/-1;
 		overflow: auto;
+		padding: 1.5rem;
 	}
 
 	.tauri-redis-dialog {

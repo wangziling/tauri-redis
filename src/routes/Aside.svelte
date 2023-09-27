@@ -1,10 +1,11 @@
 <script lang="ts">
 	import Button from '$lib/components/Button.svelte';
 	import { createEventDispatcher } from 'svelte';
-	import type { IpcConnection, IpcConnections } from '$lib/types';
+	import type { IpcConnection, PageConnections, TArrayMember } from '$lib/types';
 	import { translator } from 'tauri-redis-plugin-translation-api';
+	import { calcDynamicClasses } from '$lib/utils/calculators';
 
-	export let connections: IpcConnections = [];
+	export let pageConnections: PageConnections = [];
 
 	const dispatch = createEventDispatcher();
 
@@ -21,6 +22,15 @@
 	function handleConfirmConnection(connection: IpcConnection) {
 		dispatch('confirmConnection', connection);
 	}
+
+	const calcDynamicAsideConnectionClasses = (pageConnection: TArrayMember<PageConnections>) =>
+		calcDynamicClasses([
+			'tauri-redis-aside__connection',
+			'aside-connection',
+			{
+				'aside-connection--selected': pageConnection.selected
+			}
+		]);
 </script>
 
 <aside class="tauri-redis-aside">
@@ -38,11 +48,15 @@
 	</header>
 	<section class="tauri-redis-aside__content">
 		<ul class="tauri-redis-aside__connections">
-			{#each connections as connection}
-				<li class="tauri-redis-aside__connection aside-connection">
+			{#each pageConnections as connection (connection.info.guid)}
+				<li class={calcDynamicAsideConnectionClasses(connection)}>
 					<div class="aside-connection-wrapper">
-						<div class="aside-connection__header" on:click={() => handleConfirmConnection(connection)} tabindex="0">
-							<div class="aside-connection__name">{@html connection.connectionName}</div>
+						<div
+							class="aside-connection__header"
+							on:click={() => handleConfirmConnection(connection.info)}
+							tabindex="0"
+						>
+							<div class="aside-connection__name">{@html connection.info.connectionName}</div>
 							<div class="aside-connection__operations" />
 						</div>
 					</div>

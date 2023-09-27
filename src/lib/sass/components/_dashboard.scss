@@ -1,0 +1,80 @@
+:root {
+	--dashboard-item-active-bg-color: #{$color-grey};
+}
+
+.dashboard {
+	&__header {
+		&-icon {
+			display: inline-block;
+		}
+
+		&-content {
+			display: inline-block;
+			text-transform: capitalize;
+		}
+	}
+
+	&__content {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		grid-column-gap: 0.5rem;
+
+		&-item {
+			padding: 0.7rem 1.2rem;
+			border-radius: var(--base-border-radius);
+			display: flex;
+			align-items: flex-start;
+
+			&:empty {
+				display: none;
+			}
+
+			&:hover {
+				background-color: var(--dashboard-item-active-bg-color);
+			}
+
+			&-label {
+				display: inline-block;
+
+				margin-right: 0.7rem;
+				font-weight: bold;
+				font-size: 1.6rem;
+				text-transform: capitalize;
+
+				&:empty {
+					display: none;
+				}
+
+				&::after {
+					content: ':';
+				}
+			}
+
+			&-content {
+				display: inline-block;
+
+				.dashboard__content-item {
+					padding: 0;
+
+					+ .dashboard__content-item {
+						margin-top: 1.2rem;
+					}
+				}
+			}
+
+			+ .dashboard__content-item {
+				margin-top: 0.5rem;
+			}
+
+			&--full-width {
+				grid-column: 1/-1;
+			}
+		}
+	}
+
+	&__card {
+		+ .dashboard__card {
+			margin-top: 2.5rem;
+		}
+	}
+}

@@ -39,6 +39,10 @@
 	function handleConfirmConnection(e: CustomEvent<IpcConnection>) {
 		const connection = e.detail;
 
+		if (pageConnections.some((pc) => pc.info.guid === connection.guid && pc.selected)) {
+			return;
+		}
+
 		fetchEstablishConnection(connection.guid)
 			.then(() => Promise.all([fetchListRedisClientMetrics(connection.guid), fetchListRedisAllKeys(connection.guid)]))
 			.then(([metricsRes, keysRes]) => {
@@ -150,10 +154,6 @@
 	// Trigger immediately.
 	getConnections();
 
-	$: connections = pageConnections.map(function (conn) {
-		return conn.info;
-	});
-
 	const translations = translator.derived(function () {
 		return {
 			'new connection': translator.translate('new connection|New connection'),
@@ -194,7 +194,7 @@
 </svelte:head>
 
 <section class="tauri-redis-page tauri-redis-page-main">
-	<Aside bind:connections on:newConnection={handleNewConnection} on:confirmConnection={handleConfirmConnection} />
+	<Aside bind:pageConnections on:newConnection={handleNewConnection} on:confirmConnection={handleConfirmConnection} />
 	<Main bind:tabs={mainTabs} />
 	{#if dialogOpened}
 		<Dialog
