@@ -8,5 +8,21 @@
 	"key separator": "Separator",
 	"readonly": "Readonly",
 	"create": "Create",
-	"cancel": "Cancel"
+	"cancel": "Cancel",
+	"server metrics": "Server metrics",
+	"redis version": "Redis version",
+	"redis mode": "Redis mode",
+	"os": "Os",
+	"process id": "Process id",
+	"used memory": "Used memory",
+	"used memory peak": "Used memory peak",
+	"used memory lua": "Used memory lua",
+	"connected clients": "Connected clients",
+	"total connections": "Total connections",
+	"total commands": "Total commands",
+	"db metrics": "DB metrics",
+	"db": "DB",
+	"keys num": "Keys num",
+	"average ttl": "Average TTL",
+	"expired keys num": "Expired keys num"
 }

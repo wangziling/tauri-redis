@@ -8,5 +8,21 @@
 	"key separator": "分隔符",
 	"readonly": "只读",
 	"create": "创建",
-	"cancel": "取消"
+	"cancel": "取消",
+	"server metrics": "服务器属性",
+	"redis version": "Redis 版本",
+	"redis mode": "Redis 模式",
+	"os": "系统",
+	"process id": "进程 ID",
+	"used memory": "已使用内存",
+	"used memory peak": "已使用内存峰值",
+	"used memory lua": "Lua脚本已使用内存",
+	"connected clients": "已连接客户端数量",
+	"total connections": "总共的连接数",
+	"total commands": "总共的命令数",
+	"db metrics": "数据库属性",
+	"db": "数据库",
+	"keys num": "键数量",
+	"average ttl": "平均延迟",
+	"expired keys num": "过期的键数量"
 }
