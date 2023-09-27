@@ -31,6 +31,8 @@ pub enum Error {
 
     #[error(transparent)]
     RedisInternalError(#[from] redis::RedisError),
+    #[error("Already a pending redis connection.")]
+    AlreadyAPendingRedisConnection,
     #[error(transparent)]
     SerdeJsonError(#[from] serde_json::Error),
     #[error("Failed to find existed redis connection.")]

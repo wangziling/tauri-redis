@@ -46,8 +46,18 @@ async fn invoke_establish_connection<'a>(
     let connections_info = invoke_get_connections(&file_cache_manager).await?;
     let (_, connection_info) = invoke_find_connection(&connections_info, guid).await?;
 
+    // Release the lock quickly.
     let mut lock = redis_client_manager.lock().await;
-    lock.new_client(RedisClientConnectionPayload {
+    let existed_one = lock.get_mut(guid);
+    if existed_one.is_some() {
+        drop(lock);
+        return Ok(());
+    }
+
+    drop(lock);
+
+    // Use invoke functionality.
+    let client = RedisClientManager::invoke_new_client(RedisClientConnectionPayload {
         host: connection_info.host.clone(),
         port: connection_info.port.clone(),
         username: Some(connection_info.username.clone()),
@@ -56,7 +66,11 @@ async fn invoke_establish_connection<'a>(
     })
     .await?;
 
-    drop(lock);
+    // Only after we got the new client, we call the lock.
+    // Otherwise if we call lock when we are trying to get client, it will stuck. It cannot concurrently connect to other clients.
+    let mut lock = redis_client_manager.lock().await;
+
+    lock.record_new_client(guid.clone(), client)?;
 
     Ok(())
 }
