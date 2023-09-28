@@ -20,17 +20,20 @@
 		grid-column-gap: 0.5rem;
 
 		&-item {
-			padding: 0.7rem 1.2rem;
 			border-radius: var(--base-border-radius);
 			display: flex;
 			align-items: flex-start;
 
-			&:empty {
-				display: none;
+			&:not(.dashboard__content-item--empty) {
+				padding: 0.7rem 1.2rem;
+
+				&:hover {
+					background-color: var(--dashboard-item-active-bg-color);
+				}
 			}
 
-			&:hover {
-				background-color: var(--dashboard-item-active-bg-color);
+			&:empty {
+				display: none;
 			}
 
 			&-label {
@@ -68,6 +71,9 @@
 
 			&--full-width {
 				grid-column: 1/-1;
+			}
+
+			&--emptry {
 			}
 		}
 	}

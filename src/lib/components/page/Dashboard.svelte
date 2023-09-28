@@ -23,9 +23,11 @@
 			'total commands': translator.translate('total commands|Total commands'),
 			'db metrics': translator.translate('db metrics|DB metrics'),
 			db: translator.translate('db|DB'),
-			'keys num': translator.translate('keys num|Keys num'),
+			'keys num': translator.translate('keys num|Keys'),
 			'average ttl': translator.translate('average ttl|Average ttl'),
-			'expired keys num': translator.translate('expired keys num|Expired keys num')
+			'expired keys num': translator.translate('expired keys num|Expired keys'),
+			keys: translator.translate('keys|Keys'),
+			'nothing here': translator.translate('nothing here|Nothing here')
 		};
 	});
 
@@ -76,6 +78,23 @@
 <div class={dynamicClasses}>
 	<Card class="dashboard__card">
 		<div slot="header" class="dashboard__header">
+			<div class="dashboard__header-icon fa fa-key" />
+			<div class="dashboard__header-content">{$translations['keys']}</div>
+		</div>
+		<div class="dashboard__content">
+			{#each data['keys'] as key (key)}
+				<div class="dashboard__content-item">
+					<div class="dashboard__content-item-content">{key}</div>
+				</div>
+			{:else}
+				<div class="dashboard__content-item dashboard__content-item--full-width dashboard__content-item--empty">
+					<div class="dashboard__content-item-content">{$translations['nothing here']}</div>
+				</div>
+			{/each}
+		</div>
+	</Card>
+	<Card class="dashboard__card">
+		<div slot="header" class="dashboard__header">
 			<div class="dashboard__header-icon fa fa-server" />
 			<div class="dashboard__header-content">{$translations['server metrics']}</div>
 		</div>
@@ -84,6 +103,10 @@
 				<div class="dashboard__content-item">
 					<div class="dashboard__content-item-label">{$translations[key]}</div>
 					<div class="dashboard__content-item-content">{data['metrics'][property]}</div>
+				</div>
+			{:else}
+				<div class="dashboard__content-item dashboard__content-item--full-width dashboard__content-item--empty">
+					<div class="dashboard__content-item-content">{$translations['nothing here']}</div>
 				</div>
 			{/each}
 		</div>
@@ -105,6 +128,10 @@
 							</div>
 						{/each}
 					</div>
+				</div>
+			{:else}
+				<div class="dashboard__content-item dashboard__content-item--full-width dashboard__content-item--empty">
+					<div class="dashboard__content-item-content">{$translations['nothing here']}</div>
 				</div>
 			{/each}
 		</div>
