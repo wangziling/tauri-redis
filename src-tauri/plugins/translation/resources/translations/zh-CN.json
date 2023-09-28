@@ -24,5 +24,6 @@
 	"db": "数据库",
 	"keys num": "键数量",
 	"average ttl": "平均延迟",
-	"expired keys num": "过期的键数量"
+	"expired keys num": "过期的键数量",
+	"nothing here": "这儿什么都没有"
 }

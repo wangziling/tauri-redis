@@ -22,7 +22,8 @@
 	"total commands": "Total commands",
 	"db metrics": "DB metrics",
 	"db": "DB",
-	"keys num": "Keys num",
+	"keys num": "Keys",
 	"average ttl": "Average TTL",
-	"expired keys num": "Expired keys num"
+	"expired keys num": "Expired keys",
+	"nothing here": "Nothing here"
 }
