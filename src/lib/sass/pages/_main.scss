@@ -1,5 +1,5 @@
 :root {
-	--aside-min-width: 30rem;
+	--aside-min-width: 21.5rem;
 	--aside-bg-color: #{rgba($color-green, 0.2)};
 	--aside-item-active-color: #{$color-green};
 }
@@ -7,7 +7,7 @@
 .tauri-redis-page-main {
 	display: grid;
 	grid-template-rows: 1fr;
-	grid-template-columns: minmax(var(--aside-min-width), 1fr) 2fr;
+	grid-template-columns: minmax(var(--aside-min-width), 1fr) 3fr;
 	height: 100%;
 
 	.tauri-redis-aside {
@@ -19,10 +19,6 @@
 				max-width: 27.5rem;
 				width: 100%;
 			}
-		}
-
-		&__content {
-			margin-top: 2.5rem;
 		}
 
 		&__connections {
@@ -43,8 +39,9 @@
 
 		.aside-connection {
 			&__header {
-				padding: 1.2rem 0.5rem;
+				padding: 1.2rem 0.9rem;
 				cursor: pointer;
+				border-radius: var(--base-border-radius);
 			}
 
 			&--selected .aside-connection__header,
