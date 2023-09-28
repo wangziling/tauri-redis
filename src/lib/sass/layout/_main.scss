@@ -1,3 +1,6 @@
 .tauri-redis-main {
+	display: grid;
+	grid-template-rows: 1fr;
+	grid-template-columns: min-content 1fr;
 	height: 100%;
 }

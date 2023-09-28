@@ -1,14 +1,48 @@
-.tauri-redis-aside {
-	&__header {
-		padding: 1.2rem 1.5rem;
+:root {
+	--aside-action-size: 4.2rem;
+	--aside-action-icon-size: 2.1rem;
+	--aside-action-active-border: 2px solid #{$color-grey-dark};
+	--aside-action-active-bg-color: #{$color-grey-light-4};
+	--aside-action-active-color: inherit;
+	--aside-action-hover-color: inherit;
+	--aside-bg-color: #{$color-grey-light-1};
+}
 
-		&-wrapper {
-			text-align: center;
+.aside {
+	display: flex;
+	flex-flow: column;
+	background-color: var(--aside-bg-color);
+	color: inherit;
+
+	&__item {
+		&:last-of-type {
+			margin-top: auto;
 		}
 	}
 
-	&__content {
-		margin-top: 1.2rem;
-		padding: 1.2rem 1.5rem;
+	&-action {
+		&:hover {
+			color: var(--aside-action-hover-color);
+		}
+
+		&:hover,
+		&--active {
+			background-color: var(--aside-action-active-bg-color);
+		}
+
+		&--active {
+			border-left: var(--aside-action-active-border);
+			color: var(--aside-action-active-color);
+		}
+
+		.aside-action__icon {
+			font-size: var(--aside-action-icon-size);
+			color: inherit;
+			width: var(--aside-action-size);
+			height: var(--aside-action-size);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
 	}
 }

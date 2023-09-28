@@ -1,23 +1,27 @@
 :root {
-	--aside-min-width: 21.5rem;
-	--aside-bg-color: #{rgba($color-green, 0.2)};
-	--aside-item-active-color: #{$color-green};
+	--routes-connections-aside-min-width: 21.5rem;
+	--routes-connections-aside-bg-color: #{$color-grey};
+	--routes-connections-aside-item-active-color: #{$color-grey-dark};
 }
 
-.tauri-redis-page-main {
+.tauri-redis-connections {
 	display: grid;
 	grid-template-rows: 1fr;
-	grid-template-columns: minmax(var(--aside-min-width), 1fr) 3fr;
+	grid-template-columns: minmax(var(--routes-connections-aside-min-width), 1fr) 3fr;
+	grid-column: 2/-1;
 	height: 100%;
 
-	.tauri-redis-aside {
+	.tauri-redis-connections-aside {
 		grid-column: 1/1;
-		background-color: var(--aside-bg-color);
+		background-color: var(--routes-connections-aside-bg-color);
+		padding: 0.7rem 1.2rem;
 
 		&__header {
-			.tauri-redis-aside__operation-btn {
-				max-width: 27.5rem;
-				width: 100%;
+			text-align: center;
+			margin-bottom: 1.5rem;
+
+			.tauri-redis-connections-aside__operation-btn {
+				width: 75%;
 			}
 		}
 
@@ -28,7 +32,7 @@
 		}
 
 		&__connection {
-			+ .tauri-redis-aside__connection {
+			+ .tauri-redis-connections-aside__connection {
 				margin-top: 1.5rem;
 
 				&:empty {
@@ -46,12 +50,12 @@
 
 			&--selected .aside-connection__header,
 			.aside-connection__header:hover {
-				background-color: var(--aside-item-active-color);
+				background-color: var(--routes-connections-aside-item-active-color);
 			}
 		}
 	}
 
-	.tauri-redis-content {
+	.tauri-redis-connections-content {
 		grid-column: 2/-1;
 		overflow: auto;
 		padding: 1.5rem;

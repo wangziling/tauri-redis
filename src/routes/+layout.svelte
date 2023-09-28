@@ -3,6 +3,7 @@
 	import { createThemeMisc } from '$lib/utils/appearance';
 	import { PageTheme } from '$lib/types';
 	import { translator } from 'tauri-redis-plugin-translation-api';
+	import Aside from './Aside.svelte';
 
 	const themeMisc = createThemeMisc();
 	themeMisc.initEvents();
@@ -19,5 +20,8 @@
 </script>
 
 <main class="tauri-redis-main">
-	<slot />
+	<Aside class="tauri-redis-aside" />
+	<section class="tauri-redis-content">
+		<slot />
+	</section>
 </main>

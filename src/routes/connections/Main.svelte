@@ -6,7 +6,7 @@
 
 	export let tabs: MainTabs = [];
 
-	$: dynamicClasses = calcDynamicClasses(['tauri-redis-content', $$restProps.class]);
+	$: dynamicClasses = calcDynamicClasses(['tauri-redis-connections-content', $$restProps.class]);
 </script>
 
 <div class={dynamicClasses}>

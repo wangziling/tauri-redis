@@ -1,67 +1,78 @@
 <script lang="ts">
-	import Button from '$lib/components/Button.svelte';
-	import { createEventDispatcher } from 'svelte';
-	import type { IpcConnection, PageConnections, TArrayMember } from '$lib/types';
 	import { translator } from 'tauri-redis-plugin-translation-api';
 	import { calcDynamicClasses } from '$lib/utils/calculators';
+	import { page } from '$app/stores';
+	import { createThemeMisc } from '$lib/utils/appearance';
 
-	export let pageConnections: PageConnections = [];
-
-	const dispatch = createEventDispatcher();
+	const themeMisc = createThemeMisc();
 
 	const translations = translator.derived(function () {
 		return {
-			'new connection': translator.translate('new connection|New connection')
+			connections: translator.translate('connections|Connections'),
+			settings: translator.translate('settings|Settings'),
+			'toggle theme': translator.translate('toggle theme|Toggle theme')
 		};
 	});
 
-	function handleNewConnection() {
-		dispatch.apply(this, ['newConnection', ...arguments]);
-	}
-
-	function handleConfirmConnection(connection: IpcConnection) {
-		dispatch('confirmConnection', connection);
-	}
-
-	const calcDynamicAsideConnectionClasses = (pageConnection: TArrayMember<PageConnections>) =>
+	const calcActionDynamicClasses = (targetPathname: string, pathname: string) =>
 		calcDynamicClasses([
-			'tauri-redis-aside__connection',
-			'aside-connection',
+			'aside-action',
 			{
-				'aside-connection--selected': pageConnection.selected
+				'aside-action--active': targetPathname === pathname
 			}
 		]);
+
+	const handleToggleTheme = function handleToggleTheme() {
+		themeMisc.toggleTheme();
+	};
+
+	$: dynamicClasses = calcDynamicClasses(['aside', $$restProps.class]);
 </script>
 
-<aside class="tauri-redis-aside">
-	<header class="tauri-redis-aside__header">
-		<div class="tauri-redis-aside__header-wrapper">
-			<Button
-				class="tauri-redis-aside__operation-btn tauri-redis-aside__operations-new"
-				type="primary"
-				on:click={handleNewConnection}
-			>
-				<span>{$translations['new connection']}</span>
-				<span class="fa fa-plus" />
-			</Button>
-		</div>
-	</header>
-	<section class="tauri-redis-aside__content">
-		<ul class="tauri-redis-aside__connections">
-			{#each pageConnections as connection (connection.info.guid)}
-				<li class={calcDynamicAsideConnectionClasses(connection)}>
-					<div class="aside-connection-wrapper">
-						<div
-							class="aside-connection__header"
-							on:click={() => handleConfirmConnection(connection.info)}
-							tabindex="0"
-						>
-							<div class="aside-connection__name">{@html connection.info.connectionName}</div>
-							<div class="aside-connection__operations" />
-						</div>
-					</div>
+<aside class={dynamicClasses}>
+	<div class="aside__item aside__item-compositions">
+		<div class="aside-actions">
+			<ul class="aside-actions-container">
+				<li class={calcActionDynamicClasses($page.url.pathname, '/connections')}>
+					<a
+						class="aside-action__icon fa fa-server"
+						href="/connections"
+						title={$translations['connections']}
+						aria-label={$translations['connections']}
+					/>
 				</li>
-			{/each}
-		</ul>
-	</section>
+				<li class={calcActionDynamicClasses($page.url.pathname, '/logs')}>
+					<a
+						class="aside-action__icon fa fa-file-lines"
+						href="/logs"
+						title={$translations['connections']}
+						aria-label={$translations['connections']}
+					/>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<div class="aside__item aside__item-operations">
+		<div class="aside-actions">
+			<ul class="aside-actions-container">
+				<li class="aside-action">
+					<a
+						class="aside-action__icon fa fa-sun"
+						href="javascript:;"
+						title={$translations['toggle theme']}
+						aria-label={$translations['toggle theme']}
+						on:click|preventDefault={handleToggleTheme}
+					/>
+				</li>
+				<li class={calcActionDynamicClasses($page.url.pathname, '/settings')}>
+					<a
+						class="aside-action__icon fa fa-sliders"
+						href="/settings"
+						title={$translations['settings']}
+						aria-label={$translations['settings']}
+					/>
+				</li>
+			</ul>
+		</div>
+	</div>
 </aside>

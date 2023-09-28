@@ -3,6 +3,7 @@
 @import 'abstract/mixins';
 
 @import 'base/base';
+@import 'base/anchor';
 @import 'base/typography';
 @import 'base/input';
 @import 'base/btn';
@@ -25,8 +26,9 @@
 
 @import 'layout/root';
 @import 'layout/aside';
+@import 'layout/content';
 @import 'layout/main';
 
 @import 'custom/font-awesome';
 
-@import 'pages/main';
+@import 'pages/connections';

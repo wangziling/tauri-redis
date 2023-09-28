@@ -1,4 +1,4 @@
-import { derived, writable } from 'svelte/store';
+import { derived, get, writable } from 'svelte/store';
 import { PageTheme } from '$lib/types';
 import { get as lodashGet } from 'lodash-es';
 import { onDestroy } from 'svelte';
@@ -55,11 +55,20 @@ export const createThemeMisc = function createThemeMisc() {
 		unsubscribe();
 	});
 
-	return {
+	const result = {
 		theme: derived(themeMisc.theme, function (th) {
 			return th;
 		}),
-		toggleTheme(th: PageTheme) {
+		toggleTheme() {
+			if (get(result.theme) === PageTheme.Light) {
+				result.setTheme(PageTheme.Dark);
+
+				return;
+			}
+
+			result.setTheme(PageTheme.Light);
+		},
+		setTheme(th: PageTheme) {
 			themeMisc.theme.set(th);
 		},
 		useDarkTheme() {
@@ -73,4 +82,6 @@ export const createThemeMisc = function createThemeMisc() {
 		subscribe,
 		unsubscribe
 	};
+
+	return result;
 };

@@ -3,7 +3,7 @@
 
 	--page-font-color: #{$color-white};
 	--page-font-size: #{$default-font-size};
-	--page-bg-color: #{$color-black};
+	--page-bg-color: #{$color-grey-dark-3};
 	--page-font-revert-color: #{$color-black};
 	--page-bg-revert-color: #{$color-white};
 
@@ -44,4 +44,15 @@
 	--input-operation-color: #{$color-grey-light-4};
 	--input-operation-active-color: #{$color-grey-light-3};
 	--input-operation-inactive-color: #{$color-grey-dark-2};
+
+	--dashboard-item-active-color: var(--page-font-revert-color);
+
+	--aside-action-active-border: 2px solid #{$color-grey-dark};
+	--aside-action-active-bg-color: #{$color-grey-dark-2};
+	--aside-action-active-color: #{$color-grey-light-1};
+	--aside-action-hover-color: #{$color-grey-light-1};
+	--aside-bg-color: #{$color-grey-dark};
+
+	--routes-connections-aside-bg-color: #{$color-grey-dark-3};
+	--routes-connections-aside-item-active-color: #{$color-grey-dark};
 }
