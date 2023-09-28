@@ -12,7 +12,7 @@
 	"server metrics": "Server metrics",
 	"redis version": "Redis version",
 	"redis mode": "Redis mode",
-	"os": "Os",
+	"os": "OS",
 	"process id": "Process id",
 	"used memory": "Used memory",
 	"used memory peak": "Used memory peak",
@@ -25,5 +25,7 @@
 	"keys num": "Keys",
 	"average ttl": "Average TTL",
 	"expired keys num": "Expired keys",
-	"nothing here": "Nothing here"
+	"nothing here": "Nothing here",
+	"connections": "Connections",
+	"this project description": "Tauri redis."
 }
