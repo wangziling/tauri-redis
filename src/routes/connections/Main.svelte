@@ -12,7 +12,12 @@
 <div class={dynamicClasses}>
 	{#each tabs as tab}
 		{#if tab['type'] === MainTabType.Dashboard}
-			<Dashboard class="tauri-redis-tab tauri-redis-tab__dashboard" bind:data={tab.data} />
+			<Dashboard
+				class="tauri-redis-tab tauri-redis-tab__dashboard"
+				bind:data={tab.data}
+				on:refreshKeys
+				on:createNewKey
+			/>
 		{/if}
 	{/each}
 </div>

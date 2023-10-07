@@ -5,13 +5,34 @@
 
 .dashboard {
 	&__header {
+		display: flex;
+		align-items: center;
+
 		&-icon {
 			display: inline-block;
+
+			+ .dashboard__header-content {
+				margin-left: 0.5rem;
+			}
 		}
 
 		&-content {
 			display: inline-block;
 			text-transform: capitalize;
+		}
+
+		&-operations {
+			margin-left: auto;
+			user-select: none;
+
+			> * + * {
+				margin-left: 0.7rem;
+			}
+		}
+
+		&-operation {
+			cursor: pointer;
+			user-select: none;
 		}
 	}
 

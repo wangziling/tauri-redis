@@ -42,3 +42,13 @@ export interface IpcResponse<D extends unknown = unknown> {
 export type IpcClientMetrics = Record<string, string>;
 
 export type IpcClientKeys = Array<string>;
+
+export enum IpcKeyType {
+	String = 'String',
+	Hash = 'Hash'
+}
+
+export type SaveIpcNewKeyPayload = {
+	name: string;
+	type: IpcKeyType | string;
+};

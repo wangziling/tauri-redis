@@ -5,6 +5,9 @@
 	import { translator } from 'tauri-redis-plugin-translation-api';
 	import constants from '$lib/constants';
 	import { merge } from 'lodash-es';
+	import { createEventDispatcher } from 'svelte';
+
+	const dispatch = createEventDispatcher();
 
 	export let data: Extract<MainTab, { type: MainTabType.Dashboard }>['data'] = {} as any;
 
@@ -27,7 +30,9 @@
 			'average ttl': translator.translate('average ttl|Average ttl'),
 			'expired keys num': translator.translate('expired keys num|Expired keys'),
 			keys: translator.translate('keys|Keys'),
-			'nothing here': translator.translate('nothing here|Nothing here')
+			'nothing here': translator.translate('nothing here|Nothing here'),
+			'create new key': translator.translate('create new key|Create new key'),
+			refresh: translator.translate('refresh|Refresh')
 		};
 	});
 
@@ -73,6 +78,13 @@
 
 			return acc;
 		}, {} as Record<string /** dbname */, Record<string, string>>);
+
+	const handleRefreshKeysClick = function handleRefreshKeysClick() {
+		dispatch('refreshKeys', { guid: data.connectionInfo.guid });
+	};
+	const handleCreateNewKeyClick = function handleCreateNewKeyClick() {
+		dispatch('createNewKey', { guid: data.connectionInfo.guid });
+	};
 </script>
 
 <div class={dynamicClasses}>
@@ -80,6 +92,20 @@
 		<div slot="header" class="dashboard__header">
 			<div class="dashboard__header-icon fa fa-key" />
 			<div class="dashboard__header-content">{$translations['keys']}</div>
+			<div class="dashboard__header-operations">
+				<span
+					class="dashboard__header-operation dashboard__header-operation-new-key fa fa-refresh"
+					title={$translations['refresh']}
+					role="button"
+					on:click={handleRefreshKeysClick}
+				/>
+				<span
+					class="dashboard__header-operation dashboard__header-operation-new-key fa fa-plus"
+					title={$translations['create new key']}
+					role="button"
+					on:click={handleCreateNewKeyClick}
+				/>
+			</div>
 		</div>
 		<div class="dashboard__content">
 			{#each data['keys'] as key (key)}
