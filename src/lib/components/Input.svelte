@@ -39,6 +39,7 @@
 
 	let isPwdVisible = false;
 	let inputEl: undefined | HTMLInputElement;
+	let textareaEl: undefined | HTMLTextAreaElement;
 
 	const nameWatched = writable(name);
 	$: nameWatched.set(name);
@@ -79,10 +80,12 @@
 		$$restProps.class
 	]);
 
+	$: currentEl = (type === 'textarea' ? textareaEl : inputEl) as HTMLInputElement | HTMLTextAreaElement;
+
 	function handleInput(e: Event) {
 		if ($finalDisabledDerived || $finalReadonlyDerived) {
-			if (inputEl) {
-				inputEl.value = innerValue;
+			if (currentEl) {
+				currentEl.value = innerValue;
 			}
 
 			return;
@@ -113,8 +116,8 @@
 
 	function handleChange(e: Event) {
 		if ($finalDisabledDerived || $finalReadonlyDerived) {
-			if (inputEl) {
-				inputEl.value = innerValue;
+			if (currentEl) {
+				currentEl.value = innerValue;
 			}
 
 			return;
@@ -144,8 +147,8 @@
 	}
 
 	function handleFocus(e: Event) {
-		if (inputEl) {
-			inputEl.value = displayValue;
+		if (currentEl) {
+			currentEl.value = displayValue;
 		}
 
 		if ($finalDisabledDerived || $finalReadonlyDerived) {
@@ -160,8 +163,8 @@
 	}
 
 	function handleBlur(e: Event) {
-		if (inputEl) {
-			inputEl.value = displayValue;
+		if (currentEl) {
+			currentEl.value = displayValue;
 		}
 
 		if ($finalDisabledDerived || $finalReadonlyDerived) {
@@ -175,13 +178,33 @@
 		dispatch('blur', e);
 	}
 
+	function handleClick(e: Event) {
+		dispatch('click', e);
+	}
+
 	function handleTogglePwdVisible() {
 		innerType = isPwdVisible ? 'password' : 'text';
 		isPwdVisible = !isPwdVisible;
 	}
+
+	export const focus = function focus() {
+		if (!currentEl) {
+			return;
+		}
+
+		currentEl.focus();
+	};
+
+	export const blur = function blur() {
+		if (!currentEl) {
+			return;
+		}
+
+		currentEl.blur();
+	};
 </script>
 
-<div class={dynamicClasses}>
+<div class={dynamicClasses} on:click={handleClick}>
 	<div class="input-wrapper">
 		{#if innerType === 'textarea'}
 			<div class="input__textarea">
@@ -193,6 +216,7 @@
 					{value}
 					name={$finalNameDerived}
 					id={name}
+					bind:this={textareaEl}
 					on:input={handleInput}
 					on:focus={handleFocus}
 					on:blur={handleBlur}
