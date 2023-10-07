@@ -1,3 +1,140 @@
+:root {
+	--select-container-padding: 1.2rem 1.5rem;
+	--select-disabled-bg-color: #{$color-grey};
+	--select-border-color: #{$color-grey-dark-2};
+	--select-placeholder-color: #{$color-grey-light-1};
+	--select-options-padding: 0.5rem;
+	--select-options-bg-color: var(--page-bg-color);
+	--select-option-padding: 0.7rem 1.2rem;
+	--select-option-actve-bg-color: #{$color-grey-dark};
+	--select-option-hover-bg-color: #{$color-grey-dark-2};
+}
+
 .select {
 	display: inline-block;
+
+	&-container {
+		border: 1px solid var(--select-border-color);
+		border-radius: var(--base-border-radius);
+		padding: var(--select-container-padding);
+		cursor: pointer;
+		display: flex;
+		align-items: stretch;
+	}
+
+	&-wrapper {
+		position: relative;
+	}
+
+	&-selector {
+		flex-grow: 1;
+		padding-right: 0.5rem;
+	}
+
+	&-operations {
+		margin-left: auto;
+	}
+
+	&-value {
+	}
+
+	&-search-input {
+		height: 100%;
+		width: 100%;
+
+		.input-wrapper {
+			border: 0;
+			padding: 0;
+		}
+	}
+
+	&-options {
+		position: absolute;
+		left: 0;
+		width: 100%;
+		background-color: var(--select-options-bg-color);
+		border: 1px solid var(--select-border-color);
+		border-radius: var(--base-border-radius);
+		padding: var(--select-options-padding);
+		max-height: 57.5rem;
+		overflow: auto;
+	}
+
+	&-option {
+		@extend %break-word;
+
+		padding: var(--select-option-padding);
+		border-radius: var(--base-border-radius);
+		cursor: pointer;
+
+		&:not(.select-option--selected) {
+			&:hover,
+			&:focus {
+				background-color: var(--select-option-hover-bg-color);
+			}
+		}
+
+		&--selected {
+			background-color: var(--select-option-actve-bg-color);
+		}
+	}
+
+	&-operations {
+		display: flex;
+		align-items: center;
+
+		> * + * {
+			margin-left: 0.7rem;
+		}
+	}
+
+	&-operation {
+		&__arrow {
+			transition: transform 0.3s;
+		}
+	}
+
+	&:not(.select--options-visible) {
+		.select-options {
+			display: none;
+		}
+	}
+
+	&--options-visible {
+		.select-operation__arrow {
+			transform: rotate(180deg);
+		}
+	}
+
+	&--searchable {
+		.select-container {
+			cursor: text;
+		}
+
+		&.select--valued {
+			&:not(.select--options-visible) .select-search-input {
+				display: none;
+			}
+		}
+
+		&.select--options-visible {
+			.select-value {
+				display: none;
+			}
+		}
+	}
+
+	&--disabled,
+	&--readonly {
+		cursor: not-allowed;
+
+		.select-container {
+			cursor: not-allowed;
+		}
+
+		.select-wrapper {
+			background-color: var(--select-disabled-bg-color);
+			color: var(--base-disabled-font-color);
+		}
+	}
 }
