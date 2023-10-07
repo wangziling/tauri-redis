@@ -27,5 +27,9 @@
 	"expired keys num": "Expired keys",
 	"nothing here": "Nothing here",
 	"connections": "Connections",
-	"this project description": "Tauri redis."
+	"this project description": "Tauri redis.",
+	"create new key": "Create new key",
+	"refresh": "Refresh",
+	"key name": "Key name",
+	"key type": "Key type"
 }

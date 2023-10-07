@@ -27,5 +27,9 @@
 	"expired keys num": "过期的键数量",
 	"nothing here": "这儿什么都没有",
 	"connections": "连接",
-	"this project description": "Tauri redis."
+	"this project description": "Tauri redis.",
+	"create new key": "创建新键",
+	"refresh": "刷新",
+	"key name": "键名",
+	"key type": "键类型"
 }
