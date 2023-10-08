@@ -22,7 +22,7 @@
 	import { invokeErrorHandle } from '$lib/utils/page';
 	import NewConnectionDialog from './NewConnectionDialog.svelte';
 	import NewKeyDialog from './NewKeyDialog.svelte';
-	import { debounce, remove } from 'lodash-es';
+	import { debounce, merge, remove } from 'lodash-es';
 	import EditConnectionDialog from './EditConnectionDialog.svelte';
 
 	let pageConnections: PageConnections = [];
@@ -100,6 +100,16 @@
 	}
 
 	function handleConfirmEditConnection(payload: SaveIpcConnectionPayload) {
+		if (!editConnectionDialogConfig.currentConnection) {
+			return;
+		}
+
+		// Attach the guid.
+		// Mark this 'save connection' operation is aimed to 'edit' existed connection.
+		payload = merge(payload, {
+			guid: editConnectionDialogConfig.currentConnection.guid
+		});
+
 		return fetchSaveConnection(payload).then(() => {
 			return getConnections().then(() => payload);
 		});
