@@ -191,6 +191,16 @@
 	function handleEditConnection(e: CustomEvent<IpcConnection>) {
 		const connection = e.detail;
 
+		const isTargetConnectionEstablished = pageConnections.some(function (conn) {
+			return conn.info.guid === connection.guid && conn.selected;
+		});
+		if (isTargetConnectionEstablished) {
+			return handleReleaseConnection(e).then(() => {
+				editConnectionDialogConfig.opened = true;
+				editConnectionDialogConfig.currentConnection = connection;
+			});
+		}
+
 		editConnectionDialogConfig.opened = true;
 		editConnectionDialogConfig.currentConnection = connection;
 	}

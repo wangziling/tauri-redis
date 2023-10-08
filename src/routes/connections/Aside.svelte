@@ -72,6 +72,13 @@
 						>
 							<div class="aside-connection__name">{@html connection.info.connectionName}</div>
 							<div class="aside-connection__operations">
+								<span
+									class="aside-connection__operation aside-connection__operation-remove fa fa-pen-to-square"
+									tabindex="0"
+									role="button"
+									title={$translations['edit connection']}
+									on:click|stopPropagation={() => handleEditConnection(connection.info)}
+								/>
 								{#if connection.selected}
 									<span
 										class="aside-connection__operation aside-connection__operation-remove fa fa-plug-circle-xmark"
@@ -79,14 +86,6 @@
 										role="button"
 										title={$translations['release connection']}
 										on:click|stopPropagation={() => handleReleaseConnection(connection.info)}
-									/>
-								{:else}
-									<span
-										class="aside-connection__operation aside-connection__operation-remove fa fa-pen-to-square"
-										tabindex="0"
-										role="button"
-										title={$translations['edit connection']}
-										on:click|stopPropagation={() => handleEditConnection(connection.info)}
 									/>
 								{/if}
 								<span
