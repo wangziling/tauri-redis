@@ -23,7 +23,7 @@
 	"db metrics": "数据库属性",
 	"db": "数据库",
 	"keys num": "键数量",
-	"average ttl": "平均延迟",
+	"average ttl": "平均存活时间",
 	"expired keys num": "过期的键数量",
 	"nothing here": "这儿什么都没有",
 	"connections": "连接",
@@ -35,5 +35,8 @@
 	"edit connection": "编辑连接",
 	"release connection": "释放连接",
 	"remove connection": "移除连接",
-	"edit": "编辑"
+	"edit": "编辑",
+	"grep keys": "过滤键",
+	"remove key": "删除键",
+	"key ttl": "存活时间"
 }

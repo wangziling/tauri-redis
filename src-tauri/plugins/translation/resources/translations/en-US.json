@@ -35,5 +35,8 @@
 	"edit connection": "Edit connection",
 	"release connection": "Release connection",
 	"remove connection": "remove connection",
-	"edit": "Edit"
+	"edit": "Edit",
+	"grep keys": "Grep keys",
+	"remove key": "Remove key",
+	"key ttl": "TTL"
 }
