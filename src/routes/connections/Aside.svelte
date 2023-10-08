@@ -11,7 +11,10 @@
 
 	const translations = translator.derived(function () {
 		return {
-			'new connection': translator.translate('new connection|New connection')
+			'new connection': translator.translate('new connection|New connection'),
+			'release connection': translator.translate('release connection|Release connection'),
+			'remove connection': translator.translate('remove connection|Remove connection'),
+			'edit connection': translator.translate('edit connection|Edit connection')
 		};
 	});
 
@@ -74,6 +77,7 @@
 										class="aside-connection__operation aside-connection__operation-remove fa fa-plug-circle-xmark"
 										tabindex="0"
 										role="button"
+										title={$translations['release connection']}
 										on:click|stopPropagation={() => handleReleaseConnection(connection.info)}
 									/>
 								{:else}
@@ -81,6 +85,7 @@
 										class="aside-connection__operation aside-connection__operation-remove fa fa-pen-to-square"
 										tabindex="0"
 										role="button"
+										title={$translations['edit connection']}
 										on:click|stopPropagation={() => handleEditConnection(connection.info)}
 									/>
 								{/if}
@@ -88,6 +93,7 @@
 									class="aside-connection__operation aside-connection__operation-remove fa fa-trash-can"
 									tabindex="0"
 									role="button"
+									title={$translations['remove connection']}
 									on:click|stopPropagation={() => handleRemoveConnection(connection.info)}
 								/>
 							</div>
