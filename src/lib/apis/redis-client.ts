@@ -12,3 +12,7 @@ export function fetchListRedisAllKeys(guid: IpcConnection['guid'], conditionPart
 export function fetchCreateNewKey(guid: IpcConnection['guid'], params: SaveIpcNewKeyPayload) {
 	return fetchIpc<IpcClientMetrics>('create_new_key', { guid, keyName: params.name, keyType: params.type });
 }
+
+export function fetchRemoveKey(guid: IpcConnection['guid'], keyName: string) {
+	return fetchIpc<IpcClientMetrics>('remove_key', { guid, keyName });
+}

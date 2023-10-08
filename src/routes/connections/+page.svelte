@@ -17,7 +17,12 @@
 		fetchRemoveConnection,
 		fetchSaveConnection
 	} from '$lib/apis';
-	import { fetchCreateNewKey, fetchListRedisAllKeys, fetchListRedisClientMetrics } from '$lib/apis/redis-client';
+	import {
+		fetchCreateNewKey,
+		fetchListRedisAllKeys,
+		fetchListRedisClientMetrics,
+		fetchRemoveKey
+	} from '$lib/apis/redis-client';
 	import Main from './Main.svelte';
 	import { invokeErrorHandle } from '$lib/utils/page';
 	import NewConnectionDialog from './NewConnectionDialog.svelte';
@@ -26,7 +31,10 @@
 	import EditConnectionDialog from './EditConnectionDialog.svelte';
 
 	let pageConnections: PageConnections = [];
-	let mainTabs: MainTabs = [];
+	let mainTabsConfig = {
+		tabs: [] as MainTabs,
+		activeIdx: 0
+	};
 	let newConnectionDialogOpened = false;
 	let newKeyDialogConfig = {
 		opened: false,
@@ -38,22 +46,31 @@
 	};
 
 	function listAllKeys(guid: IpcConnection['guid'], conditionPart?: string) {
-		return fetchListRedisAllKeys(guid, conditionPart).then((res) => {
-			const allKeys = res.data;
-			if (!Array.isArray(allKeys)) {
-				return res;
-			}
+		return fetchListRedisAllKeys(guid, conditionPart)
+			.then((res) => {
+				const allKeys = res.data;
+				if (!Array.isArray(allKeys)) {
+					return res;
+				}
 
-			const targetTab = mainTabs.find(
-				(tab) => tab.type === MainTabType.Dashboard && tab.data.connectionInfo.guid === guid
-			);
-			if (!targetTab) {
-				return res;
-			}
+				const targetTab = mainTabsConfig.tabs.find(
+					(tab) => tab.type === MainTabType.Dashboard && tab.data.connectionInfo.guid === guid
+				);
+				if (!targetTab) {
+					return res;
+				}
 
-			(targetTab as Extract<MainTab, { type: MainTabType.Dashboard }>).data.keys = allKeys;
-			mainTabs = mainTabs;
-		});
+				(
+					targetTab as Extract<
+						MainTab,
+						{
+							type: MainTabType.Dashboard;
+						}
+					>
+				).data.keys = allKeys;
+				mainTabsConfig.tabs = mainTabsConfig.tabs;
+			})
+			.catch(invokeErrorHandle);
 	}
 
 	function handleNewConnection() {
@@ -69,7 +86,11 @@
 		editConnectionDialogConfig.currentConnection = null;
 	}
 
-	function handleCreateNewKey(e: CustomEvent<{ guid: IpcConnection['guid'] }>) {
+	function handleCreateNewKey(
+		e: CustomEvent<{
+			guid: IpcConnection['guid'];
+		}>
+	) {
 		const guid = e.detail.guid;
 		if (!guid) {
 			return;
@@ -79,7 +100,12 @@
 		newKeyDialogConfig.currentGuid = guid;
 	}
 
-	function handleGrepKeys(e: CustomEvent<{ guid: IpcConnection['guid']; conditionPart: string }>) {
+	function handleGrepKeys(
+		e: CustomEvent<{
+			guid: IpcConnection['guid'];
+			conditionPart: string;
+		}>
+	) {
 		const { guid, conditionPart } = e.detail;
 		if (!guid) {
 			return;
@@ -122,14 +148,21 @@
 
 		return fetchCreateNewKey(newKeyDialogConfig.currentGuid, payload)
 			.then(() => listAllKeys(newKeyDialogConfig.currentGuid))
-			.then(() => payload);
+			.then(() => payload)
+			.catch(invokeErrorHandle);
 	}
 
 	function handleConfirmConnection(e: CustomEvent<IpcConnection>) {
 		const connection = e.detail;
 
 		if (pageConnections.some((pc) => pc.info.guid === connection.guid && pc.selected)) {
-			return;
+			const existedIdx = mainTabsConfig.tabs.findIndex(
+				(tab) => tab.type === MainTabType.Dashboard && tab.data.connectionInfo.guid === connection.guid
+			);
+			if (existedIdx !== -1) {
+				mainTabsConfig.activeIdx = existedIdx;
+				return;
+			}
 		}
 
 		fetchEstablishConnection(connection.guid)
@@ -147,7 +180,7 @@
 					}
 				}
 
-				mainTabs.push({
+				mainTabsConfig.tabs.push({
 					type: MainTabType.Dashboard,
 					data: {
 						metrics: metricsRes.data,
@@ -157,7 +190,8 @@
 				});
 
 				pageConnections = pageConnections;
-				mainTabs = mainTabs;
+				mainTabsConfig.tabs = mainTabsConfig.tabs;
+				mainTabsConfig.activeIdx = mainTabsConfig.tabs.length - 1;
 			})
 			.catch(invokeErrorHandle);
 	}
@@ -172,11 +206,11 @@
 						conn.selected = false;
 					}
 				});
-				remove(mainTabs, function (tab) {
+				remove(mainTabsConfig.tabs, function (tab) {
 					return tab.data.connectionInfo.guid === connection.guid;
 				});
 
-				mainTabs = mainTabs;
+				mainTabsConfig.tabs = mainTabsConfig.tabs;
 				pageConnections = pageConnections;
 			})
 			.catch(invokeErrorHandle);
@@ -196,12 +230,12 @@
 					}
 				});
 
-				remove(mainTabs, function (tab) {
+				remove(mainTabsConfig.tabs, function (tab) {
 					return tab.data.connectionInfo.guid === connection.guid;
 				});
 
 				pageConnections = pageConnections;
-				mainTabs = mainTabs;
+				mainTabsConfig.tabs = mainTabsConfig.tabs;
 			})
 			.then(getConnections)
 			.catch(invokeErrorHandle);
@@ -224,8 +258,92 @@
 		editConnectionDialogConfig.currentConnection = connection;
 	}
 
-	function handleRefreshKeys(e: CustomEvent<{ guid: IpcConnection['guid'] }>) {
+	function handleRefreshKeys(
+		e: CustomEvent<{
+			guid: IpcConnection['guid'];
+		}>
+	) {
 		return listAllKeys(e.detail.guid);
+	}
+
+	function handleRemoveKey(
+		e: CustomEvent<{
+			guid: IpcConnection['guid'];
+			key: string;
+		}>
+	) {
+		const { key, guid } = e.detail;
+		return fetchRemoveKey(guid, key)
+			.then(() => listAllKeys(guid))
+			.catch(invokeErrorHandle);
+	}
+
+	function handlePreviewKey(
+		e: CustomEvent<{
+			guid: IpcConnection['guid'];
+			key: string;
+		}>
+	) {
+		const { key, guid } = e.detail;
+		const existedIdx = mainTabsConfig.tabs.findIndex(
+			(tab) => tab.type === MainTabType.KeyDetail && tab.data.key === key
+		);
+		if (existedIdx !== -1) {
+			mainTabsConfig.activeIdx = existedIdx;
+			return;
+		}
+
+		const targetConnection = pageConnections.find(function (conn) {
+			return conn.info.guid === guid;
+		});
+		if (!targetConnection) {
+			return;
+		}
+
+		mainTabsConfig.tabs.push({
+			type: MainTabType.KeyDetail,
+			data: {
+				connectionInfo: targetConnection.info,
+				db: 0,
+				key
+			}
+		});
+
+		mainTabsConfig.tabs = mainTabsConfig.tabs;
+		mainTabsConfig.activeIdx = mainTabsConfig.tabs.length - 1;
+	}
+
+	function handleChooseTab(
+		e: CustomEvent<{
+			idx: number;
+		}>
+	) {
+		const { idx } = e.detail;
+		if (idx < 0 || idx >= mainTabsConfig.tabs.length) {
+			return;
+		}
+
+		mainTabsConfig.activeIdx = idx;
+	}
+
+	function handleCloseTab(
+		e: CustomEvent<{
+			idx: number;
+		}>
+	) {
+		const { idx } = e.detail;
+		if (idx < 0 || idx >= mainTabsConfig.tabs.length) {
+			return;
+		}
+
+		mainTabsConfig.tabs.splice(idx, 1);
+		mainTabsConfig.tabs = mainTabsConfig.tabs;
+
+		// If activeIdx is not a valid idx.
+		// Reset it as the last item idx.
+		if (mainTabsConfig.activeIdx < 0 || mainTabsConfig.activeIdx >= mainTabsConfig.tabs.length) {
+			mainTabsConfig.activeIdx = Math.max(mainTabsConfig.tabs.length - 1, 0);
+		}
 	}
 
 	function getConnections() {
@@ -303,10 +421,15 @@
 		on:editConnection={handleEditConnection}
 	/>
 	<Main
-		bind:tabs={mainTabs}
+		bind:tabs={mainTabsConfig.tabs}
+		bind:activeIdx={mainTabsConfig.activeIdx}
 		on:refreshKeys={handleRefreshKeys}
 		on:createNewKey={handleCreateNewKey}
 		on:grepKeys={debounce(handleGrepKeys, 300)}
+		on:removeKey={handleRemoveKey}
+		on:previewKey={handlePreviewKey}
+		on:chooseTab={handleChooseTab}
+		on:closeTab={handleCloseTab}
 	/>
 	{#if newConnectionDialogOpened}
 		<NewConnectionDialog

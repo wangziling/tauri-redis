@@ -39,8 +39,9 @@
 
 	&__content {
 		display: grid;
-		grid-template-columns: repeat(2, 1fr);
-		grid-column-gap: 0.5rem;
+		grid-template-columns: repeat(auto-fit, minmax(47%, 1fr));
+		grid-gap: 0.5rem;
+		align-items: flex-start;
 
 		&-item {
 			border-radius: var(--base-border-radius);
@@ -79,6 +80,8 @@
 
 			&-content {
 				display: inline-block;
+				flex-grow: 1;
+				padding-right: 0.7rem;
 
 				.dashboard__content-item {
 					padding: 0;
@@ -89,8 +92,14 @@
 				}
 			}
 
-			+ .dashboard__content-item {
-				margin-top: 0.5rem;
+			&-operations {
+				margin-left: auto;
+			}
+
+			&-operation {
+				+ .dashboard__content-item-operation {
+					margin-left: 0.5rem;
+				}
 			}
 
 			&--full-width {
@@ -98,6 +107,10 @@
 			}
 
 			&--emptry {
+			}
+
+			&--operable {
+				cursor: pointer;
 			}
 		}
 	}

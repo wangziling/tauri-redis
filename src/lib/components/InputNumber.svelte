@@ -100,7 +100,12 @@
 		$$restProps.class
 	]);
 
-	function input(val: string | number, options?: { silent: boolean }) {
+	function input(
+		val: string | number,
+		options?: {
+			silent: boolean;
+		}
+	) {
 		if ($finalDisabledDerived || $finalReadonlyDerived) {
 			if (inputEl) {
 				inputEl.value = displayValue;
@@ -158,7 +163,12 @@
 		}
 	}
 
-	function change(val: string | number, options?: { silent: boolean }) {
+	function change(
+		val: string | number,
+		options?: {
+			silent: boolean;
+		}
+	) {
 		if ($finalDisabledDerived || $finalReadonlyDerived) {
 			if (inputEl) {
 				inputEl.value = displayValue;
@@ -359,11 +369,13 @@
 		<div class="input__suffix">
 			{#if showStepOperations}
 				<div class="input__operation-group">
+					<slot name="suffix" />
 					<span class={stepOperationMinusDynamicClasses} role="button" on:click={handleExecStepGapMinus} />
 					<span class={stepOperationPlusDynamicClasses} role="button" on:click={handleExecStepGapPlus} />
 				</div>
+			{:else}
+				<slot name="suffix" />
 			{/if}
-			<slot name="suffix" />
 		</div>
 	</div>
 </div>

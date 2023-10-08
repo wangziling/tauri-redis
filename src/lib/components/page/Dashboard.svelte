@@ -34,7 +34,8 @@
 			'nothing here': translator.translate('nothing here|Nothing here'),
 			'create new key': translator.translate('create new key|Create new key'),
 			refresh: translator.translate('refresh|Refresh'),
-			'grep keys': translator.translate('grep keys|Grep keys')
+			'grep keys': translator.translate('grep keys|Grep keys'),
+			'remove key': translator.translate('remove key|Remove key')
 		};
 	});
 
@@ -72,7 +73,7 @@
 				}
 
 				merge(acc, {
-					[dbname]: {
+					[dbname.toUpperCase()]: {
 						[valueParis[1]]: valueParis[2]
 					}
 				});
@@ -87,13 +88,19 @@
 	const handleCreateNewKeyClick = function handleCreateNewKeyClick() {
 		dispatch('createNewKey', { guid: data.connectionInfo.guid });
 	};
-	const handleGrepKeys = function handleCreateNewKeyClick(e: CustomEvent<string>) {
+	const handleGrepKeys = function handleGrepKeys(e: CustomEvent<string>) {
 		dispatch('grepKeys', { guid: data.connectionInfo.guid, conditionPart: e.detail });
+	};
+	const handlePreviewKey = function handlePreviewKey(key: string) {
+		dispatch('previewKey', { guid: data.connectionInfo.guid, key });
+	};
+	const handleRemoveKey = function handleRemoveKey(key: string) {
+		dispatch('removeKey', { guid: data.connectionInfo.guid, key });
 	};
 </script>
 
 <div class={dynamicClasses}>
-	<Card class="dashboard__card">
+	<Card class="dashboard__card dashboard__card-keys">
 		<div slot="header" class="dashboard__header">
 			<div class="dashboard__header-icon fa fa-key" />
 			<div class="dashboard__header-content">{$translations['keys']}</div>
@@ -121,8 +128,17 @@
 		</div>
 		<div class="dashboard__content">
 			{#each data['keys'] as key (key)}
-				<div class="dashboard__content-item">
+				<div class="dashboard__content-item dashboard__content-item--operable" on:click={() => handlePreviewKey(key)}>
 					<div class="dashboard__content-item-content">{key}</div>
+					<div class="dashboard__content-item-operations">
+						<span
+							class="dashboard__content-item-operation dashboard__content-item-operation-remove-key fa fa-trash-can"
+							role="button"
+							tabindex="0"
+							title={$translations['remove key']}
+							on:click|stopPropagation={() => handleRemoveKey(key)}
+						/>
+					</div>
 				</div>
 			{:else}
 				<div class="dashboard__content-item dashboard__content-item--full-width dashboard__content-item--empty">
@@ -131,7 +147,7 @@
 			{/each}
 		</div>
 	</Card>
-	<Card class="dashboard__card">
+	<Card class="dashboard__card dashboard__card-server-metrics">
 		<div slot="header" class="dashboard__header">
 			<div class="dashboard__header-icon fa fa-server" />
 			<div class="dashboard__header-content">{$translations['server metrics']}</div>
@@ -149,14 +165,14 @@
 			{/each}
 		</div>
 	</Card>
-	<Card class="dashboard__card">
+	<Card class="dashboard__card dashboard__card-db-metrics">
 		<div slot="header" class="dashboard__header">
 			<div class="dashboard__header-icon fa fa-database" />
 			<div class="dashboard__header-content">{$translations['db metrics']}</div>
 		</div>
 		<div class="dashboard__content">
 			{#each Object.entries(dbMetrics) as [dbname, metrics] (dbname)}
-				<div class="dashboard__content-item dashboard__content-item--full-width">
+				<div class="dashboard__content-item">
 					<div class="dashboard__content-item-label">{dbname}</div>
 					<div class="dashboard__content-item-content">
 						{#each Object.entries(dbMetricsKeyPropertyMapping) as [key, property] (key)}
@@ -168,7 +184,7 @@
 					</div>
 				</div>
 			{:else}
-				<div class="dashboard__content-item dashboard__content-item--full-width dashboard__content-item--empty">
+				<div class="dashboard__content-item dashboard__content-item--empty">
 					<div class="dashboard__content-item-content">{$translations['nothing here']}</div>
 				</div>
 			{/each}
