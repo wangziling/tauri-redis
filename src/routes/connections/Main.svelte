@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { calcDynamicClasses } from '$lib/utils/calculators';
-	import type { MainTabs } from '$lib/types';
+	import type { MainTabs, TArrayMember } from '$lib/types';
 	import Dashboard from '$lib/components/page/Dashboard.svelte';
 	import { MainTabType } from '$lib/types';
 	import KeyDetail from '$lib/components/page/key-detail/KeyDetail.svelte';
@@ -39,6 +39,14 @@
 		dispatch('closeTab', { idx });
 	}
 
+	function calcKeyDetailAnchorContent(tab: Extract<TArrayMember<MainTabs>, { type: MainTabType.KeyDetail }>) {
+		return tab.data.connectionInfo.connectionName + '|' + tab.data.key;
+	}
+
+	function calcDashboardAnchorContent(tab: Extract<TArrayMember<MainTabs>, { type: MainTabType.Dashboard }>) {
+		return tab.data.connectionInfo.connectionName;
+	}
+
 	$: dynamicClasses = calcDynamicClasses(['tauri-redis-connections-content', $$restProps.class]);
 	$: tabsDynamicClasses = calcDynamicClasses([
 		'tabs',
@@ -61,7 +69,9 @@
 							on:click={() => handleChooseTab(idx)}
 						>
 							<div class="tab-anchor__icon fa fa-database" />
-							<div class="tab-anchor__content">{tab.data.connectionInfo.connectionName}</div>
+							<div class="tab-anchor__content" title={calcDashboardAnchorContent(tab)}>
+								{calcDashboardAnchorContent(tab)}
+							</div>
 							<div class="tab-anchor__operations">
 								<span
 									class="tab-anchor__operation tab-anchor__operation-close fa fa-xmark"
@@ -79,7 +89,9 @@
 							on:click={() => handleChooseTab(idx)}
 						>
 							<div class="tab-anchor__icon fa fa-key" />
-							<div class="tab-anchor__content">{tab.data.connectionInfo.connectionName} | {tab.data.key}</div>
+							<div class="tab-anchor__content" title={calcKeyDetailAnchorContent(tab)}>
+								{calcKeyDetailAnchorContent(tab)}
+							</div>
 							<div class="tab-anchor__operations">
 								<span
 									class="tab-anchor__operation tab-anchor__operation-close fa fa-xmark"

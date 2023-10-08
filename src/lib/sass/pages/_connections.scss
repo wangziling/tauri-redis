@@ -126,6 +126,7 @@
 			display: flex;
 			align-items: stretch;
 			border-bottom: 1px solid var(--base-border-color);
+			overflow: auto;
 		}
 
 		&-content {
@@ -153,6 +154,7 @@
 			cursor: pointer;
 			border-bottom-left-radius: 0;
 			border-bottom-right-radius: 0;
+			max-width: 27.5rem;
 
 			+ .tab-anchor {
 				border-left: 0;
@@ -166,8 +168,11 @@
 			}
 
 			&__content {
+				@extend %text-ellipsis;
+
 				flex-grow: 1;
 				padding-right: 0.7rem;
+				white-space: nowrap;
 			}
 
 			&__operations {
