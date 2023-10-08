@@ -10,7 +10,7 @@
 	import { MainTabType } from '$lib/types';
 	import { translator } from 'tauri-redis-plugin-translation-api';
 	import { fetchEstablishConnection, fetchGetConnections, fetchSaveConnection } from '$lib/apis';
-	import { fetchListRedisAllKeys, fetchListRedisClientMetrics } from '$lib/apis/redis-client';
+	import { fetchCreateNewKey, fetchListRedisAllKeys, fetchListRedisClientMetrics } from '$lib/apis/redis-client';
 	import Main from './Main.svelte';
 	import { invokeErrorHandle } from '$lib/utils/page';
 	import NewConnectionDialog from './NewConnectionDialog.svelte';
@@ -18,8 +18,30 @@
 
 	let pageConnections: PageConnections = [];
 	let mainTabs: MainTabs = [];
-	let newKeyDialogOpened = false;
 	let newConnectionDialogOpened = false;
+	let newKeyDialogConfig = {
+		opened: false,
+		currentGuid: ''
+	};
+
+	function refreshAllKeys(guid: IpcConnection['guid']) {
+		return fetchListRedisAllKeys(guid).then((res) => {
+			const allKeys = res.data;
+			if (!Array.isArray(allKeys)) {
+				return res;
+			}
+
+			const targetTab = mainTabs.find(
+				(tab) => tab.type === MainTabType.Dashboard && tab.data.connectionInfo.guid === guid
+			);
+			if (!targetTab) {
+				return res;
+			}
+
+			targetTab.data.keys = allKeys;
+			mainTabs = mainTabs;
+		});
+	}
 
 	function handleNewConnection() {
 		newConnectionDialogOpened = true;
@@ -29,8 +51,19 @@
 		newConnectionDialogOpened = false;
 	}
 
+	function handleCreateNewKey(e: CustomEvent<{ guid: IpcConnection['guid'] }>) {
+		const guid = e.detail.guid;
+		if (!guid) {
+			return;
+		}
+
+		newKeyDialogConfig.opened = true;
+		newKeyDialogConfig.currentGuid = guid;
+	}
+
 	function handleCloseNewKeyDialog() {
-		newKeyDialogOpened = false;
+		newKeyDialogConfig.opened = false;
+		newKeyDialogConfig.currentGuid = '';
 	}
 
 	function handleConfirmCreateNewConnection(payload: SaveIpcConnectionPayload) {
@@ -40,7 +73,13 @@
 	}
 
 	function handleConfirmCreateNewKey(payload: SaveIpcNewKeyPayload) {
-		return Promise.resolve(payload);
+		if (!newKeyDialogConfig.currentGuid) {
+			return;
+		}
+
+		return fetchCreateNewKey(newKeyDialogConfig.currentGuid, payload)
+			.then(() => refreshAllKeys(newKeyDialogConfig.currentGuid))
+			.then(() => payload);
 	}
 
 	function handleConfirmConnection(e: CustomEvent<IpcConnection>) {
@@ -84,30 +123,7 @@
 	}
 
 	function handleRefreshKeys(e: CustomEvent<{ guid: IpcConnection['guid'] }>) {
-		const guid = e.detail.guid;
-
-		return fetchListRedisAllKeys(guid).then((res) => {
-			const allKeys = res.data;
-			if (!Array.isArray(allKeys)) {
-				return res;
-			}
-
-			const targetTab = mainTabs.find(
-				(tab) => tab.type === MainTabType.Dashboard && tab.data.connectionInfo.guid === guid
-			);
-			if (!targetTab) {
-				return res;
-			}
-
-			targetTab.data.keys = allKeys;
-			mainTabs = mainTabs;
-		});
-	}
-
-	function handleCreateNewKey(e: CustomEvent<{ guid: IpcConnection['guid'] }>) {
-		const guid = e.detail.guid;
-
-		newKeyDialogOpened = true;
+		return refreshAllKeys(e.detail.guid);
 	}
 
 	function getConnections() {
@@ -184,7 +200,7 @@
 			confirmCreateHandler={handleConfirmCreateNewConnection}
 		/>
 	{/if}
-	{#if newKeyDialogOpened}
+	{#if newKeyDialogConfig.opened}
 		<NewKeyDialog on:close={handleCloseNewKeyDialog} confirmCreateHandler={handleConfirmCreateNewKey} />
 	{/if}
 </section>
