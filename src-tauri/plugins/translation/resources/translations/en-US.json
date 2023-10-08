@@ -31,5 +31,9 @@
 	"create new key": "Create new key",
 	"refresh": "Refresh",
 	"key name": "Key name",
-	"key type": "Key type"
+	"key type": "Key type",
+	"edit connection": "Edit connection",
+	"release connection": "Release connection",
+	"remove connection": "remove connection",
+	"edit": "Edit"
 }

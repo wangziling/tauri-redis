@@ -31,5 +31,9 @@
 	"create new key": "创建新键",
 	"refresh": "刷新",
 	"key name": "键名",
-	"key type": "键类型"
+	"key type": "键类型",
+	"edit connection": "编辑连接",
+	"release connection": "释放连接",
+	"remove connection": "移除连接",
+	"edit": "编辑"
 }
