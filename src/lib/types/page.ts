@@ -19,7 +19,10 @@ export enum MainTabType {
 export type MainTab =
 	| {
 			type: MainTabType;
-			data: any;
+			data: {
+				connectionInfo: IpcConnection;
+				[key: string]: any;
+			};
 	  }
 	| {
 			type: MainTabType.Dashboard;

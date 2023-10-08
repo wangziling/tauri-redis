@@ -2,6 +2,7 @@
 	import Aside from './Aside.svelte';
 	import type {
 		IpcConnection,
+		MainTab,
 		MainTabs,
 		PageConnections,
 		SaveIpcConnectionPayload,
@@ -9,12 +10,20 @@
 	} from '$lib/types';
 	import { MainTabType } from '$lib/types';
 	import { translator } from 'tauri-redis-plugin-translation-api';
-	import { fetchEstablishConnection, fetchGetConnections, fetchSaveConnection } from '$lib/apis';
+	import {
+		fetchEstablishConnection,
+		fetchGetConnections,
+		fetchReleaseConnection,
+		fetchRemoveConnection,
+		fetchSaveConnection
+	} from '$lib/apis';
 	import { fetchCreateNewKey, fetchListRedisAllKeys, fetchListRedisClientMetrics } from '$lib/apis/redis-client';
 	import Main from './Main.svelte';
 	import { invokeErrorHandle } from '$lib/utils/page';
 	import NewConnectionDialog from './NewConnectionDialog.svelte';
 	import NewKeyDialog from './NewKeyDialog.svelte';
+	import { remove } from 'lodash-es';
+	import EditConnectionDialog from './EditConnectionDialog.svelte';
 
 	let pageConnections: PageConnections = [];
 	let mainTabs: MainTabs = [];
@@ -22,6 +31,10 @@
 	let newKeyDialogConfig = {
 		opened: false,
 		currentGuid: ''
+	};
+	let editConnectionDialogConfig = {
+		opened: false,
+		currentConnection: null as IpcConnection | null
 	};
 
 	function refreshAllKeys(guid: IpcConnection['guid']) {
@@ -38,7 +51,7 @@
 				return res;
 			}
 
-			targetTab.data.keys = allKeys;
+			(targetTab as Extract<MainTab, { type: MainTabType.Dashboard }>).data.keys = allKeys;
 			mainTabs = mainTabs;
 		});
 	}
@@ -49,6 +62,11 @@
 
 	function handleCloseNewConnectionDialog() {
 		newConnectionDialogOpened = false;
+	}
+
+	function handleCloseEditConnectionDialog() {
+		editConnectionDialogConfig.opened = false;
+		editConnectionDialogConfig.currentConnection = null;
 	}
 
 	function handleCreateNewKey(e: CustomEvent<{ guid: IpcConnection['guid'] }>) {
@@ -67,6 +85,12 @@
 	}
 
 	function handleConfirmCreateNewConnection(payload: SaveIpcConnectionPayload) {
+		return fetchSaveConnection(payload).then(() => {
+			return getConnections().then(() => payload);
+		});
+	}
+
+	function handleConfirmEditConnection(payload: SaveIpcConnectionPayload) {
 		return fetchSaveConnection(payload).then(() => {
 			return getConnections().then(() => payload);
 		});
@@ -116,10 +140,59 @@
 				pageConnections = pageConnections;
 				mainTabs = mainTabs;
 			})
-			// .then(() => fetchReleaseConnection(connection.guid))
-			// .then(() => fetchRemoveConnection(connection.guid))
-			// .then(() => getConnections())
 			.catch(invokeErrorHandle);
+	}
+
+	function handleReleaseConnection(e: CustomEvent<IpcConnection>) {
+		const connection = e.detail;
+
+		return fetchReleaseConnection(connection.guid)
+			.then(() => {
+				pageConnections.forEach(function (conn) {
+					if (conn.info.guid === connection.guid) {
+						conn.selected = false;
+					}
+				});
+				remove(mainTabs, function (tab) {
+					return tab.data.connectionInfo.guid === connection.guid;
+				});
+
+				mainTabs = mainTabs;
+				pageConnections = pageConnections;
+			})
+			.catch(invokeErrorHandle);
+	}
+
+	function handleRemoveConnection(e: CustomEvent<IpcConnection>) {
+		const connection = e.detail;
+
+		return fetchRemoveConnection(connection.guid)
+			.then(() => {
+				const removedConnections = remove(pageConnections, function (conn) {
+					return conn.info.guid === connection.guid;
+				});
+				removedConnections.forEach(function (conn) {
+					if (conn.selected) {
+						fetchReleaseConnection(conn.info.guid);
+					}
+				});
+
+				remove(mainTabs, function (tab) {
+					return tab.data.connectionInfo.guid === connection.guid;
+				});
+
+				pageConnections = pageConnections;
+				mainTabs = mainTabs;
+			})
+			.then(getConnections)
+			.catch(invokeErrorHandle);
+	}
+
+	function handleEditConnection(e: CustomEvent<IpcConnection>) {
+		const connection = e.detail;
+
+		editConnectionDialogConfig.opened = true;
+		editConnectionDialogConfig.currentConnection = connection;
 	}
 
 	function handleRefreshKeys(e: CustomEvent<{ guid: IpcConnection['guid'] }>) {
@@ -192,12 +265,26 @@
 </svelte:head>
 
 <section class="tauri-redis-connections">
-	<Aside bind:pageConnections on:newConnection={handleNewConnection} on:confirmConnection={handleConfirmConnection} />
+	<Aside
+		bind:pageConnections
+		on:newConnection={handleNewConnection}
+		on:confirmConnection={handleConfirmConnection}
+		on:removeConnection={handleRemoveConnection}
+		on:releaseConnection={handleReleaseConnection}
+		on:editConnection={handleEditConnection}
+	/>
 	<Main bind:tabs={mainTabs} on:refreshKeys={handleRefreshKeys} on:createNewKey={handleCreateNewKey} />
 	{#if newConnectionDialogOpened}
 		<NewConnectionDialog
 			on:close={handleCloseNewConnectionDialog}
 			confirmCreateHandler={handleConfirmCreateNewConnection}
+		/>
+	{/if}
+	{#if editConnectionDialogConfig.opened}
+		<EditConnectionDialog
+			on:close={handleCloseEditConnectionDialog}
+			confirmEditHandler={handleConfirmEditConnection}
+			bind:connectionInfo={editConnectionDialogConfig.currentConnection}
 		/>
 	{/if}
 	{#if newKeyDialogConfig.opened}

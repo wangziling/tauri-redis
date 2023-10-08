@@ -7,10 +7,10 @@
 	import Form from '$lib/components/form/Form.svelte';
 	import Dialog from '$lib/components/Dialog.svelte';
 	import { get, writable } from 'svelte/store';
-	import type { SaveIpcConnectionPayload } from '$lib/types';
+	import type { IpcConnection, SaveIpcConnectionPayload } from '$lib/types';
 	import { translator } from 'tauri-redis-plugin-translation-api';
 	import constants from '$lib/constants';
-	import { cloneDeep } from 'lodash-es';
+	import { cloneDeep, has } from 'lodash-es';
 	import { invokeErrorHandle } from '$lib/utils/page';
 	import { createEventDispatcher } from 'svelte';
 
@@ -19,14 +19,16 @@
 
 	const dispatch = createEventDispatcher();
 
-	export let confirmCreateHandler: (payload: SaveIpcConnectionPayload) => Promise<SaveIpcConnectionPayload> =
+	export let confirmEditHandler: (payload: SaveIpcConnectionPayload) => Promise<SaveIpcConnectionPayload> =
 		Promise.resolve;
+
+	export let connectionInfo: IpcConnection = {} as any;
 
 	let formIns: undefined | Form;
 
 	const translations = translator.derived(function () {
 		return {
-			'new connection': translator.translate('new connection|New connection'),
+			'edit connection': translator.translate('edit connection|Edit connection'),
 			host: translator.translate('host|Host'),
 			port: translator.translate('port|Port'),
 			username: translator.translate('username|Username'),
@@ -34,12 +36,12 @@
 			'connection nickname': translator.translate('connection nickname|Connection nickname'),
 			'key separator': translator.translate('key separator|Separator'),
 			readonly: translator.translate('readonly|Readonly'),
-			create: translator.translate('create|Create'),
+			edit: translator.translate('edit|Edit'),
 			cancel: translator.translate('cancel|Cancel')
 		};
 	});
 
-	const model = writable({
+	const defaultModel = {
 		host: '127.0.0.1',
 		port: 6379,
 		password: '',
@@ -47,7 +49,14 @@
 		connectionName: '',
 		separator: ':',
 		readonly: false
-	} as SaveIpcConnectionPayload);
+	} as SaveIpcConnectionPayload;
+	Object.keys(defaultModel).forEach(function (key) {
+		if (has(connectionInfo, key)) {
+			defaultModel[key] = connectionInfo[key];
+		}
+	});
+
+	const model = writable(defaultModel);
 	const rules = writable({
 		host: [{ required: true }],
 		port: [{ required: true }],
@@ -61,7 +70,7 @@
 		dispatch('close');
 	}
 
-	function handleTriggerCreate() {
+	function handleTriggerEdit() {
 		if (!formIns) {
 			return;
 		}
@@ -76,7 +85,7 @@
 					result.connectionName = result.host + '@' + result.port;
 				}
 
-				return confirmCreateHandler(result);
+				return confirmEditHandler(result);
 			})
 			.then(function () {
 				handleDialogClose();
@@ -92,13 +101,13 @@
 </script>
 
 <Dialog
-	class="tauri-redis-dialog tauri-redis-dialog__new-connection"
-	bind:header={$translations['new connection']}
+	class="tauri-redis-dialog tauri-redis-dialog__edit-connection"
+	bind:header={$translations['edit connection']}
 	still
 	on:close={handleDialogClose}
 >
-	<div class="tauri-redis-new-connection">
-		<Form class="new-connection-form" {model} {rules} bind:this={formIns}>
+	<div class="tauri-redis-edit-connection">
+		<Form class="edit-connection-form" {model} {rules} bind:this={formIns}>
 			<FormItem bind:label={$translations['host']} required prop="host"><Input bind:value={$model.host} /></FormItem>
 			<FormItem bind:label={$translations['port']} required prop="port">
 				<InputNumber bind:value={$model.port} maximum={MAX_PORT_NUM} minimum={MIN_PORT_NUM} />
@@ -115,7 +124,7 @@
 				<Checkbox bind:label={$translations['readonly']} bind:checked={$model.readonly} />
 			</FormItem>
 			<svelte:fragment slot="footer">
-				<Button type="primary" on:click={handleTriggerCreate}>{$translations['create']}</Button>
+				<Button type="primary" on:click={handleTriggerEdit}>{$translations['edit']}</Button>
 				<Button on:click={handleTriggerCancel}>{$translations['cancel']}</Button>
 			</svelte:fragment>
 		</Form>

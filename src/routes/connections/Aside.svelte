@@ -23,6 +23,18 @@
 		dispatch('confirmConnection', connection);
 	}
 
+	function handleRemoveConnection(connection: IpcConnection) {
+		dispatch('removeConnection', connection);
+	}
+
+	function handleReleaseConnection(connection: IpcConnection) {
+		dispatch('releaseConnection', connection);
+	}
+
+	function handleEditConnection(connection: IpcConnection) {
+		dispatch('editConnection', connection);
+	}
+
 	const calcDynamicAsideConnectionClasses = (pageConnection: TArrayMember<PageConnections>) =>
 		calcDynamicClasses([
 			'tauri-redis-connections-aside__connection',
@@ -56,7 +68,29 @@
 							tabindex="0"
 						>
 							<div class="aside-connection__name">{@html connection.info.connectionName}</div>
-							<div class="aside-connection__operations" />
+							<div class="aside-connection__operations">
+								{#if connection.selected}
+									<span
+										class="aside-connection__operation aside-connection__operation-remove fa fa-plug-circle-xmark"
+										tabindex="0"
+										role="button"
+										on:click|stopPropagation={() => handleReleaseConnection(connection.info)}
+									/>
+								{:else}
+									<span
+										class="aside-connection__operation aside-connection__operation-remove fa fa-pen-to-square"
+										tabindex="0"
+										role="button"
+										on:click|stopPropagation={() => handleEditConnection(connection.info)}
+									/>
+								{/if}
+								<span
+									class="aside-connection__operation aside-connection__operation-remove fa fa-trash-can"
+									tabindex="0"
+									role="button"
+									on:click|stopPropagation={() => handleRemoveConnection(connection.info)}
+								/>
+							</div>
 						</div>
 					</div>
 				</li>

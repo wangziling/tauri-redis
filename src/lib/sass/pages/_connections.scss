@@ -43,14 +43,33 @@
 
 		.aside-connection {
 			&__header {
-				padding: 1.2rem 0.9rem;
+				@extend %break-word;
+
+				padding: 0.9rem 0.9rem;
 				cursor: pointer;
 				border-radius: var(--base-border-radius);
+				display: flex;
+				align-items: center;
 			}
 
 			&--selected .aside-connection__header,
 			.aside-connection__header:hover {
 				background-color: var(--routes-connections-aside-item-active-color);
+			}
+
+			&__name {
+				padding-right: 0.7rem;
+			}
+
+			&__operations {
+				margin-left: auto;
+			}
+
+			&__operation {
+				padding: 0.3rem 0;
+				+ .aside-connection__operation {
+					margin-left: 0.3rem;
+				}
 			}
 		}
 	}
@@ -65,7 +84,8 @@
 	}
 
 	.tauri-redis-new-connection,
-	.tauri-redis-new-key {
+	.tauri-redis-new-key,
+	.tauri-redis-edit-connection {
 		.form__footer {
 			text-align: right;
 
