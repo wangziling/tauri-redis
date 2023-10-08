@@ -92,6 +92,7 @@
 		id={name}
 		disabled={$finalDisabledDerived}
 		readonly={$finalReadonlyDerived}
+		checked={innerChecked}
 		bind:this={inputEl}
 		on:change={handleChange}
 	/>
