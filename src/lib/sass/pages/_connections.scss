@@ -67,6 +67,7 @@
 
 			&__operation {
 				padding: 0.3rem 0;
+
 				+ .aside-connection__operation {
 					margin-left: 0.3rem;
 				}
@@ -91,6 +92,17 @@
 
 			.btn + .btn {
 				margin-left: 1.2rem;
+			}
+		}
+	}
+
+	.tauri-redis-tab__dashboard {
+		.dashboard__header-operation-grep-keys {
+			width: 70%;
+			font-size: 0.8em;
+
+			.input-wrapper {
+				padding: 0.5rem 0.7rem;
 			}
 		}
 	}

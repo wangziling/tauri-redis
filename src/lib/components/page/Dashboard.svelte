@@ -6,6 +6,7 @@
 	import constants from '$lib/constants';
 	import { merge } from 'lodash-es';
 	import { createEventDispatcher } from 'svelte';
+	import Input from '$lib/components/Input.svelte';
 
 	const dispatch = createEventDispatcher();
 
@@ -32,7 +33,8 @@
 			keys: translator.translate('keys|Keys'),
 			'nothing here': translator.translate('nothing here|Nothing here'),
 			'create new key': translator.translate('create new key|Create new key'),
-			refresh: translator.translate('refresh|Refresh')
+			refresh: translator.translate('refresh|Refresh'),
+			'grep keys': translator.translate('grep keys|Grep keys')
 		};
 	});
 
@@ -85,6 +87,9 @@
 	const handleCreateNewKeyClick = function handleCreateNewKeyClick() {
 		dispatch('createNewKey', { guid: data.connectionInfo.guid });
 	};
+	const handleGrepKeys = function handleCreateNewKeyClick(e: CustomEvent<string>) {
+		dispatch('grepKeys', { guid: data.connectionInfo.guid, conditionPart: e.detail });
+	};
 </script>
 
 <div class={dynamicClasses}>
@@ -93,8 +98,15 @@
 			<div class="dashboard__header-icon fa fa-key" />
 			<div class="dashboard__header-content">{$translations['keys']}</div>
 			<div class="dashboard__header-operations">
+				<Input
+					class="dashboard__header-operation dashboard__header-operation-grep-keys"
+					placeholder={$translations['grep keys']}
+					on:input={handleGrepKeys}
+				>
+					<span class="fa fa-search" slot="prefix" />
+				</Input>
 				<span
-					class="dashboard__header-operation dashboard__header-operation-new-key fa fa-refresh"
+					class="dashboard__header-operation dashboard__header-operation-refresh-keys fa fa-refresh"
 					title={$translations['refresh']}
 					role="button"
 					on:click={handleRefreshKeysClick}

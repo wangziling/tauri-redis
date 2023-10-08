@@ -17,6 +17,7 @@
 				bind:data={tab.data}
 				on:refreshKeys
 				on:createNewKey
+				on:grepKeys
 			/>
 		{/if}
 	{/each}

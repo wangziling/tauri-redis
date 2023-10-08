@@ -22,7 +22,7 @@
 	import { invokeErrorHandle } from '$lib/utils/page';
 	import NewConnectionDialog from './NewConnectionDialog.svelte';
 	import NewKeyDialog from './NewKeyDialog.svelte';
-	import { remove } from 'lodash-es';
+	import { debounce, remove } from 'lodash-es';
 	import EditConnectionDialog from './EditConnectionDialog.svelte';
 
 	let pageConnections: PageConnections = [];
@@ -37,8 +37,8 @@
 		currentConnection: null as IpcConnection | null
 	};
 
-	function refreshAllKeys(guid: IpcConnection['guid']) {
-		return fetchListRedisAllKeys(guid).then((res) => {
+	function listAllKeys(guid: IpcConnection['guid'], conditionPart?: string) {
+		return fetchListRedisAllKeys(guid, conditionPart).then((res) => {
 			const allKeys = res.data;
 			if (!Array.isArray(allKeys)) {
 				return res;
@@ -79,6 +79,15 @@
 		newKeyDialogConfig.currentGuid = guid;
 	}
 
+	function handleGrepKeys(e: CustomEvent<{ guid: IpcConnection['guid']; conditionPart: string }>) {
+		const { guid, conditionPart } = e.detail;
+		if (!guid) {
+			return;
+		}
+
+		return listAllKeys(guid, conditionPart);
+	}
+
 	function handleCloseNewKeyDialog() {
 		newKeyDialogConfig.opened = false;
 		newKeyDialogConfig.currentGuid = '';
@@ -102,7 +111,7 @@
 		}
 
 		return fetchCreateNewKey(newKeyDialogConfig.currentGuid, payload)
-			.then(() => refreshAllKeys(newKeyDialogConfig.currentGuid))
+			.then(() => listAllKeys(newKeyDialogConfig.currentGuid))
 			.then(() => payload);
 	}
 
@@ -206,7 +215,7 @@
 	}
 
 	function handleRefreshKeys(e: CustomEvent<{ guid: IpcConnection['guid'] }>) {
-		return refreshAllKeys(e.detail.guid);
+		return listAllKeys(e.detail.guid);
 	}
 
 	function getConnections() {
@@ -283,7 +292,12 @@
 		on:releaseConnection={handleReleaseConnection}
 		on:editConnection={handleEditConnection}
 	/>
-	<Main bind:tabs={mainTabs} on:refreshKeys={handleRefreshKeys} on:createNewKey={handleCreateNewKey} />
+	<Main
+		bind:tabs={mainTabs}
+		on:refreshKeys={handleRefreshKeys}
+		on:createNewKey={handleCreateNewKey}
+		on:grepKeys={debounce(handleGrepKeys, 300)}
+	/>
 	{#if newConnectionDialogOpened}
 		<NewConnectionDialog
 			on:close={handleCloseNewConnectionDialog}
