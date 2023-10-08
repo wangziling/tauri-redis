@@ -20,5 +20,6 @@ where
         client::list_client_metrics,
         client::list_all_keys,
         client::create_new_key,
+        client::remove_key,
     ])
 }

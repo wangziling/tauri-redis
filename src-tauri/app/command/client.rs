@@ -104,3 +104,26 @@ pub async fn create_new_key(
 
     Ok(Response::default())
 }
+
+#[tauri::command]
+pub async fn remove_key(
+    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    guid: Guid,
+    key_name: String,
+) -> Result<Response<()>> {
+    if key_name.is_empty() {
+        return Err(Error::InvalidRedisKeyName);
+    }
+
+    let mut lock = redis_client_manager.lock().await;
+    let conn = lock
+        .get_mut(&guid)
+        .ok_or_else(|| Error::FailedToFindExistedRedisConnection)?
+        .conn()?;
+
+    conn.del(key_name)
+        .await
+        .map_err(Error::RedisInternalError)?;
+
+    Ok(Response::default())
+}
