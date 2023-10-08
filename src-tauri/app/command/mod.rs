@@ -19,5 +19,6 @@ where
         connections::remove_connection,
         client::list_client_metrics,
         client::list_all_keys,
+        client::create_new_key,
     ])
 }

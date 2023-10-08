@@ -37,6 +37,10 @@ pub enum Error {
     SerdeJsonError(#[from] serde_json::Error),
     #[error("Failed to find existed redis connection.")]
     FailedToFindExistedRedisConnection,
+    #[error("Invalid redis key type.")]
+    InvalidRedisKeyType,
+    #[error("Invalid redis key name.")]
+    InvalidRedisKeyName,
 }
 
 impl Error {

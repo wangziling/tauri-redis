@@ -6,9 +6,53 @@ use redis::IntoConnectionInfo;
 use std::collections::{hash_map, HashMap};
 use std::ops::{Deref, DerefMut};
 use std::sync::{Arc, Mutex};
+use tauri::command::{CommandArg, CommandItem};
+use tauri::{InvokeError, Runtime};
 
 static PENDING_REDIS_CONNECTION_TASKS: Lazy<Arc<Mutex<Vec<Guid>>>> =
     Lazy::new(|| Arc::new(Mutex::new(vec![])));
+
+#[allow(dead_code)]
+#[derive(PartialEq, Debug)]
+pub enum RedisKeyType {
+    String,
+    Hash,
+    Unknown,
+}
+
+impl<T> From<T> for RedisKeyType
+where
+    T: Into<String>,
+{
+    fn from(value: T) -> Self {
+        let value = value.into();
+
+        match value.as_str() {
+            "Hash" => RedisKeyType::Hash,
+            "String" => RedisKeyType::String,
+            _ => RedisKeyType::Unknown,
+        }
+    }
+}
+
+impl RedisKeyType {
+    pub fn is_valid(&self) -> bool {
+        *self != RedisKeyType::Unknown
+    }
+}
+
+impl<'de, R: Runtime> CommandArg<'de, R> for RedisKeyType {
+    fn from_command(command: CommandItem<'de, R>) -> std::result::Result<Self, InvokeError> {
+        Ok(command
+            .message
+            .payload()
+            .get(command.key)
+            .unwrap()
+            .as_str()
+            .unwrap()
+            .into())
+    }
+}
 
 #[derive(Default, Debug)]
 pub struct RedisClientConnectionPayload {

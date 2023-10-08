@@ -1,8 +1,8 @@
-use crate::features::client::RedisClientManager;
+use crate::features::client::{RedisClientManager, RedisKeyType};
 use crate::features::command::Guid;
 use crate::features::error::{Error, Result};
 use crate::features::response::Response;
-use redis::{cmd, FromRedisValue, InfoDict};
+use redis::{cmd, AsyncCommands, FromRedisValue, InfoDict};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tauri::State;
@@ -64,4 +64,43 @@ pub async fn list_all_keys(
     let res: Vec<String> = Vec::from_redis_value(&res).map_err(Error::RedisInternalError)?;
 
     Ok(Response::success(Some(res), None))
+}
+
+#[tauri::command]
+pub async fn create_new_key(
+    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    guid: Guid,
+    key_name: String,
+    key_type: RedisKeyType,
+) -> Result<Response<()>> {
+    if !key_type.is_valid() {
+        return Err(Error::InvalidRedisKeyType);
+    }
+
+    if key_name.is_empty() {
+        return Err(Error::InvalidRedisKeyName);
+    }
+
+    let mut lock = redis_client_manager.lock().await;
+
+    let conn = lock
+        .get_mut(&guid)
+        .ok_or_else(|| Error::FailedToFindExistedRedisConnection)?
+        .conn()?;
+
+    match key_type {
+        RedisKeyType::String => {
+            conn.set(key_name, "".to_string())
+                .await
+                .map_err(Error::RedisInternalError)?;
+        }
+        RedisKeyType::Hash => {
+            conn.hset(key_name, "New field", "New Value")
+                .await
+                .map_err(Error::RedisInternalError)?;
+        }
+        _ => {}
+    }
+
+    Ok(Response::default())
 }
