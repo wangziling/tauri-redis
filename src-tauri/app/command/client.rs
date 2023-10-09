@@ -1,5 +1,5 @@
 use crate::features::client::{RedisClientManager, RedisKeyType};
-use crate::features::command::Guid;
+use crate::features::command::{Guid, TTL};
 use crate::features::error::{Error, Result};
 use crate::features::response::Response;
 use redis::{cmd, AsyncCommands, FromRedisValue, InfoDict};
@@ -157,7 +157,7 @@ pub async fn get_key_ttl(
     redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
     guid: Guid,
     key_name: String,
-) -> Result<Response<i32>> {
+) -> Result<Response<TTL>> {
     if key_name.is_empty() {
         return Err(Error::InvalidRedisKeyName);
     }
@@ -168,12 +168,42 @@ pub async fn get_key_ttl(
         .ok_or_else(|| Error::FailedToFindExistedRedisConnection)?
         .conn()?;
 
-    let ttl: i32 = conn
-        .pttl(key_name)
+    let ttl: TTL = conn
+        .ttl(key_name)
         .await
         .map_err(Error::RedisInternalError)?;
 
     Ok(Response::success(Some(ttl), None))
+}
+
+#[tauri::command]
+pub async fn set_key_ttl(
+    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    guid: Guid,
+    key_name: String,
+    ttl: TTL,
+) -> Result<Response<()>> {
+    if key_name.is_empty() {
+        return Err(Error::InvalidRedisKeyName);
+    }
+
+    let mut lock = redis_client_manager.lock().await;
+    let conn = lock
+        .get_mut(&guid)
+        .ok_or_else(|| Error::FailedToFindExistedRedisConnection)?
+        .conn()?;
+
+    conn.expire(key_name, {
+        if ttl < 0 {
+            0
+        } else {
+            ttl as usize
+        }
+    })
+    .await
+    .map_err(Error::RedisInternalError)?;
+
+    Ok(Response::default())
 }
 
 #[tauri::command]

@@ -4,6 +4,8 @@ type LocalTimeString = String;
 
 pub type Guid = String;
 
+pub type TTL = isize;
+
 #[derive(Default, Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ConnectionInfo {
