@@ -5,7 +5,7 @@
 	import Input from '$lib/components/Input.svelte';
 	import InputNumber from '$lib/components/InputNumber.svelte';
 	import { IpcKeyType } from '$lib/types';
-	import { fetchGetKeyTTL, fetchGetKeyType } from '$lib/apis/redis-client';
+	import { fetchGetKeyTTL, fetchGetKeyType } from '$lib/apis';
 	import { invokeErrorHandle } from '$lib/utils/page';
 	import KeyTypeStringDetailContent from '$lib/components/page/key-detail/KeyTypeStringDetailContent.svelte';
 

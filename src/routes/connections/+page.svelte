@@ -17,12 +17,7 @@
 		fetchRemoveConnection,
 		fetchSaveConnection
 	} from '$lib/apis';
-	import {
-		fetchCreateNewKey,
-		fetchListRedisAllKeys,
-		fetchListRedisClientMetrics,
-		fetchRemoveKey
-	} from '$lib/apis/redis-client';
+	import { fetchCreateNewKey, fetchListRedisAllKeys, fetchListRedisClientMetrics, fetchRemoveKey } from '$lib/apis';
 	import Main from './Main.svelte';
 	import { invokeErrorHandle } from '$lib/utils/page';
 	import NewConnectionDialog from './NewConnectionDialog.svelte';
