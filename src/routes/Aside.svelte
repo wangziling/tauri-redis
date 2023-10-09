@@ -3,8 +3,10 @@
 	import { calcDynamicClasses } from '$lib/utils/calculators';
 	import { page } from '$app/stores';
 	import { createThemeMisc } from '$lib/utils/appearance';
+	import { PageTheme } from '$lib/types';
 
 	const themeMisc = createThemeMisc();
+	const currentTheme = themeMisc.theme;
 
 	const translations = translator.derived(function () {
 		return {
@@ -27,6 +29,12 @@
 	};
 
 	$: dynamicClasses = calcDynamicClasses(['aside', $$restProps.class]);
+
+	$: toggleThemeIconDynamicClasses = calcDynamicClasses([
+		'aside-action__icon',
+		'fa',
+		$currentTheme === PageTheme.Dark ? 'fa-sun' : 'fa-moon'
+	]);
 </script>
 
 <aside class={dynamicClasses}>
@@ -57,7 +65,7 @@
 			<ul class="aside-actions-container">
 				<li class="aside-action">
 					<a
-						class="aside-action__icon fa fa-sun"
+						class={toggleThemeIconDynamicClasses}
 						href="javascript:;"
 						title={$translations['toggle theme']}
 						aria-label={$translations['toggle theme']}
