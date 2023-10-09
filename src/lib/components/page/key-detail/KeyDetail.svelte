@@ -10,6 +10,8 @@
 	import KeyTypeStringDetailContent from '$lib/components/page/key-detail/KeyTypeStringDetailContent.svelte';
 
 	export let data: Extract<MainTab, { type: MainTabType.KeyDetail }>['data'] = {} as any;
+	export let maximumKeyTTL = 2 ** 32 - 1;
+	export let minimumKeyTTL = -1;
 
 	let keyMetrics = {
 		ttl: -1,
@@ -55,7 +57,12 @@
 					<span slot="prefix">{keyMetrics.type}</span>
 					<span slot="suffix" class="input__operation fa fa-check" />
 				</Input>
-				<InputNumber bind:value={keyMetrics.ttl} minimum={-1} maximum={65535} showStepOperations={false}>
+				<InputNumber
+					bind:value={keyMetrics.ttl}
+					minimum={minimumKeyTTL}
+					maximum={maximumKeyTTL}
+					showStepOperations={false}
+				>
 					<span slot="prefix">{$translations['key ttl']}</span>
 					<span slot="suffix" class="input__operation fa fa-check" />
 				</InputNumber>
