@@ -33,7 +33,7 @@
 	$: toggleThemeIconDynamicClasses = calcDynamicClasses([
 		'aside-action__icon',
 		'fa',
-		$currentTheme === PageTheme.Dark ? 'fa-sun' : 'fa-moon'
+		$currentTheme === PageTheme.Dark ? 'fa-moon' : 'fa-sun'
 	]);
 </script>
 
