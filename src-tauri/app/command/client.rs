@@ -127,3 +127,75 @@ pub async fn remove_key(
 
     Ok(Response::default())
 }
+
+#[tauri::command]
+pub async fn get_key_type(
+    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    guid: Guid,
+    key_name: String,
+) -> Result<Response<RedisKeyType>> {
+    if key_name.is_empty() {
+        return Err(Error::InvalidRedisKeyName);
+    }
+
+    let mut lock = redis_client_manager.lock().await;
+    let conn = lock
+        .get_mut(&guid)
+        .ok_or_else(|| Error::FailedToFindExistedRedisConnection)?
+        .conn()?;
+
+    let key_type: String = conn
+        .key_type(key_name)
+        .await
+        .map_err(Error::RedisInternalError)?;
+
+    Ok(Response::success(Some(RedisKeyType::from(key_type)), None))
+}
+
+#[tauri::command]
+pub async fn get_key_ttl(
+    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    guid: Guid,
+    key_name: String,
+) -> Result<Response<u32>> {
+    if key_name.is_empty() {
+        return Err(Error::InvalidRedisKeyName);
+    }
+
+    let mut lock = redis_client_manager.lock().await;
+    let conn = lock
+        .get_mut(&guid)
+        .ok_or_else(|| Error::FailedToFindExistedRedisConnection)?
+        .conn()?;
+
+    let ttl: u32 = conn
+        .ttl(key_name)
+        .await
+        .map_err(Error::RedisInternalError)?;
+
+    Ok(Response::success(Some(ttl), None))
+}
+
+#[tauri::command]
+pub async fn get_key_content_type_string(
+    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    guid: Guid,
+    key_name: String,
+) -> Result<Response<String>> {
+    if key_name.is_empty() {
+        return Err(Error::InvalidRedisKeyName);
+    }
+
+    let mut lock = redis_client_manager.lock().await;
+    let conn = lock
+        .get_mut(&guid)
+        .ok_or_else(|| Error::FailedToFindExistedRedisConnection)?
+        .conn()?;
+
+    let content: String = conn
+        .get(key_name)
+        .await
+        .map_err(Error::RedisInternalError)?;
+
+    Ok(Response::success(Some(content), None))
+}

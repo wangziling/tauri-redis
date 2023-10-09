@@ -21,5 +21,8 @@ where
         client::list_all_keys,
         client::create_new_key,
         client::remove_key,
+        client::get_key_type,
+        client::get_key_ttl,
+        client::get_key_content_type_string,
     ])
 }

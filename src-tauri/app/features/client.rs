@@ -3,6 +3,7 @@ use crate::features::error::{Error, Result};
 use crate::utils::config::get_redis_connection_timeout;
 use once_cell::sync::Lazy;
 use redis::IntoConnectionInfo;
+use serde::Serialize;
 use std::collections::{hash_map, HashMap};
 use std::ops::{Deref, DerefMut};
 use std::sync::{Arc, Mutex};
@@ -13,7 +14,7 @@ static PENDING_REDIS_CONNECTION_TASKS: Lazy<Arc<Mutex<Vec<Guid>>>> =
     Lazy::new(|| Arc::new(Mutex::new(vec![])));
 
 #[allow(dead_code)]
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize)]
 pub enum RedisKeyType {
     String,
     Hash,
@@ -27,9 +28,9 @@ where
     fn from(value: T) -> Self {
         let value = value.into();
 
-        match value.as_str() {
-            "Hash" => RedisKeyType::Hash,
-            "String" => RedisKeyType::String,
+        match value.to_lowercase().as_str() {
+            "hash" => RedisKeyType::Hash,
+            "string" => RedisKeyType::String,
             _ => RedisKeyType::Unknown,
         }
     }
