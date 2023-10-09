@@ -36,6 +36,10 @@
 	$: innerValue = value;
 
 	let displayValue: string = calcDisplayValue(value, precise);
+	$: {
+		displayValue = calcDisplayValue(value, precise);
+	}
+
 	let inputEl: HTMLInputElement | undefined;
 
 	const nameWatched = writable(name);
