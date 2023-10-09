@@ -6,15 +6,17 @@ export function fetchListRedisClientMetrics(guid: IpcConnection['guid']) {
 }
 
 export function fetchListRedisAllKeys(guid: IpcConnection['guid'], conditionPart?: string) {
-	return fetchIpc<IpcClientMetrics>('list_all_keys', { guid, conditionPart });
+	return fetchIpc<string[]>('list_all_keys', { guid, conditionPart });
 }
 
 export function fetchCreateNewKey(guid: IpcConnection['guid'], params: SaveIpcNewKeyPayload) {
-	return fetchIpc<IpcClientMetrics>('create_new_key', { guid, keyName: params.name, keyType: params.type });
+	return fetchIpc<void>('create_new_key', { guid, keyName: params.name, keyType: params.type });
 }
 
 export function fetchRemoveKey(guid: IpcConnection['guid'], keyName: string) {
-	return fetchIpc<IpcClientMetrics>('remove_key', { guid, keyName });
+	return fetchIpc<void>('remove_key', { guid, keyName });
+}
+
 export function fetchGetKeyType(guid: IpcConnection['guid'], keyName: string) {
 	return fetchIpc<string>('get_key_type', { guid, keyName });
 }
