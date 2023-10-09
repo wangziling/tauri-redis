@@ -15,7 +15,8 @@
 		fetchGetConnections,
 		fetchReleaseConnection,
 		fetchRemoveConnection,
-		fetchSaveConnection
+		fetchSaveConnection,
+		fetchSetKeyTTL
 	} from '$lib/apis';
 	import { fetchCreateNewKey, fetchListRedisAllKeys, fetchListRedisClientMetrics, fetchRemoveKey } from '$lib/apis';
 	import Main from './Main.svelte';
@@ -341,6 +342,12 @@
 		}
 	}
 
+	function handleSetKeyTTL(e: CustomEvent<{ guid: IpcConnection['guid']; key: string; ttl: number }>) {
+		const { key, guid, ttl } = e.detail;
+
+		return fetchSetKeyTTL(guid, { name: key, ttl: ttl }).catch(invokeErrorHandle);
+	}
+
 	function getConnections() {
 		return fetchGetConnections().then(function (res) {
 			if (Array.isArray(res.data)) {
@@ -425,6 +432,7 @@
 		on:previewKey={handlePreviewKey}
 		on:chooseTab={handleChooseTab}
 		on:closeTab={handleCloseTab}
+		on:setKeyTTL={handleSetKeyTTL}
 	/>
 	{#if newConnectionDialogOpened}
 		<NewConnectionDialog

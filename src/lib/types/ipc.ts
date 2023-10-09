@@ -52,3 +52,8 @@ export type SaveIpcNewKeyPayload = {
 	name: string;
 	type: IpcKeyType | string;
 };
+
+export type SetIpcKeyTTLPayload = {
+	name: string;
+	ttl: number;
+};

@@ -8,6 +8,9 @@
 	import { fetchGetKeyTTL, fetchGetKeyType } from '$lib/apis';
 	import { invokeErrorHandle } from '$lib/utils/page';
 	import KeyTypeStringDetailContent from '$lib/components/page/key-detail/KeyTypeStringDetailContent.svelte';
+	import { createEventDispatcher } from 'svelte';
+
+	const dispatch = createEventDispatcher();
 
 	export let data: Extract<MainTab, { type: MainTabType.KeyDetail }>['data'] = {} as any;
 	export let maximumKeyTTL = 2 ** 32 - 1;
@@ -24,6 +27,10 @@
 			'key ttl': translator.translate('key ttl|TTL')
 		};
 	});
+
+	function handleSetKeyTTL() {
+		dispatch('setKeyTTL', { guid: data.connectionInfo.guid, key: data.key, ttl: keyMetrics.ttl });
+	}
 
 	$: dynamicClasses = calcDynamicClasses(['key-detail', $$restProps.class]);
 
@@ -64,7 +71,13 @@
 					showStepOperations={false}
 				>
 					<span slot="prefix">{$translations['key ttl']}</span>
-					<span slot="suffix" class="input__operation fa fa-check" />
+					<span
+						slot="suffix"
+						class="input__operation fa fa-check"
+						role="button"
+						tabindex="0"
+						on:click={handleSetKeyTTL}
+					/>
 				</InputNumber>
 			</div>
 		</div>
