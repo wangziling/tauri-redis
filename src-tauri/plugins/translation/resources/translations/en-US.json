@@ -38,5 +38,6 @@
 	"edit": "Edit",
 	"grep keys": "Grep keys",
 	"remove key": "Remove key",
-	"key ttl": "TTL"
+	"key ttl": "TTL",
+	"invalid key metrics": "Invalid key metrics"
 }
