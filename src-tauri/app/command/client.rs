@@ -157,7 +157,7 @@ pub async fn get_key_ttl(
     redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
     guid: Guid,
     key_name: String,
-) -> Result<Response<u32>> {
+) -> Result<Response<i32>> {
     if key_name.is_empty() {
         return Err(Error::InvalidRedisKeyName);
     }
@@ -168,8 +168,8 @@ pub async fn get_key_ttl(
         .ok_or_else(|| Error::FailedToFindExistedRedisConnection)?
         .conn()?;
 
-    let ttl: u32 = conn
-        .ttl(key_name)
+    let ttl: i32 = conn
+        .pttl(key_name)
         .await
         .map_err(Error::RedisInternalError)?;
 
