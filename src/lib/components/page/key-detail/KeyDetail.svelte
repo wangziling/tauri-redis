@@ -1,16 +1,19 @@
 <script lang="ts">
 	import type { MainTab, MainTabType } from '$lib/types';
-	import { calcDynamicClasses } from '$lib/utils/calculators';
+	import { calcDynamicClasses, calcIpcKeyType } from '$lib/utils/calculators';
 	import { translator } from 'tauri-redis-plugin-translation-api';
 	import Input from '$lib/components/Input.svelte';
 	import InputNumber from '$lib/components/InputNumber.svelte';
 	import { IpcKeyType } from '$lib/types';
+	import { fetchGetKeyTTL, fetchGetKeyType } from '$lib/apis/redis-client';
+	import { invokeErrorHandle } from '$lib/utils/page';
+	import KeyTypeStringDetailContent from '$lib/components/page/key-detail/KeyTypeStringDetailContent.svelte';
 
 	export let data: Extract<MainTab, { type: MainTabType.KeyDetail }>['data'] = {} as any;
 
 	let keyMetrics = {
 		ttl: -1,
-		type: IpcKeyType.String,
+		type: null as null | IpcKeyType,
 		content: null
 	};
 
@@ -21,6 +24,27 @@
 	});
 
 	$: dynamicClasses = calcDynamicClasses(['key-detail', $$restProps.class]);
+
+	fetchGetKeyType(data.connectionInfo.guid, data.key)
+		.then((res) => {
+			const type = calcIpcKeyType(res.data);
+			if (!type) {
+				return res;
+			}
+
+			keyMetrics.type = type;
+
+			return res;
+		})
+		.catch(invokeErrorHandle);
+
+	fetchGetKeyTTL(data.connectionInfo.guid, data.key)
+		.then((res) => {
+			keyMetrics.ttl = res.data;
+
+			return res;
+		})
+		.catch(invokeErrorHandle);
 </script>
 
 <div class={dynamicClasses}>
@@ -37,6 +61,10 @@
 				</InputNumber>
 			</div>
 		</div>
-		<div class="key-detail-content">{keyMetrics.content}</div>
+		<div class="key-detail-content">
+			{#if keyMetrics.type === IpcKeyType.String}
+				<KeyTypeStringDetailContent guid={data.connectionInfo.guid} keyName={data.key} />
+			{/if}
+		</div>
 	</div>
 </div>

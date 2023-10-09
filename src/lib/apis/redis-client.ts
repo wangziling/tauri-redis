@@ -15,4 +15,14 @@ export function fetchCreateNewKey(guid: IpcConnection['guid'], params: SaveIpcNe
 
 export function fetchRemoveKey(guid: IpcConnection['guid'], keyName: string) {
 	return fetchIpc<IpcClientMetrics>('remove_key', { guid, keyName });
+export function fetchGetKeyType(guid: IpcConnection['guid'], keyName: string) {
+	return fetchIpc<string>('get_key_type', { guid, keyName });
+}
+
+export function fetchGetKeyTTL(guid: IpcConnection['guid'], keyName: string) {
+	return fetchIpc<number>('get_key_ttl', { guid, keyName });
+}
+
+export function fetchGetKeyContentTypeString(guid: IpcConnection['guid'], keyName: string) {
+	return fetchIpc<string>('get_key_content_type_string', { guid, keyName });
 }

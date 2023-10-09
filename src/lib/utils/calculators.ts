@@ -1,5 +1,6 @@
 import { times, reduce, uniq } from 'lodash-es';
 import type { CalcDynamicClassesParams } from '$lib/types';
+import { IpcKeyType } from '$lib/types';
 
 export function randomString(len: number) {
 	return times(len, function iteration() {
@@ -43,4 +44,12 @@ export function calcDynamicClasses(params: CalcDynamicClassesParams) {
 
 export function parseNumLikeStr(str: string): number {
 	return parseFloat(str);
+}
+
+export function calcIpcKeyType(source: string) {
+	if (typeof source !== 'string') {
+		return;
+	}
+
+	return Object.values(IpcKeyType).find((type) => type.toLowerCase() === source.toLowerCase());
 }
