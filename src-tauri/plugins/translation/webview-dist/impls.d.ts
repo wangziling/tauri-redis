@@ -4,8 +4,9 @@ import { type Readable, type Writable } from 'svelte/store';
 export declare class Translator {
     private translations;
     private language;
+    constructor();
     switchTo(language: TranslationLanguage): Promise<this | undefined>;
-    getResources(): Promise<Translations>;
+    private _init;
     private _update;
     private _baseTranslate;
     private _translate;

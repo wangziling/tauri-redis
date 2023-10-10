@@ -208,19 +208,27 @@ impl Translations {
         Ok(())
     }
 
-    pub fn switch_to<K>(&mut self, language: K) -> Result<HashMap<String, String>>
+    pub fn switch_to<K>(&mut self, language: K) -> Result<()>
     where
         K: Into<String>,
     {
         self.load(language)?;
 
-        Ok(self.inner.as_ref().unwrap().clone())
+        Ok(())
     }
 
     pub fn resources(&self) -> Result<HashMap<String, String>> {
         self.inner
             .as_ref()
             .map_or_else(|| Ok(Default::default()), |resources| Ok(resources.clone()))
+    }
+
+    pub fn language(&self) -> Result<String> {
+        Ok(self.language.clone())
+    }
+
+    pub fn languages(&self) -> Result<Vec<String>> {
+        Ok(self.languages.clone())
     }
 
     pub fn translate<K, R>(&self, key: K, rest: Option<Vec<R>>) -> Result<String>

@@ -31,7 +31,7 @@ pub async fn switch_to<R: Runtime>(
     _window: Window<R>,
     state: State<'_, Arc<RwLock<Translations>>>,
     language: String,
-) -> Result<HashMap<String, String>> {
+) -> Result<()> {
     let mut lock = state.write().unwrap();
 
     lock.switch_to(language)
@@ -43,7 +43,29 @@ pub async fn resources<R: Runtime>(
     _window: Window<R>,
     state: State<'_, Arc<RwLock<Translations>>>,
 ) -> Result<HashMap<String, String>> {
-    let lock = state.write().unwrap();
+    let lock = state.read().unwrap();
 
     lock.resources()
+}
+
+#[tauri::command]
+pub async fn language<R: Runtime>(
+    _app: AppHandle<R>,
+    _window: Window<R>,
+    state: State<'_, Arc<RwLock<Translations>>>,
+) -> Result<String> {
+    let lock = state.read().unwrap();
+
+    lock.language()
+}
+
+#[tauri::command]
+pub async fn languages<R: Runtime>(
+    _app: AppHandle<R>,
+    _window: Window<R>,
+    state: State<'_, Arc<RwLock<Translations>>>,
+) -> Result<Vec<String>> {
+    let lock = state.read().unwrap();
+
+    lock.languages()
 }

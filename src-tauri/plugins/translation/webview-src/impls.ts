@@ -4,20 +4,28 @@ import {
 	translationKeyLikePlaceholderMatcher,
 	whitespaceReplacer
 } from './constants';
-import { isEmpty } from 'lodash-es';
-import { translationResources, translationSwitchTo } from './ipc';
+import { isEmpty, noop } from 'lodash-es';
+import { translationLanguage, translationResources, translationSwitchTo } from './ipc';
 import { derived, type Readable, type Writable, writable, get } from 'svelte/store';
 
 export class Translator {
 	private translations = writable({} as Translations);
 	private language = writable('en-US');
 
-	switchTo(language: TranslationLanguage) {
-		return translationSwitchTo(language).then((translations) => this._update(translations, language));
+	constructor() {
+		this._init().catch(noop);
 	}
 
-	getResources() {
-		return translationResources();
+	switchTo(language: TranslationLanguage) {
+		return translationSwitchTo(language)
+			.then(() => translationResources())
+			.then((translations) => this._update(translations, language));
+	}
+
+	private _init() {
+		return Promise.all([translationLanguage(), translationResources()]).then(([language, translations]) =>
+			this._update(translations, language)
+		);
 	}
 
 	private _update(translations: Translations, language: TranslationLanguage) {

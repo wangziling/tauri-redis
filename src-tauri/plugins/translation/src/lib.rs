@@ -19,7 +19,9 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             command::translate,
             command::translate_group,
             command::switch_to,
-            command::resources
+            command::resources,
+            command::languages,
+            command::language,
         ])
         .setup(|app| {
             let mut translations = TRANSLATIONS.write().unwrap();
