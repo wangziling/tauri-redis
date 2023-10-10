@@ -282,7 +282,7 @@
 	) {
 		const { key, guid } = e.detail;
 		const existedIdx = mainTabsConfig.tabs.findIndex(
-			(tab) => tab.type === MainTabType.KeyDetail && tab.data.key === key
+			(tab) => tab.type === MainTabType.KeyDetail && tab.data.key === key && tab.data.connectionInfo.guid === guid
 		);
 		if (existedIdx !== -1) {
 			mainTabsConfig.activeIdx = existedIdx;
