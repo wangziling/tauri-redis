@@ -13,9 +13,6 @@ use tauri::{InvokeError, Runtime};
 static PENDING_REDIS_CONNECTION_TASKS: Lazy<Arc<Mutex<Vec<Guid>>>> =
     Lazy::new(|| Arc::new(Mutex::new(vec![])));
 
-pub static REDIS_CLIENT_MANAGER: Lazy<Arc<tokio::sync::Mutex<RedisClientManager>>> =
-    Lazy::new(|| Arc::new(tokio::sync::Mutex::new(RedisClientManager::new())));
-
 #[allow(dead_code)]
 #[derive(PartialEq, Debug, Serialize)]
 pub enum RedisKeyType {

@@ -1,17 +1,20 @@
-use crate::features::cache::FILE_CACHE_MANAGER;
-use crate::features::client::{
-    RedisClientConnectionPayload, RedisClientManager, REDIS_CLIENT_MANAGER,
-};
+use crate::features::cache::FileCacheManager;
+use crate::features::client::{RedisClientConnectionPayload, RedisClientManager};
 use crate::features::command::{ConnectionInfo, Guid, SaveConnectionPayload};
 use crate::features::error::{Error, Result};
 use crate::features::response::Response;
 use crate::utils::calculator::{gen_uuid, get_cur_time};
 use crate::utils::config::get_connections_file_cache_manager_key;
 use crate::utils::judgements::judge_guid_valid;
+use std::sync::Arc;
+use tauri::State;
 use tauri_redis_core::cache::abstracts::FileCacheBase;
+use tokio::sync::Mutex;
 
-async fn invoke_get_connections() -> Result<Vec<ConnectionInfo>> {
-    let lock = FILE_CACHE_MANAGER.lock().await;
+async fn invoke_get_connections(
+    file_cache_manager: &State<'_, Arc<Mutex<FileCacheManager>>>,
+) -> Result<Vec<ConnectionInfo>> {
+    let lock = file_cache_manager.lock().await;
     let connections_file_cache = lock
         .get(&get_connections_file_cache_manager_key()?)
         .ok_or_else(|| Error::FailedToGetCachedConnectionsInfo)?;
@@ -35,12 +38,16 @@ async fn invoke_find_connection<'a>(
         .and_then(|(idx, found_info)| Ok((idx, found_info)))
 }
 
-async fn invoke_establish_connection(guid: &Guid) -> Result<()> {
-    let connections_info = invoke_get_connections().await?;
+async fn invoke_establish_connection<'a>(
+    file_cache_manager: &State<'_, Arc<Mutex<FileCacheManager>>>,
+    redis_client_manager: &State<'_, Arc<Mutex<RedisClientManager>>>,
+    guid: &'a Guid,
+) -> Result<()> {
+    let connections_info = invoke_get_connections(&file_cache_manager).await?;
     let (_, connection_info) = invoke_find_connection(&connections_info, guid).await?;
 
     // Release the lock quickly.
-    let mut lock = REDIS_CLIENT_MANAGER.lock().await;
+    let mut lock = redis_client_manager.lock().await;
     let existed_one = lock.get_mut(guid);
     if existed_one.is_some() {
         drop(lock);
@@ -61,22 +68,26 @@ async fn invoke_establish_connection(guid: &Guid) -> Result<()> {
 
     // Only after we got the new client, we call the lock.
     // Otherwise if we call lock when we are trying to get client, it will stuck. It cannot concurrently connect to other clients.
-    let mut lock = REDIS_CLIENT_MANAGER.lock().await;
+    let mut lock = redis_client_manager.lock().await;
 
     lock.record_new_client(guid.clone(), client)?;
 
     Ok(())
 }
 
-async fn invoke_release_connection(guid: &Guid) -> Result<()> {
-    let mut connections_info = invoke_get_connections().await?;
+async fn invoke_release_connection<'a>(
+    file_cache_manager: &State<'_, Arc<Mutex<FileCacheManager>>>,
+    redis_client_manager: &State<'_, Arc<Mutex<RedisClientManager>>>,
+    guid: &'a Guid,
+) -> Result<()> {
+    let mut connections_info = invoke_get_connections(&file_cache_manager).await?;
     let found = {
         let found = invoke_find_connection(&connections_info, guid).await?;
 
         (found.0, found.1.clone())
     };
 
-    let mut lock = REDIS_CLIENT_MANAGER.lock().await;
+    let mut lock = redis_client_manager.lock().await;
     if !lock.contains_key(guid) {
         return Err(Error::FailedToFindTheMatchedConnectionInfo);
     }
@@ -92,7 +103,7 @@ async fn invoke_release_connection(guid: &Guid) -> Result<()> {
     lock.remove(guid);
     drop(lock);
 
-    let mut lock = FILE_CACHE_MANAGER.lock().await;
+    let mut lock = file_cache_manager.lock().await;
     let connections_file_cache = lock
         .get_mut(&get_connections_file_cache_manager_key()?)
         .ok_or_else(|| Error::FailedToGetCachedConnectionsInfo)?;
@@ -110,8 +121,11 @@ async fn invoke_release_connection(guid: &Guid) -> Result<()> {
     Ok(())
 }
 
-async fn invoke_save_connection(info: SaveConnectionPayload) -> Result<()> {
-    let connections_info = invoke_get_connections().await;
+async fn invoke_save_connection(
+    file_cache_manager: &State<'_, Arc<Mutex<FileCacheManager>>>,
+    info: SaveConnectionPayload,
+) -> Result<()> {
+    let connections_info = invoke_get_connections(&file_cache_manager).await;
     let mut connections_info = connections_info.unwrap_or_default();
     if info.guid.is_some() {
         let found = {
@@ -153,7 +167,7 @@ async fn invoke_save_connection(info: SaveConnectionPayload) -> Result<()> {
         });
     }
 
-    let mut lock = FILE_CACHE_MANAGER.lock().await;
+    let mut lock = file_cache_manager.lock().await;
     let connections_file_cache = lock
         .get_mut(&get_connections_file_cache_manager_key()?)
         .ok_or_else(|| Error::FailedToGetCachedConnectionsInfo)?;
@@ -171,14 +185,19 @@ async fn invoke_save_connection(info: SaveConnectionPayload) -> Result<()> {
     Ok(())
 }
 
-async fn invoke_remove_connection(guid: &Guid) -> Result<()> {
+async fn invoke_remove_connection<'a>(
+    file_cache_manager: &State<'_, Arc<Mutex<FileCacheManager>>>,
+    guid: &'a Guid,
+) -> Result<()> {
     judge_guid_valid(guid)?;
 
-    let mut connections_info = invoke_get_connections().await.unwrap_or_default();
+    let mut connections_info = invoke_get_connections(&file_cache_manager)
+        .await
+        .unwrap_or_default();
     let found = invoke_find_connection(&connections_info, guid).await?;
     connections_info.remove(found.0);
 
-    let mut lock = FILE_CACHE_MANAGER.lock().await;
+    let mut lock = file_cache_manager.lock().await;
     let connections_file_cache = lock
         .get_mut(&get_connections_file_cache_manager_key()?)
         .ok_or_else(|| Error::FailedToGetCachedConnectionsInfo)?;
@@ -197,45 +216,61 @@ async fn invoke_remove_connection(guid: &Guid) -> Result<()> {
 }
 
 #[tauri::command]
-pub async fn save_connection(connection_info: &str) -> Result<Response<()>> {
+pub async fn save_connection(
+    file_cache_manager: State<'_, Arc<Mutex<FileCacheManager>>>,
+    connection_info: &str,
+) -> Result<Response<()>> {
     let info: Result<SaveConnectionPayload> =
         serde_json::from_str(connection_info).map_err(|_| Error::FailedToParseConnectionInfo);
     if info.is_err() {
         return Ok(info.err().unwrap().into());
     }
 
-    invoke_save_connection(info.unwrap()).await?;
+    invoke_save_connection(&file_cache_manager, info.unwrap()).await?;
 
     Ok(Response::default())
 }
 
 #[tauri::command]
-pub async fn get_connections() -> Result<Response<Vec<ConnectionInfo>>> {
-    invoke_get_connections()
+pub async fn get_connections(
+    file_cache_manager: State<'_, Arc<Mutex<FileCacheManager>>>,
+) -> Result<Response<Vec<ConnectionInfo>>> {
+    invoke_get_connections(&file_cache_manager)
         .await
         .and_then(|connections_info| Ok(Response::success(Some(connections_info), None)))
         .or_else(|err| Ok(err.into()))
 }
 
 #[tauri::command]
-pub async fn establish_connection(guid: String) -> Result<Response<()>> {
-    invoke_establish_connection(&guid)
+pub async fn establish_connection(
+    file_cache_manager: State<'_, Arc<Mutex<FileCacheManager>>>,
+    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    guid: String,
+) -> Result<Response<()>> {
+    invoke_establish_connection(&file_cache_manager, &redis_client_manager, &guid)
         .await
         .and_then(|_| Ok(Response::default()))
         .or_else(|err| Ok(err.into()))
 }
 
 #[tauri::command]
-pub async fn release_connection(guid: String) -> Result<Response<()>> {
-    invoke_release_connection(&guid)
+pub async fn release_connection(
+    file_cache_manager: State<'_, Arc<Mutex<FileCacheManager>>>,
+    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    guid: String,
+) -> Result<Response<()>> {
+    invoke_release_connection(&file_cache_manager, &redis_client_manager, &guid)
         .await
         .and_then(|_| Ok(Response::default()))
         .or_else(|err| Ok(err.into()))
 }
 
 #[tauri::command]
-pub async fn remove_connection(guid: Guid) -> Result<Response<()>> {
-    invoke_remove_connection(&guid)
+pub async fn remove_connection(
+    file_cache_manager: State<'_, Arc<Mutex<FileCacheManager>>>,
+    guid: Guid,
+) -> Result<Response<()>> {
+    invoke_remove_connection(&file_cache_manager, &guid)
         .await
         .and_then(|_| Ok(Response::default()))
         .or_else(|err| Ok(err.into()))
