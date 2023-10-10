@@ -5,7 +5,7 @@
 	import Input from '$lib/components/Input.svelte';
 	import InputNumber from '$lib/components/InputNumber.svelte';
 	import { IpcKeyType } from '$lib/types';
-	import { fetchGetKeyTTL, fetchGetKeyType } from '$lib/apis';
+	import { fetchGetKeyTTL, fetchGetKeyType, fetchSetKeyTTL } from '$lib/apis';
 	import { invokeErrorHandle } from '$lib/utils/page';
 	import KeyTypeStringDetailContent from '$lib/components/page/key-detail/KeyTypeStringDetailContent.svelte';
 	import { createEventDispatcher } from 'svelte';
@@ -29,7 +29,13 @@
 	});
 
 	function handleSetKeyTTL() {
-		dispatch('setKeyTTL', { guid: data.connectionInfo.guid, key: data.key, ttl: keyMetrics.ttl });
+		return fetchSetKeyTTL(data.connectionInfo.guid, { name: data.key, ttl: keyMetrics.ttl })
+			.then((res) => {
+				dispatch('setKeyTTL', { guid: data.connectionInfo.guid, name: data.key, ttl: keyMetrics.ttl });
+
+				return res;
+			})
+			.catch(invokeErrorHandle);
 	}
 
 	$: dynamicClasses = calcDynamicClasses(['key-detail', $$restProps.class]);
