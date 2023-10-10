@@ -1,4 +1,10 @@
-import type { IpcClientMetrics, IpcConnection, SaveIpcNewKeyPayload, SetIpcKeyTTLPayload } from '$lib/types';
+import type {
+	IpcClientMetrics,
+	IpcConnection,
+	SaveIpcNewKeyPayload,
+	SetIpcKeyContentTypeStringPayload,
+	SetIpcKeyTTLPayload
+} from '$lib/types';
 import { fetchIpc } from '$lib/utils/async';
 
 export function fetchListRedisClientMetrics(guid: IpcConnection['guid']) {
@@ -31,4 +37,8 @@ export function fetchGetKeyContentTypeString(guid: IpcConnection['guid'], keyNam
 
 export function fetchSetKeyTTL(guid: IpcConnection['guid'], params: SetIpcKeyTTLPayload) {
 	return fetchIpc<void>('set_key_ttl', { guid, keyName: params.name, ttl: params.ttl });
+}
+
+export function fetchSetKeyContentTypeString(guid: IpcConnection['guid'], params: SetIpcKeyContentTypeStringPayload) {
+	return fetchIpc<void>('set_key_content_type_string', { guid, keyName: params.name, content: params.content });
 }

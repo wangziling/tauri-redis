@@ -81,10 +81,8 @@
 				</InputNumber>
 			</div>
 		</div>
-		<div class="key-detail-content">
-			{#if keyMetrics.type === IpcKeyType.String}
-				<KeyTypeStringDetailContent guid={data.connectionInfo.guid} keyName={data.key} />
-			{/if}
-		</div>
+		{#if keyMetrics.type === IpcKeyType.String}
+			<KeyTypeStringDetailContent guid={data.connectionInfo.guid} keyName={data.key} />
+		{/if}
 	</div>
 </div>

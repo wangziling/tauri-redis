@@ -57,3 +57,8 @@ export type SetIpcKeyTTLPayload = {
 	name: string;
 	ttl: number;
 };
+
+export type SetIpcKeyContentTypeStringPayload = {
+	name: string;
+	content: string;
+};
