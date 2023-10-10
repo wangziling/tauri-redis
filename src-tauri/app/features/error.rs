@@ -30,7 +30,7 @@ pub enum Error {
     FailedToFindTheMatchedConnectionInfo,
 
     #[error(transparent)]
-    RedisInternalError(#[from] redis::RedisError),
+    RedisInternalError(#[from] fred::error::RedisError),
     #[error("Already a pending redis connection.")]
     AlreadyAPendingRedisConnection,
     #[error(transparent)]

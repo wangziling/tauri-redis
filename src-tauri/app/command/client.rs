@@ -1,8 +1,9 @@
-use crate::features::client::{RedisClientManager, RedisKeyType};
+use crate::features::client::{RedisClientManager, RedisInfoDict, RedisKeyType};
 use crate::features::command::{Guid, TTL};
 use crate::features::error::{Error, Result};
 use crate::features::response::Response;
-use redis::{cmd, AsyncCommands, FromRedisValue, InfoDict};
+use fred::interfaces::{ClientLike, HashesInterface, KeysInterface};
+use fred::types::{CustomCommand, InfoKind};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tauri::State;
@@ -19,19 +20,21 @@ pub async fn list_client_metrics(
         .ok_or_else(|| Error::FailedToFindExistedRedisConnection)?
         .conn()?;
 
-    // See: https://github.com/redis-rs/redis-rs/pull/661
-    let res = conn
-        .send_packed_command(&cmd("INFO"))
+    let result: String = conn
+        .info(Some(InfoKind::All))
         .await
         .map_err(Error::RedisInternalError)?;
-    let res = InfoDict::from_redis_value(&res).map_err(Error::RedisInternalError)?;
 
+    let res = RedisInfoDict::new(result);
     // Transform the redisValue to String
     let mut result: HashMap<String, String> = Default::default();
     res.iter().for_each(|(key, value)| {
         result.insert(
             key.clone(),
-            String::from_redis_value(value).unwrap_or_else(|_| "".to_string()),
+            value
+                .as_str()
+                .unwrap_or_else(|| Default::default())
+                .to_string(),
         );
     });
 
@@ -50,18 +53,15 @@ pub async fn list_all_keys(
         .ok_or_else(|| Error::FailedToFindExistedRedisConnection)?
         .conn()?;
 
-    let res = conn
-        .send_packed_command(
-            &cmd("KEYS").arg(
-                condition_part
-                    .and_then(|part| if part.is_empty() { None } else { Some(part) })
-                    .map_or_else(|| "*".to_string(), |part| "*".to_string() + &part + "*"),
-            ),
+    let res: Vec<String> = conn
+        .custom(
+            CustomCommand::new("KEYS", None, false),
+            vec![condition_part
+                .and_then(|part| if part.is_empty() { None } else { Some(part) })
+                .map_or_else(|| "*".to_string(), |part| "*".to_string() + &part + "*")],
         )
         .await
         .map_err(Error::RedisInternalError)?;
-
-    let res: Vec<String> = Vec::from_redis_value(&res).map_err(Error::RedisInternalError)?;
 
     Ok(Response::success(Some(res), None))
 }
@@ -90,12 +90,12 @@ pub async fn create_new_key(
 
     match key_type {
         RedisKeyType::String => {
-            conn.set(key_name, "".to_string())
+            conn.set(key_name, "".to_string(), None, None, false)
                 .await
                 .map_err(Error::RedisInternalError)?;
         }
         RedisKeyType::Hash => {
-            conn.hset(key_name, "New field", "New Value")
+            conn.hset(key_name, ("New field", "New Value"))
                 .await
                 .map_err(Error::RedisInternalError)?;
         }
@@ -145,7 +145,7 @@ pub async fn get_key_type(
         .conn()?;
 
     let key_type: String = conn
-        .key_type(key_name)
+        .custom(CustomCommand::new("TYPE", None, false), vec![key_name])
         .await
         .map_err(Error::RedisInternalError)?;
 
@@ -193,15 +193,9 @@ pub async fn set_key_ttl(
         .ok_or_else(|| Error::FailedToFindExistedRedisConnection)?
         .conn()?;
 
-    conn.expire(key_name, {
-        if ttl < 0 {
-            0
-        } else {
-            ttl as usize
-        }
-    })
-    .await
-    .map_err(Error::RedisInternalError)?;
+    conn.expire(key_name, ttl)
+        .await
+        .map_err(Error::RedisInternalError)?;
 
     Ok(Response::default())
 }
@@ -247,7 +241,7 @@ pub async fn set_key_content_type_string(
         .ok_or_else(|| Error::FailedToFindExistedRedisConnection)?
         .conn()?;
 
-    conn.set(key_name, content)
+    conn.set(key_name, content, None, None, false)
         .await
         .map_err(Error::RedisInternalError)?;
 

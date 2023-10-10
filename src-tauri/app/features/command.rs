@@ -4,7 +4,7 @@ type LocalTimeString = String;
 
 pub type Guid = String;
 
-pub type TTL = isize;
+pub type TTL = i64;
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]

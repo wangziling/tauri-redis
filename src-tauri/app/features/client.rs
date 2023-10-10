@@ -1,17 +1,91 @@
 use crate::features::command::Guid;
 use crate::features::error::{Error, Result};
 use crate::utils::config::get_redis_connection_timeout;
+use fred::interfaces::ClientLike;
+use fred::tracing::Level;
+use fred::types::{
+    Blocking, Builder, RedisConfig, RedisValue, RespVersion, ServerConfig, TracingConfig,
+};
 use once_cell::sync::Lazy;
-use redis::IntoConnectionInfo;
 use serde::Serialize;
 use std::collections::{hash_map, HashMap};
 use std::ops::{Deref, DerefMut};
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 use tauri::command::{CommandArg, CommandItem};
 use tauri::{InvokeError, Runtime};
 
 static PENDING_REDIS_CONNECTION_TASKS: Lazy<Arc<Mutex<Vec<Guid>>>> =
     Lazy::new(|| Arc::new(Mutex::new(vec![])));
+
+pub struct RedisInfoDict {
+    map: HashMap<String, RedisValue>,
+}
+
+// Inspired from https://github.com/redis-rs/redis-rs/blob/d8c5436ea8fe19f10efefd55cbc1f9d36700e8df/redis/src/types.rs#L687
+// Thanks a lot.
+#[allow(dead_code)]
+impl RedisInfoDict {
+    pub fn new(info_str: impl Into<String>) -> Self {
+        let mut map = HashMap::new();
+
+        for line in info_str.into().lines() {
+            if line.is_empty() || line.starts_with('#') {
+                continue;
+            }
+            let mut p = line.splitn(2, ':');
+            let key = p.next();
+            if key.is_none() {
+                continue;
+            }
+            let value = p.next();
+            if value.is_none() {
+                continue;
+            }
+
+            let key = key.unwrap().to_string();
+            let value = value.unwrap().to_string();
+
+            map.insert(key, RedisValue::String(value.into()));
+        }
+
+        Self { map }
+    }
+
+    /// Looks up a key in the info dict.
+    pub fn find(&self, key: impl Into<String>) -> Option<&RedisValue> {
+        self.map.get(&key.into())
+    }
+
+    /// Checks if a key is contained in the info dicf.
+    pub fn contains_key(&self, key: impl Into<String>) -> bool {
+        self.find(&key.into()).is_some()
+    }
+
+    /// Returns the size of the info dict.
+    pub fn len(&self) -> usize {
+        self.map.len()
+    }
+
+    /// Checks if the dict is empty.
+    pub fn is_empty(&self) -> bool {
+        self.map.is_empty()
+    }
+}
+
+impl Deref for RedisInfoDict {
+    type Target = HashMap<String, RedisValue>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.map
+    }
+}
+
+// impl From<RedisValue> for RedisInfoDict {
+//     fn from(value: RedisValue) -> Self {
+//         Self::new(String::from_value(value).unwrap())
+//     }
+// }
 
 #[allow(dead_code)]
 #[derive(PartialEq, Debug, Serialize)]
@@ -66,7 +140,7 @@ pub struct RedisClientConnectionPayload {
 }
 
 pub struct RedisClient {
-    manager: redis::aio::ConnectionManager,
+    manager: fred::clients::RedisClient,
 }
 
 #[derive(Default)]
@@ -76,38 +150,51 @@ pub struct RedisClientManager {
 
 impl RedisClient {
     pub async fn new(payload: RedisClientConnectionPayload) -> Result<Self> {
-        let _connection_timeout = get_redis_connection_timeout().unwrap_or(10_u8);
+        let config = RedisConfig {
+            fail_fast: true,
+            server: ServerConfig::new_centralized(payload.host, payload.port),
+            blocking: Blocking::Block,
+            username: {
+                payload
+                    .username
+                    .and_then(|un| if un.is_empty() { None } else { Some(un) })
+            },
+            password: {
+                payload
+                    .password
+                    .and_then(|ps| if ps.is_empty() { None } else { Some(ps) })
+            },
+            version: RespVersion::RESP2,
+            database: None,
+            tracing: TracingConfig {
+                enabled: true,
+                default_tracing_level: Level::INFO,
+                full_tracing_level: Level::DEBUG,
+            },
+        };
 
-        let redis_client = redis::Client::open({
-            let mut connection_info = (payload.host, payload.port)
-                .into_connection_info()
-                .map_err(Error::RedisInternalError)?;
+        let client = Builder::from_config(config)
+            .with_connection_config(|config| {
+                config.connection_timeout =
+                    Duration::from_secs(get_redis_connection_timeout().unwrap().into());
+                config.internal_command_timeout =
+                    Duration::from_secs(get_redis_connection_timeout().unwrap().into());
+            })
+            .build()
+            .map_err(Error::RedisInternalError)?;
 
-            connection_info.redis.username = payload.username.and_then(|username| {
-                if username.is_empty() {
-                    None
-                } else {
-                    Some(username)
-                }
-            });
-            connection_info.redis.password = payload.password.and_then(|password| {
-                if password.is_empty() {
-                    None
-                } else {
-                    Some(password)
-                }
-            });
+        // Connect.
+        client.connect();
 
-            connection_info
-        })
-        .map_err(Error::RedisInternalError)?;
+        client
+            .wait_for_connect()
+            .await
+            .map_err(Error::RedisInternalError)?;
 
-        let manager = redis::aio::ConnectionManager::new(redis_client).await?;
-
-        Ok(Self { manager })
+        Ok(Self { manager: client })
     }
 
-    pub fn conn(&mut self) -> Result<&mut redis::aio::ConnectionManager> {
+    pub fn conn(&mut self) -> Result<&mut fred::clients::RedisClient> {
         Ok(&mut self.manager)
     }
 }
@@ -190,7 +277,7 @@ impl RedisClientManager {
 }
 
 impl Deref for RedisClient {
-    type Target = redis::aio::ConnectionManager;
+    type Target = fred::clients::RedisClient;
 
     fn deref(&self) -> &Self::Target {
         &self.manager
