@@ -213,7 +213,7 @@
 					{placeholder}
 					disabled={$finalDisabledDerived}
 					readonly={$finalReadonlyDerived}
-					{value}
+					value={displayValue}
 					name={$finalNameDerived}
 					id={name}
 					bind:this={textareaEl}
