@@ -19,8 +19,49 @@
 	}
 
 	&-content {
+		height: 100%;
+
 		&:empty {
 			display: none;
+		}
+
+		&__type-string {
+			display: flex;
+			flex-direction: column;
+
+			.key-detail-content__content {
+				flex-grow: 1;
+				height: auto;
+
+				.input {
+					width: 100%;
+				}
+
+				.input,
+				.input-wrapper,
+				.input__textarea,
+				.input__textarea-el {
+					height: 100%;
+				}
+			}
+		}
+
+		&__content {
+			height: 100%;
+
+			+ .key-detail-content__operations {
+				margin-top: 1.5rem;
+			}
+		}
+
+		&__operations {
+			white-space: nowrap;
+		}
+
+		&__operation {
+			+ .key-detail-content__operation {
+				margin-left: 1.2rem;
+			}
 		}
 	}
 }

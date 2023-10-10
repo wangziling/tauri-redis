@@ -60,49 +60,51 @@
 	{#if tabs.length}
 		<div class={tabsDynamicClasses}>
 			<div class="tabs-header">
-				{#each tabs as tab, idx (idx)}
-					{#if tab['type'] === MainTabType.Dashboard}
-						<div
-							class={calcTabAnchorDynamicClasses(idx, 'tab-anchor__type-dashboard')}
-							tabindex="0"
-							role="button"
-							on:click={() => handleChooseTab(idx)}
-						>
-							<div class="tab-anchor__icon fa fa-database" />
-							<div class="tab-anchor__content" title={calcDashboardAnchorContent(tab)}>
-								{calcDashboardAnchorContent(tab)}
+				<div class="tabs-header-wrapper">
+					{#each tabs as tab, idx (idx)}
+						{#if tab['type'] === MainTabType.Dashboard}
+							<div
+								class={calcTabAnchorDynamicClasses(idx, 'tab-anchor__type-dashboard')}
+								tabindex="0"
+								role="button"
+								on:click={() => handleChooseTab(idx)}
+							>
+								<div class="tab-anchor__icon fa fa-database" />
+								<div class="tab-anchor__content" title={calcDashboardAnchorContent(tab)}>
+									{calcDashboardAnchorContent(tab)}
+								</div>
+								<div class="tab-anchor__operations">
+									<span
+										class="tab-anchor__operation tab-anchor__operation-close fa fa-xmark"
+										role="button"
+										tabindex="0"
+										on:click={() => handleCloseTab(idx)}
+									/>
+								</div>
 							</div>
-							<div class="tab-anchor__operations">
-								<span
-									class="tab-anchor__operation tab-anchor__operation-close fa fa-xmark"
-									role="button"
-									tabindex="0"
-									on:click={() => handleCloseTab(idx)}
-								/>
+						{:else if tab['type'] === MainTabType.KeyDetail}
+							<div
+								class={calcTabAnchorDynamicClasses(idx, 'tab-anchor__type-key-detail')}
+								tabindex="0"
+								role="button"
+								on:click={() => handleChooseTab(idx)}
+							>
+								<div class="tab-anchor__icon fa fa-key" />
+								<div class="tab-anchor__content" title={calcKeyDetailAnchorContent(tab)}>
+									{calcKeyDetailAnchorContent(tab)}
+								</div>
+								<div class="tab-anchor__operations">
+									<span
+										class="tab-anchor__operation tab-anchor__operation-close fa fa-xmark"
+										role="button"
+										tabindex="0"
+										on:click={() => handleCloseTab(idx)}
+									/>
+								</div>
 							</div>
-						</div>
-					{:else if tab['type'] === MainTabType.KeyDetail}
-						<div
-							class={calcTabAnchorDynamicClasses(idx, 'tab-anchor__type-key-detail')}
-							tabindex="0"
-							role="button"
-							on:click={() => handleChooseTab(idx)}
-						>
-							<div class="tab-anchor__icon fa fa-key" />
-							<div class="tab-anchor__content" title={calcKeyDetailAnchorContent(tab)}>
-								{calcKeyDetailAnchorContent(tab)}
-							</div>
-							<div class="tab-anchor__operations">
-								<span
-									class="tab-anchor__operation tab-anchor__operation-close fa fa-xmark"
-									role="button"
-									tabindex="0"
-									on:click={() => handleCloseTab(idx)}
-								/>
-							</div>
-						</div>
-					{/if}
-				{/each}
+						{/if}
+					{/each}
+				</div>
 			</div>
 			<div class="tabs-content">
 				{#each tabs as tab, idx (idx)}
