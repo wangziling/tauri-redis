@@ -20,6 +20,7 @@
 		"@tauri-apps/api": "^1.5.0",
 		"async-validator": "^4.2.5",
 		"lodash-es": "^4.17.21",
+		"tauri-redis-plugin-setting-api": "link:src-tauri\\plugins\\setting",
 		"tauri-redis-plugin-translation-api": "link:src-tauri\\plugins\\translation"
 	},
 	"devDependencies": {
