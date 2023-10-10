@@ -14,6 +14,9 @@ dependencies:
   lodash-es:
     specifier: ^4.17.21
     version: 4.17.21
+  tauri-redis-plugin-setting-api:
+    specifier: link:src-tauri\plugins\setting
+    version: link:src-tauri/plugins/setting
   tauri-redis-plugin-translation-api:
     specifier: link:src-tauri\plugins\translation
     version: link:src-tauri/plugins/translation

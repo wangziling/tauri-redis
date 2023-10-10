@@ -3390,6 +3390,7 @@ dependencies = [
  "serde_json",
  "tauri",
  "tauri-build",
+ "tauri_plugin_tauri_redis_setting",
  "tauri_plugin_tauri_redis_translation",
  "tauri_redis_config",
  "tauri_redis_core",
