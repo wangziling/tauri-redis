@@ -11,6 +11,7 @@
 	const translations = translator.derived(function () {
 		return {
 			connections: translator.translate('connections|Connections'),
+			logs: translator.translate('logs|Logs'),
 			settings: translator.translate('settings|Settings'),
 			'toggle theme': translator.translate('toggle theme|Toggle theme')
 		};
@@ -53,8 +54,8 @@
 					<a
 						class="aside-action__icon fa fa-file-lines"
 						href="/logs"
-						title={$translations['connections']}
-						aria-label={$translations['connections']}
+						title={$translations['logs']}
+						aria-label={$translations['logs']}
 					/>
 				</li>
 			</ul>
