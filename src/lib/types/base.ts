@@ -3,3 +3,5 @@ export type TArrayMember<T> = T extends Array<infer P> | Readonly<Array<infer P>
 export type TArrayOrPrimitive<T> = T extends Array<any> | ReadonlyArray<any> ? T | TArrayMember<T> : Array<T> | T;
 
 export type Timestamp = number;
+
+export type TPromiseFulfilledResult<T> = T extends Promise<infer P> ? P : never;
