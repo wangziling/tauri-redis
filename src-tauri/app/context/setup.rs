@@ -3,6 +3,8 @@ use crate::features::client::RedisClientManager;
 use crate::utils::config::{get_connections_file_cache_manager_key, get_connections_file_name};
 use std::sync::Arc;
 use tauri::{App, Manager, Result, Runtime};
+use tauri_plugin_tauri_redis_setting::SettingsManager;
+use tauri_plugin_tauri_redis_translation::TRANSLATIONS;
 use tauri_redis_core::cache::abstracts::FileCacheBase;
 use tauri_redis_core::cache::impls::FileCache;
 
@@ -49,11 +51,36 @@ where
     Ok(())
 }
 
+fn setup_page_metrics<R>(app: &mut App<R>) -> Result<()>
+where
+    R: Runtime,
+{
+    let handle = app.handle();
+
+    // Get the current language and enable it.
+    let settings_manager = handle.state::<SettingsManager>();
+    let settings_manager_lock = settings_manager.read().unwrap();
+    let target_language = settings_manager_lock.get("language");
+    if target_language.is_some() {
+        let target_language = target_language.unwrap().as_str().unwrap();
+
+        TRANSLATIONS
+            .write()
+            .unwrap()
+            .switch_to(target_language)
+            .unwrap();
+    }
+
+    Ok(())
+}
+
 pub fn init<R>(app: &mut App<R>) -> Result<()>
 where
     R: Runtime,
 {
     setup_file_cache_manager(app)?;
 
-    setup_redis_client_manager(app)
+    setup_redis_client_manager(app)?;
+
+    setup_page_metrics(app)
 }
