@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-		"target": "ES5",
+		"target": "ESNext",
 		"strict": true,
 		"allowJs": true,
 		"esModuleInterop": true,
@@ -10,7 +10,9 @@
 		},
 		"declaration": true,
 		"declarationDir": "../webview-dist",
-		"rootDir": "./"
+		"rootDir": "./",
+		"moduleResolution": "node",
+		"lib": ["ESNext"]
 	},
 	"include": ["./"]
 }
