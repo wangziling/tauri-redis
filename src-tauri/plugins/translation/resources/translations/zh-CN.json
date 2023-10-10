@@ -39,5 +39,6 @@
 	"grep keys": "过滤键",
 	"remove key": "删除键",
 	"key ttl": "存活时间",
-	"invalid key metrics": "不合规的键数据"
+	"invalid key metrics": "不合规的键数据",
+	"save": "保存"
 }

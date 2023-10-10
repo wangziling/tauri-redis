@@ -39,5 +39,6 @@
 	"grep keys": "Grep keys",
 	"remove key": "Remove key",
 	"key ttl": "TTL",
-	"invalid key metrics": "Invalid key metrics"
+	"invalid key metrics": "Invalid key metrics",
+	"save": "Save"
 }
