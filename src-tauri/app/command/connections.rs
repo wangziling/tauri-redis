@@ -88,20 +88,16 @@ async fn invoke_release_connection<'a>(
     };
 
     let mut lock = redis_client_manager.lock().await;
-    if !lock.contains_key(guid) {
-        return Err(Error::FailedToFindTheMatchedConnectionInfo);
-    }
+
+    // Release.
+    // Seems the fred redis client didn't support Drop trait.
+    lock.release_client(guid).await?;
+    drop(lock);
 
     let (idx, mut connection_info) = found;
     connection_info.connected_at = Some(get_cur_time());
     connections_info.remove(idx);
     connections_info.insert(idx, connection_info);
-
-    // Drop the existed key.
-    // It will trigger the Drop callback of r2d2.
-    // It will release the connections automatically.
-    lock.remove(guid);
-    drop(lock);
 
     let mut lock = file_cache_manager.lock().await;
     let connections_file_cache = lock

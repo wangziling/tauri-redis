@@ -274,6 +274,20 @@ impl RedisClientManager {
             hash_map::Entry::Vacant(map_self) => Ok(map_self.insert(client)),
         };
     }
+
+    pub async fn release_client(&mut self, guid: &Guid) -> Result<()> {
+        let found_client = self.get(guid);
+        let client = found_client.ok_or_else(|| Error::FailedToFindExistedRedisConnection)?;
+
+        client
+            .manager
+            .quit()
+            .await
+            .map_err(Error::RedisInternalError)?;
+        self.remove(guid);
+
+        Ok(())
+    }
 }
 
 impl Deref for RedisClient {
