@@ -25,5 +25,6 @@ where
         client::get_key_ttl,
         client::get_key_content_type_string,
         client::set_key_ttl,
+        client::set_key_content_type_string,
     ])
 }

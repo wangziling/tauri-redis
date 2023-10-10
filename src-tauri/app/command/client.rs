@@ -229,3 +229,27 @@ pub async fn get_key_content_type_string(
 
     Ok(Response::success(Some(content), None))
 }
+
+#[tauri::command]
+pub async fn set_key_content_type_string(
+    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    guid: Guid,
+    key_name: String,
+    content: String,
+) -> Result<Response<()>> {
+    if key_name.is_empty() {
+        return Err(Error::InvalidRedisKeyName);
+    }
+
+    let mut lock = redis_client_manager.lock().await;
+    let conn = lock
+        .get_mut(&guid)
+        .ok_or_else(|| Error::FailedToFindExistedRedisConnection)?
+        .conn()?;
+
+    conn.set(key_name, content)
+        .await
+        .map_err(Error::RedisInternalError)?;
+
+    Ok(Response::default())
+}
