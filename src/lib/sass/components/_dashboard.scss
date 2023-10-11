@@ -79,6 +79,8 @@
 			}
 
 			&-content {
+				@extend %break-word;
+
 				display: inline-block;
 				flex-grow: 1;
 				padding-right: 0.7rem;
