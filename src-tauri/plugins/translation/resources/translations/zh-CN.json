@@ -41,5 +41,6 @@
 	"remove key": "删除键",
 	"key ttl": "存活时间",
 	"invalid key metrics": "不合规的键数据",
-	"save": "保存"
+	"save": "保存",
+	"n/a": "不适用"
 }
