@@ -3,7 +3,7 @@ use crate::features::command::{Guid, TTL};
 use crate::features::error::{Error, Result};
 use crate::features::response::Response;
 use fred::interfaces::{ClientLike, HashesInterface, KeysInterface};
-use fred::types::{CustomCommand, InfoKind};
+use fred::types::{CustomCommand, InfoKind, RedisValue};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tauri::State;
@@ -53,7 +53,11 @@ pub async fn list_all_keys(
         .ok_or_else(|| Error::FailedToFindExistedRedisConnection)?
         .conn()?;
 
-    let res: Vec<String> = conn
+    // Here may be contains non RedisValue::String value.
+    // Such as RedisValue::Bytes.
+    // And the Type Conversion may throw errors.
+    // let res: Vec<String> = conn
+    let res: RedisValue = conn
         .custom(
             CustomCommand::new("KEYS", None, false),
             vec![condition_part
@@ -63,7 +67,16 @@ pub async fn list_all_keys(
         .await
         .map_err(Error::RedisInternalError)?;
 
-    Ok(Response::success(Some(res), None))
+    // let non_string_vec: Vec<RedisValue> = res.into_array().into_iter().filter(|r| !r.is_string()).collect();
+    // dbg!(&non_string_vec);
+
+    let result: Vec<String> = res
+        .into_array()
+        .into_iter()
+        .filter_map(|item| item.into_string())
+        .collect();
+
+    Ok(Response::success(Some(result), None))
 }
 
 #[tauri::command]
