@@ -53,3 +53,7 @@ export function calcIpcKeyType(source: string) {
 
 	return Object.values(IpcKeyType).find((type) => type.toLowerCase() === source.toLowerCase());
 }
+
+export function emptyInsteadBy(value: any, instead: any = '-') {
+	return value ? value : instead;
+}

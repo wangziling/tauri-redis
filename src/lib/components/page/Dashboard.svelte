@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { MainTab, MainTabType } from '$lib/types';
-	import { calcDynamicClasses } from '$lib/utils/calculators';
+	import { calcDynamicClasses, emptyInsteadBy } from '$lib/utils/calculators';
 	import Card from '$lib/components/Card.svelte';
 	import { translator } from 'tauri-redis-plugin-translation-api';
 	import constants from '$lib/constants';
@@ -35,7 +35,8 @@
 			'create new key': translator.translate('create new key|Create new key'),
 			refresh: translator.translate('refresh|Refresh'),
 			'grep keys': translator.translate('grep keys|Grep keys'),
-			'remove key': translator.translate('remove key|Remove key')
+			'remove key': translator.translate('remove key|Remove key'),
+			'n/a': translator.translate('n/a|N/A')
 		};
 	});
 
@@ -57,6 +58,10 @@
 		'expired keys num': 'expires',
 		'average ttl': 'avg_ttl'
 	};
+
+	function calcContent(content: any) {
+		return emptyInsteadBy(content, $translations['n/a']);
+	}
 
 	// db0: "keys=4,expires=2,avg_ttl=6346900"
 	$: dynamicClasses = calcDynamicClasses(['dashboard', $$restProps.class]);
@@ -156,7 +161,7 @@
 			{#each Object.entries(serverMetricsKeyPropertyMapping) as [key, property] (key)}
 				<div class="dashboard__content-item">
 					<div class="dashboard__content-item-label">{$translations[key]}</div>
-					<div class="dashboard__content-item-content">{data['metrics'][property]}</div>
+					<div class="dashboard__content-item-content">{calcContent(data['metrics'][property])}</div>
 				</div>
 			{:else}
 				<div class="dashboard__content-item dashboard__content-item--full-width dashboard__content-item--empty">
@@ -178,7 +183,7 @@
 						{#each Object.entries(dbMetricsKeyPropertyMapping) as [key, property] (key)}
 							<div class="dashboard__content-item dashboard__content-item--full-width">
 								<div class="dashboard__content-item-label">{$translations[key]}</div>
-								<div class="dashboard__content-item-content">{metrics[property]}</div>
+								<div class="dashboard__content-item-content">{calcContent(metrics[property])}</div>
 							</div>
 						{/each}
 					</div>
