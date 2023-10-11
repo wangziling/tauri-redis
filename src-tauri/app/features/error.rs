@@ -3,9 +3,6 @@ use crate::features::response::Response;
 #[allow(dead_code)]
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("Failed to send the http request.")]
-    FailedToSendHTTPRequest,
-
     #[error("Internal error.")]
     InternalError,
 
