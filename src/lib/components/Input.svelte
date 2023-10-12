@@ -221,6 +221,9 @@
 					on:focus={handleFocus}
 					on:blur={handleBlur}
 					on:change={handleChange}
+					on:keyup
+					on:keydown
+					on:keypress
 				/>
 			</div>
 		{:else}
@@ -242,6 +245,9 @@
 					on:focus={handleFocus}
 					on:blur={handleBlur}
 					on:change={handleChange}
+					on:keyup
+					on:keydown
+					on:keypress
 				/>
 			</div>
 			<div class="input__suffix">
