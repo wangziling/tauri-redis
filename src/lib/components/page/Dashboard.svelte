@@ -12,6 +12,8 @@
 
 	export let data: Extract<MainTab, { type: MainTabType.Dashboard }>['data'] = {} as any;
 
+	let grepContent = '';
+
 	const translations = translator.derived(function () {
 		return {
 			'server metrics': translator.translate('server metrics|Server metrics'),
@@ -34,7 +36,7 @@
 			'nothing here': translator.translate('nothing here|Nothing here'),
 			'create new key': translator.translate('create new key|Create new key'),
 			refresh: translator.translate('refresh|Refresh'),
-			'grep keys': translator.translate('grep keys|Grep keys'),
+			'grep keys by press enter': translator.translate('grep keys by press enter|Grep keys by pressing Enter.'),
 			'remove key': translator.translate('remove key|Remove key'),
 			'n/a': translator.translate('n/a|N/A')
 		};
@@ -93,8 +95,12 @@
 	const handleCreateNewKeyClick = function handleCreateNewKeyClick() {
 		dispatch('createNewKey', { guid: data.connectionInfo.guid });
 	};
-	const handleGrepKeys = function handleGrepKeys(e: CustomEvent<string>) {
-		dispatch('grepKeys', { guid: data.connectionInfo.guid, conditionPart: e.detail });
+	const handleGrepKeys = function handleGrepKeys(e: KeyboardEvent) {
+		if (e.key !== 'Enter') {
+			return;
+		}
+
+		dispatch('grepKeys', { guid: data.connectionInfo.guid, conditionPart: grepContent });
 	};
 	const handlePreviewKey = function handlePreviewKey(key: string) {
 		dispatch('previewKey', { guid: data.connectionInfo.guid, key });
@@ -112,8 +118,10 @@
 			<div class="dashboard__header-operations">
 				<Input
 					class="dashboard__header-operation dashboard__header-operation-grep-keys"
-					placeholder={$translations['grep keys']}
-					on:input={handleGrepKeys}
+					placeholder={$translations['grep keys by press enter']}
+					bind:value={grepContent}
+					pure={false}
+					on:keyup={handleGrepKeys}
 				>
 					<span class="fa fa-search" slot="prefix" />
 				</Input>
