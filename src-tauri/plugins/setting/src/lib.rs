@@ -2,7 +2,8 @@ mod command;
 mod features;
 
 use crate::features::state::Settings;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
+use tauri::async_runtime::RwLock;
 use tauri::{
     plugin::{Builder, TauriPlugin},
     Manager, Runtime,
