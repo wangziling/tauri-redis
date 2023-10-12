@@ -172,8 +172,11 @@
 			}
 		}
 
+		// Using refresh in case the config had already connected.
 		fetchEstablishConnection(connection.guid)
-			.then(() => Promise.all([fetchListRedisClientMetrics(connection.guid), fetchScanRedisAllKeys(connection.guid)]))
+			.then(() =>
+				Promise.all([fetchListRedisClientMetrics(connection.guid), fetchRefreshScanRedisAllKeys(connection.guid)])
+			)
 			.then(([metricsRes, keysRes]) => {
 				const keys = keysRes.data;
 				const targetConnection = pageConnections.find(function (conn) {
