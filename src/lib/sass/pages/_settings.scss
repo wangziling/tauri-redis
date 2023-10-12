@@ -1,0 +1,30 @@
+.tauri-redis-settings {
+	&-wrapper {
+		padding: 0.7rem 1.2rem;
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+	}
+
+	&-header {
+		+ .tauri-redis-settings-content {
+			margin-top: 2.5rem;
+		}
+	}
+
+	&-content {
+		flex-grow: 1;
+	}
+
+	.settings-header {
+		&__caption {
+			margin: 0;
+		}
+	}
+
+	.settings-card {
+		&-header__caption {
+			margin: 0;
+		}
+	}
+}
