@@ -1,4 +1,5 @@
 use crate::features::error::{Error, Result};
+use serde::Deserialize;
 use std::path::Path;
 use std::{
     collections::HashMap,
@@ -56,6 +57,33 @@ impl Settings {
         self.inner = Some(self.default_inner.clone());
 
         Ok(())
+    }
+
+    pub fn get<T>(&self, key: T) -> Option<&SettingsMapValue>
+    where
+        T: Into<String>,
+    {
+        let key = &key.into();
+        // If inner didn't own this key.
+        // Use the default_inner related instead.
+        self.inner
+            .as_ref()
+            .and_then(|map| map.get(key))
+            .or_else(|| self.default_inner.get(key))
+    }
+
+    pub fn get_de<V: for<'a> Deserialize<'a>, T>(&self, key: T) -> Result<V>
+    where
+        T: Into<String>,
+    {
+        let key = &key.into();
+
+        self.get(key)
+            .ok_or_else(|| Error::FailedToGetTargetSettingItem)
+            .and_then(|value| {
+                serde_json::from_value::<V>(value.clone())
+                    .map_err(|_| Error::FailedToParseTargetSettingItem)
+            })
     }
 }
 

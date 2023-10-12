@@ -8,6 +8,8 @@ pub enum Error {
     FailedToParseTheSettingFile,
     #[error("Failed to get target setting item.")]
     FailedToGetTargetSettingItem,
+    #[error("Failed to Parse target setting item.")]
+    FailedToParseTargetSettingItem,
     #[error("Failed to set target setting item.")]
     FailedToSetTargetSettingItem,
     #[error("Failed to save settings.")]
