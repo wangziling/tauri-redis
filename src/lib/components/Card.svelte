@@ -22,5 +22,10 @@
 		<div class="card__body">
 			<slot />
 		</div>
+		{#if $$slots.footer}
+			<div class="card__footer">
+				<slot name="footer" />
+			</div>
+		{/if}
 	</div>
 </div>

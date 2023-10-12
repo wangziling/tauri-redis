@@ -31,12 +31,6 @@
 	let innerType = type;
 	$: innerType = type;
 
-	let innerValue = value;
-	$: innerValue = value;
-
-	let displayValue = calcDisplayValue(innerValue);
-	$: displayValue = calcDisplayValue(innerValue);
-
 	let isPwdVisible = false;
 	let inputEl: undefined | HTMLInputElement;
 	let textareaEl: undefined | HTMLTextAreaElement;
@@ -51,9 +45,11 @@
 	$: loadingWatched.set(loading);
 	const pureWatched = writable(pure);
 	$: pureWatched.set(pure);
+	const valueWatched = writable(value);
+	$: valueWatched.set(value);
 
-	const formItemFieldMisc = initialFormItemFieldMisc(
-		{ disabledWatched, readonlyWatched, loadingWatched, nameWatched, defaultName, pureWatched },
+	const formItemFieldMisc = initialFormItemFieldMisc<typeof value>(
+		{ disabledWatched, readonlyWatched, loadingWatched, nameWatched, defaultName, pureWatched, valueWatched },
 		{ fieldType: 'input' }
 	);
 	const isFormItemFieldMiscValid = formItemFieldMisc.metrics.valid;
@@ -62,6 +58,7 @@
 		finalLoadingDerived,
 		finalReadonlyDerived,
 		finalDisabledDerived,
+		finalValueDerived,
 		isNameOrFormFieldPropPresetDerived,
 		isPuredDerived,
 		miscClasses
@@ -80,70 +77,73 @@
 		$$restProps.class
 	]);
 
+	let displayValue = calcDisplayValue($finalValueDerived);
+	$: displayValue = calcDisplayValue($finalValueDerived);
+
 	$: currentEl = (type === 'textarea' ? textareaEl : inputEl) as HTMLInputElement | HTMLTextAreaElement;
 
 	function handleInput(e: Event) {
 		if ($finalDisabledDerived || $finalReadonlyDerived) {
 			if (currentEl) {
-				currentEl.value = innerValue;
+				currentEl.value = $finalValueDerived;
 			}
 
 			return;
 		}
 
-		innerValue = (e.target as HTMLInputElement).value;
+		valueWatched.set((e.target as HTMLInputElement).value);
 		if ($isFormItemFieldMiscValid) {
 			if (!$isNameOrFormFieldPropPresetDerived) {
 				// If form context found, but field didn't set the 'prop' value.
 				// Means: <FormItem prop=""> or <FormItem></FormItem>.
 				// Revert the changes.
 				(e.target as HTMLInputElement).value = value;
-				innerValue = value;
+				valueWatched.set(value);
 
 				return;
 			}
 
-			formItemFieldMisc.events.handleFieldSetValue(innerValue, FormRuleTrigger.Input);
+			formItemFieldMisc.events.handleFieldSetValue($valueWatched, FormRuleTrigger.Input);
 		}
 
 		// A pure component shouldn't manipulate the prop straightly.
 		if (!$isPuredDerived) {
-			value = innerValue;
+			value = $valueWatched;
 		}
 
-		dispatch('input', innerValue);
+		dispatch('input', $finalValueDerived);
 	}
 
 	function handleChange(e: Event) {
 		if ($finalDisabledDerived || $finalReadonlyDerived) {
 			if (currentEl) {
-				currentEl.value = innerValue;
+				currentEl.value = $finalValueDerived;
 			}
 
 			return;
 		}
 
-		innerValue = (e.target as HTMLInputElement).value;
+		valueWatched.set((e.target as HTMLInputElement).value);
 		if ($isFormItemFieldMiscValid) {
 			if (!$isNameOrFormFieldPropPresetDerived) {
 				// If form context found, but field didn't set the 'prop' value.
 				// Means: <FormItem prop=""> or <FormItem></FormItem>.
 				// Revert the changes.
 				(e.target as HTMLInputElement).value = value;
-				innerValue = value;
+				valueWatched.set(value);
 
 				return;
 			}
 
-			formItemFieldMisc.events.handleFieldSetValue(innerValue, FormRuleTrigger.Change);
+			formItemFieldMisc.events.handleFieldSetValue($valueWatched, FormRuleTrigger.Change);
 		}
 
 		// A pure component shouldn't manipulate the prop straightly.
 		if (!$isPuredDerived) {
-			value = innerValue;
+			value = $valueWatched;
 		}
 
-		dispatch('change', innerValue);
+		dispatch('change', $finalValueDerived);
 	}
 
 	function handleFocus(e: Event) {

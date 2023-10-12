@@ -20,9 +20,6 @@
 	export let readonly = false;
 	export let loading = false;
 
-	let innerChecked = checked;
-	$: innerChecked = checked;
-
 	let inputEl: undefined | HTMLInputElement;
 
 	const nameWatched = writable(name);
@@ -35,9 +32,11 @@
 	$: loadingWatched.set(loading);
 	const pureWatched = writable(pure);
 	$: pureWatched.set(pure);
+	const valueWatched = writable(checked);
+	$: valueWatched.set(checked);
 
-	const formItemFieldMisc = initialFormItemFieldMisc(
-		{ disabledWatched, readonlyWatched, loadingWatched, nameWatched, defaultName, pureWatched },
+	const formItemFieldMisc = initialFormItemFieldMisc<typeof checked>(
+		{ disabledWatched, readonlyWatched, loadingWatched, nameWatched, defaultName, pureWatched, valueWatched },
 		{ fieldType: 'input' }
 	);
 	const isFormItemFieldMiscValid = formItemFieldMisc.metrics.valid;
@@ -46,6 +45,7 @@
 		finalLoadingDerived,
 		finalReadonlyDerived,
 		finalDisabledDerived,
+		finalValueDerived,
 		isNameOrFormFieldPropPresetDerived,
 		isPuredDerived,
 		miscClasses
@@ -54,32 +54,32 @@
 	function handleChange(e: Event) {
 		if ($finalDisabledDerived || $finalReadonlyDerived) {
 			if (inputEl) {
-				inputEl.checked = innerChecked;
+				inputEl.checked = $finalValueDerived;
 			}
 
 			return;
 		}
 
-		innerChecked = (e.target as HTMLInputElement).checked;
+		valueWatched.set((e.target as HTMLInputElement).checked);
 		if ($isFormItemFieldMiscValid) {
 			if (!$isNameOrFormFieldPropPresetDerived) {
 				// If form context found, but field didn't set the 'prop' value.
 				// Means: <FormItem prop=""> or <FormItem></FormItem>.
 				// Revert the changes.
-				innerChecked = (e.target as HTMLInputElement).checked = checked;
+				valueWatched.set(((e.target as HTMLInputElement).checked = checked));
 
 				return;
 			}
 
-			formItemFieldMisc.events.handleFieldSetValue(innerChecked, FormRuleTrigger.Change);
+			formItemFieldMisc.events.handleFieldSetValue($valueWatched, FormRuleTrigger.Change);
 		}
 
 		// A pure component shouldn't manipulate the prop straightly.
 		if (!$isPuredDerived) {
-			checked = innerChecked;
+			checked = $finalValueDerived;
 		}
 
-		dispatch('change', innerChecked);
+		dispatch('change', $finalValueDerived);
 	}
 
 	$: dynamicClasses = calcDynamicClasses(['checkbox', $$restProps.class, $miscClasses]);
@@ -92,7 +92,7 @@
 		id={name}
 		disabled={$finalDisabledDerived}
 		readonly={$finalReadonlyDerived}
-		checked={innerChecked}
+		checked={$finalValueDerived}
 		bind:this={inputEl}
 		on:change={handleChange}
 	/>

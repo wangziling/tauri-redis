@@ -264,12 +264,13 @@ export function initialFormItemMisc(
 	};
 }
 
-export function initialFormItemFieldMisc(
+export function initialFormItemFieldMisc<Value = FormItemValue>(
 	initialState: {
 		disabledWatched: Writable<FormField['disabled']>;
 		readonlyWatched: Writable<FormField['readonly']>;
 		loadingWatched: Writable<FormField['loading']>;
 		nameWatched: Writable<FormField['prop']>;
+		valueWatched: Writable<Value>;
 		defaultName: string;
 		pureWatched: Writable<boolean>;
 	},
@@ -285,6 +286,7 @@ export function initialFormItemFieldMisc(
 	const miscLoadingWatch: Writable<FormField['loading']> = writable(false);
 	const miscReadonlyWatched: Writable<FormField['readonly']> = writable(false);
 	const miscDisabledWatched: Writable<FormField['disabled']> = writable(false);
+	const miscValueWatched: Writable<Value> = writable(undefined);
 
 	const finalNameDerived: Readable<FormField['prop']> = derived(
 		[miscNameWatched, initialState.nameWatched],
@@ -308,6 +310,12 @@ export function initialFormItemFieldMisc(
 		[miscDisabledWatched, initialState.disabledWatched],
 		function ([miscDisabled, disabled]) {
 			return miscDisabled || disabled;
+		}
+	);
+	const finalValueDerived: Readable<Value> = derived(
+		[miscValueWatched, initialState.valueWatched],
+		function ([miscValue, value]) {
+			return miscValue || value;
 		}
 	);
 
@@ -356,6 +364,7 @@ export function initialFormItemFieldMisc(
 			finalLoadingDerived,
 			finalReadonlyDerived,
 			finalDisabledDerived,
+			finalValueDerived,
 			isNameOrFormFieldPropPresetDerived,
 			isPuredDerived
 		},
@@ -403,6 +412,12 @@ export function initialFormItemFieldMisc(
 	subscribeManager.subscribe(
 		bindings.disabled.subscribe(function (disabled) {
 			miscDisabledWatched.set(disabled);
+		})
+	);
+
+	subscribeManager.subscribe(
+		bindings.value.subscribe(function (value) {
+			miscValueWatched.set(value as Value);
 		})
 	);
 

@@ -32,9 +32,6 @@
 
 	export let name = defaultName;
 
-	let innerValue: number = value;
-	$: innerValue = value;
-
 	let displayValue: string = calcDisplayValue(value, precise);
 	$: {
 		displayValue = calcDisplayValue(value, precise);
@@ -52,9 +49,11 @@
 	$: loadingWatched.set(loading);
 	const pureWatched = writable(pure);
 	$: pureWatched.set(pure);
+	const valueWatched = writable(value);
+	$: valueWatched.set(value);
 
-	const formItemFieldMisc = initialFormItemFieldMisc(
-		{ disabledWatched, readonlyWatched, loadingWatched, nameWatched, defaultName, pureWatched },
+	const formItemFieldMisc = initialFormItemFieldMisc<typeof value>(
+		{ disabledWatched, readonlyWatched, loadingWatched, nameWatched, defaultName, pureWatched, valueWatched },
 		{ fieldType: 'inputNumber' }
 	);
 	const isFormItemFieldMiscValid = formItemFieldMisc.metrics.valid;
@@ -63,15 +62,16 @@
 		finalLoadingDerived,
 		finalReadonlyDerived,
 		finalDisabledDerived,
+		finalValueDerived,
 		isNameOrFormFieldPropPresetDerived,
 		isPuredDerived,
 		miscClasses
 	} = formItemFieldMisc.getters;
 
-	$: isInnerValueValid = judgeValidNum(innerValue);
+	$: isInnerValueValid = judgeValidNum($valueWatched);
 	$: isDisplayValueValid = judgeValidNumLikeStr(displayValue, { precise, maximum, minimum });
-	$: isStepOperationPlusDisabled = innerValue === maximum;
-	$: isStepOperationMinusDisabled = innerValue === minimum;
+	$: isStepOperationPlusDisabled = $valueWatched === maximum;
+	$: isStepOperationMinusDisabled = $valueWatched === minimum;
 	$: stepOperationPlusDynamicClasses = calcDynamicClasses([
 		'input__operation',
 		'input__operation-step-plus',
@@ -121,13 +121,13 @@
 		displayValue = val + '';
 
 		if (typeof val === 'number') {
-			innerValue = val;
+			valueWatched.set(val);
 		} else {
 			if (judgeValidNumLikeStr(val)) {
-				innerValue = parseNumLikeStr(val);
+				valueWatched.set(parseNumLikeStr(val));
 			} else {
 				if (inputEl) {
-					innerValue = defaultValue;
+					valueWatched.set(defaultValue);
 					inputEl.value = displayValue;
 				}
 
@@ -135,7 +135,7 @@
 			}
 		}
 
-		if (!judgeValidNum(innerValue, { maximum, minimum })) {
+		if (!judgeValidNum($valueWatched, { maximum, minimum })) {
 			return;
 		}
 
@@ -147,23 +147,23 @@
 				// Means: <FormItem prop=""> or <FormItem></FormItem>.
 				// Revert the changes.
 				displayValue = inputEl.value = calcDisplayValue(value, precise);
-				innerValue = value;
+				valueWatched.set(value);
 
 				return;
 			}
 
 			if (!silent) {
-				formItemFieldMisc.events.handleFieldSetValue(innerValue, FormRuleTrigger.Input);
+				formItemFieldMisc.events.handleFieldSetValue($valueWatched, FormRuleTrigger.Input);
 			}
 		}
 
 		// A pure component shouldn't manipulate the prop straightly.
 		if (!$isPuredDerived) {
-			value = innerValue;
+			value = $finalValueDerived;
 		}
 
 		if (!silent) {
-			dispatch('input', innerValue);
+			dispatch('input', $finalValueDerived);
 		}
 	}
 
@@ -183,37 +183,37 @@
 
 		displayValue = val + '';
 
-		const curValue = innerValue;
+		const curValue = $valueWatched;
 
 		if (typeof val === 'number') {
-			innerValue = val;
+			valueWatched.set(val);
 		} else {
 			if (judgeValidNumLikeStr(val)) {
-				innerValue = parseNumLikeStr(val);
+				valueWatched.set(parseNumLikeStr(val));
 			} else {
-				innerValue = defaultValue;
+				valueWatched.set(defaultValue);
 			}
 		}
 
-		if (innerValue > maximum) {
-			innerValue = maximum;
+		if ($valueWatched > maximum) {
+			valueWatched.set(maximum);
 		}
 
-		if (innerValue < minimum) {
-			innerValue = minimum;
+		if ($valueWatched < minimum) {
+			valueWatched.set(minimum);
 		}
 
 		if (precise > 0) {
-			innerValue = parseNumLikeStr(innerValue.toFixed(precise));
+			valueWatched.set(parseNumLikeStr($finalValueDerived.toFixed(precise)));
 		}
 
-		if (curValue === innerValue) {
-			displayValue = calcDisplayValue(innerValue, precise);
+		if (curValue === $valueWatched) {
+			displayValue = calcDisplayValue($finalValueDerived, precise);
 
 			return;
 		}
 
-		if (judgeValidNum(innerValue, { maximum, minimum })) {
+		if (judgeValidNum($valueWatched, { maximum, minimum })) {
 			return;
 		}
 
@@ -224,24 +224,24 @@
 				// Means: <FormItem prop=""> or <FormItem></FormItem>.
 				// Revert the changes.
 				inputEl.value = displayValue = calcDisplayValue(value, precise);
-				innerValue = value;
+				valueWatched.set(value);
 
 				return;
 			}
 
 			if (!silent) {
-				formItemFieldMisc.events.handleFieldSetValue(innerValue, FormRuleTrigger.Change);
+				formItemFieldMisc.events.handleFieldSetValue($valueWatched, FormRuleTrigger.Change);
 			}
 		}
 
 		// A pure component shouldn't manipulate the prop straightly.
 		if (!$isPuredDerived) {
-			value = innerValue;
+			value = $finalValueDerived;
 		}
 
-		displayValue = calcDisplayValue(innerValue, precise);
+		displayValue = calcDisplayValue($finalValueDerived, precise);
 		if (!silent) {
-			dispatch('change', innerValue);
+			dispatch('change', $finalValueDerived);
 		}
 	}
 
@@ -278,23 +278,23 @@
 			return;
 		}
 
-		const curValue = innerValue;
+		const curValue = $valueWatched;
 		if (!isInnerValueValid) {
-			innerValue = defaultValue;
+			valueWatched.set(defaultValue);
 		}
-		if (innerValue > maximum) {
-			innerValue = maximum;
-		}
-
-		if (innerValue < minimum) {
-			innerValue = minimum;
+		if ($valueWatched > maximum) {
+			valueWatched.set(maximum);
 		}
 
-		if (innerValue !== curValue) {
-			change(innerValue);
+		if ($valueWatched < minimum) {
+			valueWatched.set(minimum);
 		}
 
-		displayValue = calcDisplayValue(innerValue, precise);
+		if ($valueWatched !== curValue) {
+			change($finalValueDerived);
+		}
+
+		displayValue = calcDisplayValue($finalValueDerived, precise);
 
 		if ($isFormItemFieldMiscValid) {
 			formItemFieldMisc.events.handleFieldBlur(e);
@@ -309,7 +309,7 @@
 		}
 
 		if (!isInnerValueValid) {
-			innerValue = defaultValue;
+			valueWatched.set(defaultValue);
 		}
 
 		if (!showStepOperations) {
@@ -320,7 +320,7 @@
 			return;
 		}
 
-		return change(innerValue - stepGap);
+		return change($finalValueDerived - stepGap);
 	}
 
 	function handleExecStepGapPlus() {
@@ -329,7 +329,7 @@
 		}
 
 		if (!isInnerValueValid) {
-			innerValue = defaultValue;
+			valueWatched.set(defaultValue);
 		}
 
 		if (!showStepOperations) {
@@ -340,7 +340,7 @@
 			return;
 		}
 
-		return change(innerValue + stepGap);
+		return change($finalValueDerived + stepGap);
 	}
 
 	onMount(function () {

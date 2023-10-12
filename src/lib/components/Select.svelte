@@ -8,7 +8,7 @@
 	import { initialFormItemFieldMisc } from '$lib/components/form/utils';
 	import { FormRuleTrigger } from '$lib/types';
 
-	const initialSelectedValue = Symbol('initialSelectedValue');
+	const initialValue = Symbol('initialValue');
 	const dispatch = createEventDispatcher();
 	const defaultName = `select-${calcRandomCompNameSuffix()}`;
 
@@ -24,13 +24,12 @@
 	// Is a pure component, will not change the prop-value straightly
 	export let pure = false;
 	// Consider that the component is a pure component. Will not straightly manipulate the props.
-	export let value: any = initialSelectedValue;
+	export let value: any = initialValue;
 	export let emptyNotice = 'Empty.';
 	export let unmatchedNotice = 'Unmatched.';
 
 	let optionsVisible = defaultOptionsVisible;
 	let searchContent = '';
-	let selectedValue: any | symbol = value;
 	let inputIns: null | Input = null;
 
 	const nameWatched = writable(name);
@@ -43,9 +42,11 @@
 	$: loadingWatched.set(loading);
 	const pureWatched = writable(pure);
 	$: pureWatched.set(pure);
+	const valueWatched = writable(value as any | symbol);
+	$: valueWatched.set(value);
 
-	const formItemFieldMisc = initialFormItemFieldMisc(
-		{ disabledWatched, readonlyWatched, loadingWatched, nameWatched, defaultName, pureWatched },
+	const formItemFieldMisc = initialFormItemFieldMisc<typeof value>(
+		{ disabledWatched, readonlyWatched, loadingWatched, nameWatched, defaultName, pureWatched, valueWatched },
 		{ fieldType: 'select' }
 	);
 	const isFormItemFieldMiscValid = formItemFieldMisc.metrics.valid;
@@ -54,6 +55,7 @@
 		finalLoadingDerived,
 		finalReadonlyDerived,
 		finalDisabledDerived,
+		finalValueDerived,
 		isNameOrFormFieldPropPresetDerived,
 		isPuredDerived,
 		miscClasses
@@ -67,7 +69,7 @@
 			'select--loading': $finalLoadingDerived,
 			'select--options-visible': optionsVisible,
 			'select--searchable': searchable,
-			'select--valued': selectedValue !== initialSelectedValue
+			'select--valued': $finalValueDerived !== initialValue
 		},
 		$$restProps.class,
 		miscClasses
@@ -77,9 +79,8 @@
 		? options.filter((o) => o.label && o.label.toLowerCase().includes(searchContent.toLowerCase()))
 		: options;
 
-	$: {
-		selectedValue = value;
-	}
+	$: matchedOption = options.find((op) => op.value === $finalValueDerived);
+	$: displayValue = $finalValueDerived === initialValue ? '' : $finalValueDerived || '';
 
 	function judgeOptionInvalid(option: SelectOptionItem) {
 		return options && typeof option.label === 'string' && option.label && option.value;
@@ -90,31 +91,31 @@
 			return;
 		}
 
-		selectedValue = option.value;
+		valueWatched.set(option.value);
 		if ($isFormItemFieldMiscValid) {
 			if (!$isNameOrFormFieldPropPresetDerived) {
 				// If form context found, but field didn't set the 'prop' value.
 				// Means: <FormItem prop=""> or <FormItem></FormItem>.
 				// Revert the changes.
-				selectedValue = value;
+				valueWatched.set(option.value);
 
 				return;
 			}
 
-			formItemFieldMisc.events.handleFieldSetValue(selectedValue, FormRuleTrigger.Input);
+			formItemFieldMisc.events.handleFieldSetValue($valueWatched, FormRuleTrigger.Input);
 		}
 
 		// A pure component shouldn't manipulate the prop straightly.
 		if (!$isPuredDerived) {
-			value = selectedValue;
+			value = $valueWatched;
 		}
 
-		dispatch('input', selectedValue);
+		dispatch('input', $finalValueDerived);
 
 		hideOptions();
 	}
 
-	function calcSelectOptionClass(option: SelectOptionItem, selected: typeof selectedValue) {
+	function calcSelectOptionClass(option: SelectOptionItem, selected: SelectOptionItem['value'] | any) {
 		return calcDynamicClasses([
 			'select-option',
 			{
@@ -203,7 +204,15 @@
 	<div class="select-wrapper">
 		<div class="select-container" on:click={handleClickContainer}>
 			<div class="select-selector">
-				<div class="select-value">{selectedValue}</div>
+				{#if matchedOption}
+					{#if matchedOption.labelUsingHtml}
+						<div class="select-value">{@html matchedOption.label}</div>
+					{:else}
+						<div class="select-value">{matchedOption.label}</div>
+					{/if}
+				{:else}
+					<div class="select-value">{displayValue}</div>
+				{/if}
 				{#if searchable}
 					<Input
 						class="select-search-input"
@@ -230,7 +239,7 @@
 				{@const isOptionValid = judgeOptionInvalid(option)}
 				{#if isOptionValid || !hideInvalidOptions}
 					<div
-						class={calcSelectOptionClass(option, selectedValue)}
+						class={calcSelectOptionClass(option, $finalValueDerived)}
 						on:click={handleChooseOptionItem.bind(this, option)}
 					>
 						{@html option.label}

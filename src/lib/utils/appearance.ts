@@ -77,6 +77,9 @@ export const createThemeMisc = function createThemeMisc() {
 		useLightTheme() {
 			themeMisc.theme.set(PageTheme.Light);
 		},
+		useSystemTheme() {
+			themeMisc.theme.set(calcTheme());
+		},
 		initEvents: initThemeEvents,
 		deInitEvents: deInitThemeEvents,
 		subscribe,
