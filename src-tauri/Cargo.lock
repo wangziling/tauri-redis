@@ -3172,6 +3172,7 @@ dependencies = [
  "tauri_redis_core",
  "thiserror",
  "tokio",
+ "tokio-stream",
  "uuid",
 ]
 
