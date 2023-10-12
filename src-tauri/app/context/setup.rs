@@ -59,17 +59,20 @@ where
 
     // Get the current language and enable it.
     let settings_manager = handle.state::<SettingsManager>();
-    let settings_manager_lock = settings_manager.read().unwrap();
-    let target_language = settings_manager_lock.get("language");
-    if target_language.is_some() {
-        let target_language = target_language.unwrap().as_str().unwrap();
 
-        TRANSLATIONS
-            .write()
-            .unwrap()
-            .switch_to(target_language)
-            .unwrap();
-    }
+    tauri::async_runtime::block_on(async move {
+        let settings_manager_lock = settings_manager.read().await;
+        let target_language = settings_manager_lock.get("language");
+        if target_language.is_some() {
+            let target_language = target_language.unwrap().as_str().unwrap();
+
+            TRANSLATIONS
+                .write()
+                .unwrap()
+                .switch_to(target_language)
+                .unwrap();
+        }
+    });
 
     Ok(())
 }
