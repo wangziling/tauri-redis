@@ -124,9 +124,9 @@ export class Translator {
 		return this.translations.subscribe(...args);
 	}
 
-	derived(callback: (translations: Translations) => any) {
+	derived(callback?: (translations: Translations) => any) {
 		return derived<Writable<Translations>, Translations>(this.translations, function (translations) {
-			return callback(translations);
+			return typeof callback === 'function' ? callback(translations) : translations;
 		});
 	}
 }
