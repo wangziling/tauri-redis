@@ -9,7 +9,9 @@ use tauri::{
     Manager, Runtime,
 };
 
-pub static TRANSLATIONS: Lazy<Arc<RwLock<Translations>>> =
+pub type TranslationManager = Arc<RwLock<Translations>>;
+
+pub static TRANSLATIONS: Lazy<TranslationManager> =
     Lazy::new(|| Arc::new(RwLock::new(Translations::new())));
 
 /// Initializes the plugin.
