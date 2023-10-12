@@ -2,5 +2,5 @@
 	"theme": "",
 	"language": "en-US",
 	"fontFamily": [],
-	"redisEachScanCount": 50
+	"redisEachScanCount": 1000
 }
