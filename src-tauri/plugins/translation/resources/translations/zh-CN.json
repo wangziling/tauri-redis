@@ -42,5 +42,8 @@
 	"key ttl": "存活时间",
 	"invalid key metrics": "不合规的键数据",
 	"save": "保存",
-	"n/a": "不适用"
+	"n/a": "不适用",
+	"theme system": "适应系统",
+	"theme dark": "深色",
+	"theme light": "浅色"
 }
