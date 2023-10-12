@@ -1,11 +1,11 @@
 use crate::features::error::{Error, Result};
-use crate::features::state::{Settings, SettingsMap, SettingsMapValue};
-use std::sync::{Arc, RwLock};
+use crate::features::state::{SettingsMap, SettingsMapValue};
+use crate::SettingsManager;
 use tauri::State;
 
 #[tauri::command]
-pub async fn resources(state: State<'_, Arc<RwLock<Settings>>>) -> Result<SettingsMap> {
-    let lock = state.read().unwrap();
+pub async fn resources(state: State<'_, SettingsManager>) -> Result<SettingsMap> {
+    let lock = state.read().await;
 
     lock.inner
         .as_ref()
@@ -14,12 +14,12 @@ pub async fn resources(state: State<'_, Arc<RwLock<Settings>>>) -> Result<Settin
 }
 
 #[tauri::command]
-pub async fn get(state: State<'_, Arc<RwLock<Settings>>>, key: String) -> Result<SettingsMapValue> {
+pub async fn get(state: State<'_, SettingsManager>, key: String) -> Result<SettingsMapValue> {
     if key.is_empty() {
         return Err(Error::InvalidParameter);
     }
 
-    let lock = state.read().unwrap();
+    let lock = state.read().await;
 
     lock.get(&key)
         .ok_or_else(|| Error::FailedToGetTargetSettingItem)
@@ -28,7 +28,7 @@ pub async fn get(state: State<'_, Arc<RwLock<Settings>>>, key: String) -> Result
 
 #[tauri::command]
 pub async fn set(
-    state: State<'_, Arc<RwLock<Settings>>>,
+    state: State<'_, SettingsManager>,
     key: String,
     value: SettingsMapValue,
 ) -> Result<()> {
@@ -36,7 +36,7 @@ pub async fn set(
         return Err(Error::InvalidParameter);
     }
 
-    let mut lock = state.write().unwrap();
+    let mut lock = state.write().await;
 
     lock.insert(key, value)
         .ok_or_else(|| Error::FailedToSetTargetSettingItem)?;
@@ -45,8 +45,8 @@ pub async fn set(
 }
 
 #[tauri::command]
-pub async fn reset(state: State<'_, Arc<RwLock<Settings>>>) -> Result<()> {
-    let mut lock = state.write().unwrap();
+pub async fn reset(state: State<'_, SettingsManager>) -> Result<()> {
+    let mut lock = state.write().await;
 
     lock.reset().map_err(|_| Error::FailedToLoadTheSettingFile)
 }
