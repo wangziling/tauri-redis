@@ -41,12 +41,15 @@ pub async fn set(
     lock.insert(key, value)
         .ok_or_else(|| Error::FailedToSetTargetSettingItem)?;
 
-    Ok(())
+    lock.save()
 }
 
 #[tauri::command]
 pub async fn reset(state: State<'_, SettingsManager>) -> Result<()> {
     let mut lock = state.write().await;
 
-    lock.reset().map_err(|_| Error::FailedToLoadTheSettingFile)
+    lock.reset()
+        .map_err(|_| Error::FailedToLoadTheSettingFile)?;
+
+    lock.save()
 }
