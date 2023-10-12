@@ -37,7 +37,7 @@
 	"release connection": "Release connection",
 	"remove connection": "remove connection",
 	"edit": "Edit",
-	"grep keys": "Grep keys",
+	"grep keys by press enter": "Grep keys by pressing Enter.",
 	"remove key": "Remove key",
 	"key ttl": "TTL",
 	"invalid key metrics": "Invalid key metrics",
