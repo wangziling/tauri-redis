@@ -78,6 +78,35 @@
 			.catch(invokeErrorHandle);
 	}
 
+	function previewKey(guid: IpcConnection['guid'], key: string) {
+		const existedIdx = mainTabsConfig.tabs.findIndex(
+			(tab) => tab.type === MainTabType.KeyDetail && tab.data.key === key && tab.data.connectionInfo.guid === guid
+		);
+		if (existedIdx !== -1) {
+			mainTabsConfig.activeIdx = existedIdx;
+			return;
+		}
+
+		const targetConnection = pageConnections.find(function (conn) {
+			return conn.info.guid === guid;
+		});
+		if (!targetConnection) {
+			return;
+		}
+
+		mainTabsConfig.tabs.push({
+			type: MainTabType.KeyDetail,
+			data: {
+				connectionInfo: targetConnection.info,
+				db: 0,
+				key
+			}
+		});
+
+		mainTabsConfig.tabs = mainTabsConfig.tabs;
+		mainTabsConfig.activeIdx = mainTabsConfig.tabs.length - 1;
+	}
+
 	function handleNewConnection() {
 		newConnectionDialogOpened = true;
 	}
@@ -154,6 +183,7 @@
 		}
 
 		return fetchCreateNewKey(newKeyDialogConfig.currentGuid, payload)
+			.then(() => previewKey(newKeyDialogConfig.currentGuid, payload.name))
 			.then(() => listAllKeys(newKeyDialogConfig.currentGuid, { useRefresh: true, refreshOffset: 1 }))
 			.then(() => payload)
 			.catch(invokeErrorHandle);
@@ -221,6 +251,12 @@
 				});
 
 				mainTabsConfig.tabs = mainTabsConfig.tabs;
+				// If activeIdx is not a valid idx.
+				// Reset it as the last item idx.
+				if (mainTabsConfig.activeIdx < 0 || mainTabsConfig.activeIdx >= mainTabsConfig.tabs.length) {
+					mainTabsConfig.activeIdx = Math.max(mainTabsConfig.tabs.length - 1, 0);
+				}
+
 				pageConnections = pageConnections;
 			})
 			.catch(invokeErrorHandle);
@@ -295,32 +331,8 @@
 		}>
 	) {
 		const { key, guid } = e.detail;
-		const existedIdx = mainTabsConfig.tabs.findIndex(
-			(tab) => tab.type === MainTabType.KeyDetail && tab.data.key === key && tab.data.connectionInfo.guid === guid
-		);
-		if (existedIdx !== -1) {
-			mainTabsConfig.activeIdx = existedIdx;
-			return;
-		}
 
-		const targetConnection = pageConnections.find(function (conn) {
-			return conn.info.guid === guid;
-		});
-		if (!targetConnection) {
-			return;
-		}
-
-		mainTabsConfig.tabs.push({
-			type: MainTabType.KeyDetail,
-			data: {
-				connectionInfo: targetConnection.info,
-				db: 0,
-				key
-			}
-		});
-
-		mainTabsConfig.tabs = mainTabsConfig.tabs;
-		mainTabsConfig.activeIdx = mainTabsConfig.tabs.length - 1;
+		return previewKey(guid, key);
 	}
 
 	function handleChooseTab(
