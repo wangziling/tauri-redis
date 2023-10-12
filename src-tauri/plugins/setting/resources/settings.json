@@ -1,5 +1,19 @@
 {
-	"theme": "",
+	"theme": "system",
+	"themes": [
+		{
+			"labelTranslationKey": "theme system",
+			"value": "system"
+		},
+		{
+			"labelTranslationKey": "theme dark",
+			"value": "dark"
+		},
+		{
+			"labelTranslationKey": "theme light",
+			"value": "light"
+		}
+	],
 	"language": "en-US",
 	"fontFamily": [],
 	"redisEachScanCount": 1000
