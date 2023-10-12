@@ -13,16 +13,18 @@
 	import {
 		fetchEstablishConnection,
 		fetchGetConnections,
+		fetchRefreshScanRedisAllKeys,
 		fetchReleaseConnection,
 		fetchRemoveConnection,
-		fetchSaveConnection
+		fetchSaveConnection,
+		fetchScanRedisAllKeys
 	} from '$lib/apis';
-	import { fetchCreateNewKey, fetchListRedisAllKeys, fetchListRedisClientMetrics, fetchRemoveKey } from '$lib/apis';
+	import { fetchCreateNewKey, fetchListRedisClientMetrics, fetchRemoveKey } from '$lib/apis';
 	import Main from './Main.svelte';
 	import { invokeErrorHandle } from '$lib/utils/page';
 	import NewConnectionDialog from './NewConnectionDialog.svelte';
 	import NewKeyDialog from './NewKeyDialog.svelte';
-	import { debounce, merge, remove } from 'lodash-es';
+	import { debounce, merge, remove, get as lodashGet } from 'lodash-es';
 	import EditConnectionDialog from './EditConnectionDialog.svelte';
 
 	let pageConnections: PageConnections = [];
@@ -39,9 +41,17 @@
 		opened: false,
 		currentConnection: null as IpcConnection | null
 	};
+	let grepContent = '';
 
-	function listAllKeys(guid: IpcConnection['guid'], conditionPart?: string) {
-		return fetchListRedisAllKeys(guid, conditionPart)
+	function listAllKeys(
+		guid: IpcConnection['guid'],
+		options?: Partial<{ useRefresh?: boolean; refreshOffset?: number }>
+	) {
+		return (
+			lodashGet(options, 'useRefresh')
+				? fetchRefreshScanRedisAllKeys(guid, grepContent, lodashGet(options, 'refreshOffset'))
+				: fetchScanRedisAllKeys(guid, grepContent)
+		)
 			.then((res) => {
 				const allKeys = res.data;
 				if (!Array.isArray(allKeys)) {
@@ -106,7 +116,9 @@
 			return;
 		}
 
-		return listAllKeys(guid, conditionPart);
+		grepContent = conditionPart;
+
+		return listAllKeys(guid);
 	}
 
 	function handleCloseNewKeyDialog() {
@@ -142,7 +154,7 @@
 		}
 
 		return fetchCreateNewKey(newKeyDialogConfig.currentGuid, payload)
-			.then(() => listAllKeys(newKeyDialogConfig.currentGuid))
+			.then(() => listAllKeys(newKeyDialogConfig.currentGuid, { useRefresh: true, refreshOffset: 1 }))
 			.then(() => payload)
 			.catch(invokeErrorHandle);
 	}
@@ -161,7 +173,7 @@
 		}
 
 		fetchEstablishConnection(connection.guid)
-			.then(() => Promise.all([fetchListRedisClientMetrics(connection.guid), fetchListRedisAllKeys(connection.guid)]))
+			.then(() => Promise.all([fetchListRedisClientMetrics(connection.guid), fetchScanRedisAllKeys(connection.guid)]))
 			.then(([metricsRes, keysRes]) => {
 				const keys = keysRes.data;
 				const targetConnection = pageConnections.find(function (conn) {
@@ -258,7 +270,7 @@
 			guid: IpcConnection['guid'];
 		}>
 	) {
-		return listAllKeys(e.detail.guid);
+		return listAllKeys(e.detail.guid, { useRefresh: true });
 	}
 
 	function handleRemoveKey(

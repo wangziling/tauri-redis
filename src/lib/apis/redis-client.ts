@@ -15,6 +15,14 @@ export function fetchListRedisAllKeys(guid: IpcConnection['guid'], conditionPart
 	return fetchIpc<string[]>('list_all_keys', { guid, conditionPart });
 }
 
+export function fetchScanRedisAllKeys(guid: IpcConnection['guid'], conditionPart?: string) {
+	return fetchIpc<string[]>('scan_all_keys', { guid, conditionPart });
+}
+
+export function fetchRefreshScanRedisAllKeys(guid: IpcConnection['guid'], conditionPart?: string, offset?: number) {
+	return fetchIpc<string[]>('refresh_scanned_all_keys', { guid, conditionPart, offset });
+}
+
 export function fetchCreateNewKey(guid: IpcConnection['guid'], params: SaveIpcNewKeyPayload) {
 	return fetchIpc<void>('create_new_key', { guid, keyName: params.name, keyType: params.type });
 }
