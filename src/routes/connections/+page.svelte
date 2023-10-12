@@ -320,7 +320,7 @@
 	) {
 		const { key, guid } = e.detail;
 		return fetchRemoveKey(guid, key)
-			.then(() => listAllKeys(guid))
+			.then(() => listAllKeys(guid, { useRefresh: true }))
 			.catch(invokeErrorHandle);
 	}
 
