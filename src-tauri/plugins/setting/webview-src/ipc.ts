@@ -5,7 +5,7 @@ export function resources(): Promise<Settings> {
 	return invoke('plugin:setting|resources');
 }
 
-export function get(key: keyof Settings): Promise<any> {
+export function get<T = any>(key: keyof Settings): Promise<T> {
 	return invoke('plugin:setting|get', { key });
 }
 
