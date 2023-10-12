@@ -1,19 +1,26 @@
+#![allow(dead_code)]
+
 use crate::features::command::Guid;
 use crate::features::error::{Error, Result};
 use crate::utils::config::get_redis_connection_timeout;
 use fred::interfaces::ClientLike;
 use fred::tracing::Level;
 use fred::types::{
-    Blocking, Builder, RedisConfig, RedisValue, RespVersion, ServerConfig, TracingConfig,
+    Blocking, Builder, RedisConfig, RedisKey, RedisValue, RespVersion, ScanType, Scanner,
+    ServerConfig, TracingConfig,
 };
 use once_cell::sync::Lazy;
 use serde::Serialize;
 use std::collections::{hash_map, HashMap};
 use std::ops::{Deref, DerefMut};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use tauri::command::{CommandArg, CommandItem};
 use tauri::{InvokeError, Runtime};
+use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver};
+use tokio::task::JoinHandle;
+use tokio_stream::StreamExt;
 
 static PENDING_REDIS_CONNECTION_TASKS: Lazy<Arc<Mutex<Vec<Guid>>>> =
     Lazy::new(|| Arc::new(Mutex::new(vec![])));
@@ -24,7 +31,6 @@ pub struct RedisInfoDict {
 
 // Inspired from https://github.com/redis-rs/redis-rs/blob/d8c5436ea8fe19f10efefd55cbc1f9d36700e8df/redis/src/types.rs#L687
 // Thanks a lot.
-#[allow(dead_code)]
 impl RedisInfoDict {
     pub fn new(info_str: impl Into<String>) -> Self {
         let mut map = HashMap::new();
@@ -81,13 +87,6 @@ impl Deref for RedisInfoDict {
     }
 }
 
-// impl From<RedisValue> for RedisInfoDict {
-//     fn from(value: RedisValue) -> Self {
-//         Self::new(String::from_value(value).unwrap())
-//     }
-// }
-
-#[allow(dead_code)]
 #[derive(PartialEq, Debug, Serialize)]
 pub enum RedisKeyType {
     String,
@@ -139,8 +138,43 @@ pub struct RedisClientConnectionPayload {
     pub guid: Guid,
 }
 
+#[derive(Debug)]
+pub struct RedisScannerResult {
+    keys: Vec<RedisKey>,
+    can_continue: bool,
+}
+
+impl RedisScannerResult {
+    pub fn keys(&self) -> &Vec<RedisKey> {
+        &self.keys
+    }
+    pub fn can_continue(&self) -> bool {
+        self.can_continue
+    }
+}
+
+impl Default for RedisScannerResult {
+    fn default() -> Self {
+        Self {
+            keys: Default::default(),
+            can_continue: true,
+        }
+    }
+}
+
+pub struct RedisScanner {
+    pattern: String,
+    iter_count: u32,
+    r#type: Option<ScanType>,
+    rx: UnboundedReceiver<Result<RedisScannerResult>>,
+    signal: Arc<AtomicBool>,
+    handler: Option<JoinHandle<()>>,
+    scanned_count: Arc<AtomicU32>,
+}
+
 pub struct RedisClient {
     manager: fred::clients::RedisClient,
+    scanner: Option<RedisScanner>,
 }
 
 #[derive(Default)]
@@ -191,15 +225,168 @@ impl RedisClient {
             .await
             .map_err(Error::RedisInternalError)?;
 
-        Ok(Self { manager: client })
+        Ok(Self {
+            manager: client,
+            scanner: None,
+        })
     }
 
     pub fn conn(&mut self) -> Result<&mut fred::clients::RedisClient> {
         Ok(&mut self.manager)
     }
+
+    async fn _invoke_new_scan(
+        &mut self,
+        pattern: String,
+        iter_count: u32,
+        needed_count: u32,
+        r#type: Option<ScanType>,
+    ) -> Result<()> {
+        let (sx, rx) = unbounded_channel::<Result<RedisScannerResult>>();
+
+        let signal = Arc::new(AtomicBool::new(true));
+        let scanned_count = Arc::new(AtomicU32::new(0));
+
+        let old = self.scanner.replace(RedisScanner {
+            rx,
+            pattern: pattern.clone(),
+            iter_count,
+            r#type: r#type.clone(),
+            signal: signal.clone(),
+            handler: None,
+            scanned_count: scanned_count.clone(),
+        });
+
+        drop(old);
+
+        let conn = self.conn()?;
+        let mut stream = conn.scan(pattern, Some(iter_count), r#type);
+        let signal = signal.clone();
+        let scanned_count = scanned_count.clone();
+        let old = self
+            .scanner
+            .as_mut()
+            .unwrap()
+            .handler
+            .replace(tokio::spawn(async move {
+                loop {
+                    if signal.load(Ordering::Relaxed) {
+                        signal.fetch_and(false, Ordering::Relaxed);
+
+                        let mut sent = false;
+                        let mut keys = Vec::with_capacity(iter_count as usize);
+                        while let Some(result) = stream.next().await {
+                            let result = result.map_err(Error::RedisInternalError);
+                            if result.is_err() {
+                                sx.send(Err(result.err().unwrap())).unwrap();
+                                sent = true;
+
+                                // End `next` loop.
+                                // Means we only request once.
+                                break;
+                            }
+
+                            let mut value = result.unwrap();
+                            let can_continue = value.has_more();
+                            let mut scanned_keys = value.take_results().unwrap_or_default();
+
+                            // Record scanned count.
+                            let scanned_keys_len = scanned_keys.len() as u32;
+                            scanned_count.fetch_add(scanned_keys_len, Ordering::Relaxed);
+
+                            // Append
+                            keys.append(&mut scanned_keys);
+
+                            // If we scanned enough items
+                            // or cannot scan anymore.
+                            let scanned_count_raw = scanned_count.load(Ordering::Relaxed);
+                            let scanned_enough = scanned_count_raw >= needed_count || !can_continue;
+                            if scanned_enough {
+                                scanned_count.fetch_and(keys.len() as u32, Ordering::Relaxed);
+
+                                sx.send(Ok(RedisScannerResult { keys, can_continue }))
+                                    .unwrap();
+                                sent = true;
+
+                                // End `next` loop.
+                                break;
+                            }
+
+                            // Continue scanning.
+                            let _ = value.next();
+                        }
+
+                        if !sent {
+                            sx.send(Ok(Default::default())).unwrap();
+                        }
+                    } else {
+                        tokio::time::sleep(Duration::from_millis(500)).await;
+                    }
+                }
+            }));
+
+        drop(old);
+
+        Ok(())
+    }
+
+    pub async fn scan(
+        &mut self,
+        pattern: String,
+        iter_count: u32,
+        needed_count: u32,
+        r#type: Option<ScanType>,
+    ) -> Result<RedisScannerResult> {
+        let iter_count = iter_count.max(needed_count);
+
+        if self.scanner.is_some() {
+            let scanner = self.scanner.as_mut().unwrap();
+
+            if scanner.pattern != pattern
+                || scanner.iter_count != iter_count
+                || scanner.r#type != r#type
+            {
+                self._invoke_new_scan(pattern, iter_count, needed_count, r#type)
+                    .await?;
+            }
+        } else {
+            self._invoke_new_scan(pattern, iter_count, needed_count, r#type)
+                .await?;
+        }
+
+        // Continue scan.
+        let scanner = self.scanner.as_mut().unwrap();
+        scanner.signal.fetch_or(true, Ordering::Relaxed);
+
+        while let Some(result) = scanner.rx.recv().await {
+            return result;
+        }
+
+        Err(Error::FailedToGetRedisScanResult)
+    }
+
+    pub async fn refresh_scan(
+        &mut self,
+        pattern: String,
+        iter_count: u32,
+        needed_count: u32,
+        r#type: Option<ScanType>,
+    ) -> Result<RedisScannerResult> {
+        self._invoke_new_scan(pattern, iter_count.max(needed_count), needed_count, r#type)
+            .await?;
+
+        // Continue scan.
+        let scanner = self.scanner.as_mut().unwrap();
+        scanner.signal.fetch_or(true, Ordering::Relaxed);
+
+        while let Some(result) = scanner.rx.recv().await {
+            return result;
+        }
+
+        Err(Error::FailedToGetRedisScanResult)
+    }
 }
 
-#[allow(dead_code)]
 impl RedisClientManager {
     pub fn new() -> Self {
         Self::default()

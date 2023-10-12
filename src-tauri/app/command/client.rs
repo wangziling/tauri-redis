@@ -7,6 +7,7 @@ use fred::types::{CustomCommand, InfoKind, RedisValue};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tauri::State;
+use tauri_plugin_tauri_redis_setting::SettingsManager;
 use tokio::sync::Mutex;
 
 #[tauri::command]
@@ -74,6 +75,78 @@ pub async fn list_all_keys(
         .into_array()
         .into_iter()
         .filter_map(|item| item.into_string())
+        .collect();
+
+    Ok(Response::success(Some(result), None))
+}
+
+#[tauri::command]
+pub async fn scan_all_keys(
+    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    settings_manager: State<'_, SettingsManager>,
+    guid: Guid,
+    condition_part: Option<String>,
+) -> Result<Response<Vec<String>>> {
+    let mut lock = redis_client_manager.lock().await;
+
+    let manager = lock
+        .get_mut(&guid)
+        .ok_or_else(|| Error::FailedToFindExistedRedisConnection)?;
+
+    let pattern = condition_part
+        .and_then(|part| if part.is_empty() { None } else { Some(part) })
+        .map_or_else(|| "*".to_string(), |part| "*".to_string() + &part + "*");
+
+    let settings_lock = settings_manager.read().await;
+    let redis_each_scan_count: u32 = settings_lock.get_de("redisEachScanCount").unwrap();
+
+    let scan_result = manager
+        .scan(pattern, redis_each_scan_count, redis_each_scan_count, None)
+        .await?;
+
+    let result = scan_result
+        .keys()
+        .iter()
+        .filter_map(|key| key.as_str().and_then(|str| Some(str.to_string())))
+        .collect();
+
+    Ok(Response::success(Some(result), None))
+}
+
+#[tauri::command]
+pub async fn refresh_scanned_all_keys(
+    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    settings_manager: State<'_, SettingsManager>,
+    guid: Guid,
+    condition_part: Option<String>,
+    offset: Option<u32>,
+) -> Result<Response<Vec<String>>> {
+    let mut lock = redis_client_manager.lock().await;
+
+    let manager = lock
+        .get_mut(&guid)
+        .ok_or_else(|| Error::FailedToFindExistedRedisConnection)?;
+
+    let pattern = condition_part
+        .and_then(|part| if part.is_empty() { None } else { Some(part) })
+        .map_or_else(|| "*".to_string(), |part| "*".to_string() + &part + "*");
+
+    let settings_lock = settings_manager.read().await;
+    let redis_each_scan_count: u32 = settings_lock.get_de("redisEachScanCount").unwrap();
+
+    let scan_result = manager
+        .refresh_scan(
+            pattern,
+            redis_each_scan_count,
+            redis_each_scan_count + offset.unwrap_or_default(),
+            None,
+        )
+        .await?;
+
+    let result = scan_result
+        .keys()
+        .iter()
+        .filter_map(|key| key.as_str().and_then(|str| Some(str.to_string())))
         .collect();
 
     Ok(Response::success(Some(result), None))

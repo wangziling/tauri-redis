@@ -15,6 +15,9 @@ pub enum Error {
     #[error(transparent)]
     FailedToGetRelatedConfig(#[from] tauri_redis_config::ConfigError),
 
+    #[error(transparent)]
+    AnyhowError(#[from] anyhow::Error),
+
     #[error("Failed to get the cached connections info.")]
     FailedToGetCachedConnectionsInfo,
     #[error("Failed to parse the cached connections info.")]
@@ -34,6 +37,8 @@ pub enum Error {
     SerdeJsonError(#[from] serde_json::Error),
     #[error("Failed to find existed redis connection.")]
     FailedToFindExistedRedisConnection,
+    #[error("Failed to get redis scan result.")]
+    FailedToGetRedisScanResult,
     #[error("Invalid redis key type.")]
     InvalidRedisKeyType,
     #[error("Invalid redis key name.")]
