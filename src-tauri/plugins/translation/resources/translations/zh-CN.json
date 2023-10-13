@@ -52,5 +52,6 @@
 	"settings choose theme": "选择主题",
 	"settings choose language": "选择语言",
 	"translation en-us": "English",
-	"translation zh-cn": "简体中文"
+	"translation zh-cn": "简体中文",
+	"settings set redis scan count": "设置每次加载的键的数量"
 }
