@@ -107,25 +107,27 @@
 				</div>
 			</div>
 			<div class="tabs-content">
-				{#each tabs as tab, idx (idx)}
-					{#if tab['type'] === MainTabType.Dashboard}
-						<div class={calcTabContentDynamicClasses(idx, 'tab-content__type-dashboard')}>
-							<Dashboard
-								class="tauri-redis-tab tauri-redis-tab__dashboard"
-								bind:data={tab.data}
-								on:refreshKeys
-								on:createNewKey
-								on:grepKeys
-								on:removeKey
-								on:previewKey
-							/>
-						</div>
-					{:else if tab['type'] === MainTabType.KeyDetail}
-						<div class={calcTabContentDynamicClasses(idx, 'tab-content__type-key-detail')}>
-							<KeyDetail class="tauri-redis-tab tauri-redis-tab__key-detail" bind:data={tab.data} />
-						</div>
-					{/if}
-				{/each}
+				<div class="tabs-content-wrapper">
+					{#each tabs as tab, idx (idx)}
+						{#if tab['type'] === MainTabType.Dashboard}
+							<div class={calcTabContentDynamicClasses(idx, 'tab-content__type-dashboard')}>
+								<Dashboard
+									class="tauri-redis-tab tauri-redis-tab__dashboard"
+									bind:data={tab.data}
+									on:refreshKeys
+									on:createNewKey
+									on:grepKeys
+									on:removeKey
+									on:previewKey
+								/>
+							</div>
+						{:else if tab['type'] === MainTabType.KeyDetail}
+							<div class={calcTabContentDynamicClasses(idx, 'tab-content__type-key-detail')}>
+								<KeyDetail class="tauri-redis-tab tauri-redis-tab__key-detail" bind:data={tab.data} />
+							</div>
+						{/if}
+					{/each}
+				</div>
 			</div>
 		</div>
 	{/if}
