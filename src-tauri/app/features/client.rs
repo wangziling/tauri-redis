@@ -308,6 +308,10 @@ impl RedisClient {
                                     .unwrap();
                                 sent = true;
 
+                                // Must use this, continue scanning.
+                                // Otherwise we will always got the previous result.
+                                let _ = value.next();
+
                                 // End `next` loop.
                                 break;
                             }
