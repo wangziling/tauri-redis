@@ -1,14 +1,16 @@
 <script lang="ts">
 	import type { MainTab, MainTabType } from '$lib/types';
-	import { calcDynamicClasses, emptyInsteadBy } from '$lib/utils/calculators';
+	import { calcDynamicClasses, createEachTagKeyGenerator, emptyInsteadBy } from '$lib/utils/calculators';
 	import Card from '$lib/components/Card.svelte';
 	import { translator } from 'tauri-redis-plugin-translation-api';
 	import constants from '$lib/constants';
 	import { merge } from 'lodash-es';
 	import { createEventDispatcher } from 'svelte';
 	import Input from '$lib/components/Input.svelte';
+	import Button from '$lib/components/Button.svelte';
 
 	const dispatch = createEventDispatcher();
+	const calcKeysKey = createEachTagKeyGenerator('keys');
 
 	export let data: Extract<MainTab, { type: MainTabType.Dashboard }>['data'] = {} as any;
 
@@ -140,7 +142,7 @@
 			</div>
 		</div>
 		<div class="dashboard__content">
-			{#each data['keys'] as key (key)}
+			{#each data['keys'] as key (calcKeysKey(key))}
 				<div class="dashboard__content-item dashboard__content-item--operable" on:click={() => handlePreviewKey(key)}>
 					<div class="dashboard__content-item-content">{key}</div>
 					<div class="dashboard__content-item-operations">

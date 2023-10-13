@@ -57,3 +57,11 @@ export function calcIpcKeyType(source: string) {
 export function emptyInsteadBy(value: any, instead: any = '-') {
 	return value ? value : instead;
 }
+
+export function createEachTagKeyGenerator(prefix: string = randomString(5)) {
+	let num = 0;
+
+	return function (key: string | number) {
+		return `${prefix}: ${key} - ${num++}`;
+	};
+}
