@@ -28,7 +28,7 @@
 
 	settings.subscribe((res) => {
 		model.update((m) => {
-			m.theme = res.theme;
+			m.theme = res.settings.theme;
 
 			return m;
 		});
@@ -51,10 +51,7 @@
 			}
 		}
 
-		return settings.set('theme', e.detail);
-	}
-
-	$: themesOptions = ($resources.themes || []).map((th) => ({
+	$: themesOptions = ($resources.presets.themes || []).map((th) => ({
 		label: translator.translate(th.labelTranslationKey),
 		value: th.value
 	}));
