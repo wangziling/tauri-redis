@@ -24,6 +24,7 @@
 	export let precise = 0; // 0 means Int.
 	export let stepGap = 1;
 	export let showStepOperations = true;
+	export let disableManualInputWhenShowStepOperations = false;
 
 	// Is a pure component, will not change the prop-value straightly
 	export let pure = false;
@@ -33,9 +34,6 @@
 	export let name = defaultName;
 
 	let displayValue: string = calcDisplayValue(value, precise);
-	$: {
-		displayValue = calcDisplayValue(value, precise);
-	}
 
 	let inputEl: HTMLInputElement | undefined;
 
@@ -68,10 +66,11 @@
 		miscClasses
 	} = formItemFieldMisc.getters;
 
-	$: isInnerValueValid = judgeValidNum($valueWatched);
+	$: isInnerValueValid = judgeValidNum($finalValueDerived);
 	$: isDisplayValueValid = judgeValidNumLikeStr(displayValue, { precise, maximum, minimum });
-	$: isStepOperationPlusDisabled = $valueWatched === maximum;
-	$: isStepOperationMinusDisabled = $valueWatched === minimum;
+	$: isStepOperationPlusDisabled = $finalValueDerived === maximum;
+	$: isStepOperationMinusDisabled = $finalValueDerived === minimum;
+	$: isInputElDisabledByStepOperations = disableManualInputWhenShowStepOperations && showStepOperations;
 	$: stepOperationPlusDynamicClasses = calcDynamicClasses([
 		'input__operation',
 		'input__operation-step-plus',
@@ -98,19 +97,27 @@
 			'input--disabled': $finalDisabledDerived,
 			'input--readonly': $finalReadonlyDerived,
 			'input--loading': $finalLoadingDerived,
-			'input--invalid-num': !isDisplayValueValid
+			'input--invalid-num': !isDisplayValueValid,
+			'input--disabled-by-step-operations': isInputElDisabledByStepOperations
 		},
 		$miscClasses,
 		$$restProps.class
 	]);
 
+	$: displayValue = calcDisplayValue($finalValueDerived, precise);
+
 	function input(
 		val: string | number,
-		options?: {
+		options?: Partial<{
 			silent: boolean;
-		}
+			byStepOperations: boolean;
+		}>
 	) {
-		if ($finalDisabledDerived || $finalReadonlyDerived) {
+		if (
+			$finalDisabledDerived ||
+			$finalReadonlyDerived ||
+			(isInputElDisabledByStepOperations && !lodashGet(options, 'byStepOperations'))
+		) {
 			if (inputEl) {
 				inputEl.value = displayValue;
 			}
@@ -173,7 +180,11 @@
 			silent: boolean;
 		}
 	) {
-		if ($finalDisabledDerived || $finalReadonlyDerived) {
+		if (
+			$finalDisabledDerived ||
+			$finalReadonlyDerived ||
+			(isInputElDisabledByStepOperations && !lodashGet(options, 'byStepOperations'))
+		) {
 			if (inputEl) {
 				inputEl.value = displayValue;
 			}
@@ -258,7 +269,7 @@
 			inputEl.value = displayValue;
 		}
 
-		if ($finalDisabledDerived || $finalReadonlyDerived) {
+		if ($finalDisabledDerived || $finalReadonlyDerived || isInputElDisabledByStepOperations) {
 			return;
 		}
 
@@ -274,7 +285,7 @@
 			inputEl.value = displayValue;
 		}
 
-		if ($finalDisabledDerived || $finalReadonlyDerived) {
+		if ($finalDisabledDerived || $finalReadonlyDerived || isInputElDisabledByStepOperations) {
 			return;
 		}
 
@@ -320,7 +331,7 @@
 			return;
 		}
 
-		return change($finalValueDerived - stepGap);
+		return input($finalValueDerived - stepGap, { byStepOperations: true });
 	}
 
 	function handleExecStepGapPlus() {
@@ -340,7 +351,7 @@
 			return;
 		}
 
-		return change($finalValueDerived + stepGap);
+		return input($finalValueDerived + stepGap, { byStepOperations: true });
 	}
 
 	onMount(function () {
@@ -358,8 +369,8 @@
 				type="text"
 				class="input__input-el"
 				{placeholder}
-				disabled={$finalDisabledDerived}
-				readonly={$finalReadonlyDerived}
+				disabled={$finalDisabledDerived || isInputElDisabledByStepOperations}
+				readonly={$finalReadonlyDerived || isInputElDisabledByStepOperations}
 				value={displayValue}
 				name={$finalNameDerived}
 				id={name}
