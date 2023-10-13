@@ -58,6 +58,7 @@
 		padding: var(--select-options-padding);
 		max-height: 57.5rem;
 		overflow: auto;
+		z-index: 1;
 	}
 
 	&-option {
@@ -67,7 +68,7 @@
 		border-radius: var(--base-border-radius);
 		cursor: pointer;
 
-		&:not(.select-option--selected) {
+		&:not(.select-option--selected, .select-option--disabled) {
 			&:hover,
 			&:focus {
 				background-color: var(--select-option-hover-bg-color);
@@ -76,6 +77,11 @@
 
 		&--selected {
 			background-color: var(--select-option-actve-bg-color);
+		}
+
+		&--disabled {
+			cursor: not-allowed;
+			text-align: center;
 		}
 	}
 
