@@ -19,6 +19,7 @@
 		return {
 			settings: translator.translate('settings|Settings'),
 			'settings appearance': translator.translate('settings appearance|Appearance'),
+			'settings miscellaneous': translator.translate('settings miscellaneous|Miscellaneous'),
 			'settings choose theme': translator.translate('settings choose theme|Choose theme'),
 			'settings choose language': translator.translate('settings choose language|Choose language'),
 			'settings set redis scan count': translator.translate(
@@ -111,6 +112,14 @@
 						<FormItem bind:label={$translations['settings choose language']} prop="language">
 							<Select options={languagesOptions} on:input={handleLanguageChange} />
 						</FormItem>
+					</Form>
+				</div>
+			</Card><Card class="settings-card settings-card__miscellaneous">
+				<div class="settings-card-header" slot="header">
+					<h4 class="settings-card-header__caption">{$translations['settings miscellaneous']}</h4>
+				</div>
+				<div class="settings-card-content">
+					<Form class="settings-form settings-form__appearance" {model} {rules}>
 						<FormItem bind:label={$translations['settings set redis scan count']} prop="redisEachScanCount">
 							<InputNumber
 								on:input={handleRedisEachScanCountChange}
