@@ -5,11 +5,13 @@
 	export let type: string = '';
 	export let content: string = '';
 	export let disabled = false;
+	export let size: 'default' | 'mini' | 'small' = 'default';
 
 	$: dynamicClasses = calcDynamicClasses([
 		'btn',
 		{
-			['btn--' + type]: type
+			['btn--' + type]: type,
+			['btn--size-' + size]: size
 		},
 		$$restProps.class
 	]);

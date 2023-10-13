@@ -1,11 +1,9 @@
 :root {
-	--select-container-padding: 1.2rem 1.5rem;
 	--select-disabled-bg-color: #{$color-grey};
 	--select-border-color: #{$color-grey-dark-2};
 	--select-placeholder-color: #{$color-grey-light-1};
 	--select-options-padding: 0.5rem;
 	--select-options-bg-color: var(--page-bg-color);
-	--select-option-padding: 0.7rem 1.2rem;
 	--select-option-actve-bg-color: #{$color-grey-dark};
 	--select-option-hover-bg-color: #{$color-grey-dark-2};
 }
@@ -16,7 +14,7 @@
 	&-container {
 		border: 1px solid var(--select-border-color);
 		border-radius: var(--base-border-radius);
-		padding: var(--select-container-padding);
+		padding: var(--base-field-padding);
 		cursor: pointer;
 		display: flex;
 		align-items: stretch;
@@ -29,6 +27,8 @@
 	&-selector {
 		flex-grow: 1;
 		padding-right: 0.5rem;
+		display: flex;
+		align-items: center;
 	}
 
 	&-operations {
@@ -64,7 +64,7 @@
 	&-option {
 		@extend %break-word;
 
-		padding: var(--select-option-padding);
+		padding: var(--base-field-operation-padding);
 		border-radius: var(--base-border-radius);
 		cursor: pointer;
 
@@ -141,6 +141,31 @@
 		.select-wrapper {
 			background-color: var(--select-disabled-bg-color);
 			color: var(--base-disabled-font-color);
+		}
+	}
+	&--size {
+		&-small {
+			font-size: var(--base-field-font-size-small);
+
+			.select-container {
+				padding: var(--base-field-padding-small);
+			}
+
+			.select-operation {
+				padding: var(--base-field-operation-padding-small);
+			}
+		}
+
+		&-mini {
+			font-size: var(--base-field-font-size-mini);
+
+			.select-container {
+				padding: var(--base-field-padding-mini);
+			}
+
+			.select-operation {
+				padding: var(--base-field-operation-padding-mini);
+			}
 		}
 	}
 }

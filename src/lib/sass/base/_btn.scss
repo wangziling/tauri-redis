@@ -1,7 +1,6 @@
 :root {
 	--button-bg-color: #{$color-white};
 	--button-hover-bg-color: #{$color-grey};
-	--button-padding: 1.2rem 1.5rem;
 	--button-border-color: #{$color-grey};
 	--button-font-color: var(--page-font-color);
 
@@ -36,7 +35,7 @@ button {
 	border-width: 1px;
 	outline: 0;
 	cursor: pointer;
-	padding: var(--button-padding);
+	padding: var(--base-field-padding);
 	border-radius: var(--base-border-radius);
 
 	&:hover,

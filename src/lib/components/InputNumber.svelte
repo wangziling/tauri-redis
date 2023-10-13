@@ -25,6 +25,7 @@
 	export let stepGap = 1;
 	export let showStepOperations = true;
 	export let disableManualInputWhenShowStepOperations = false;
+	export let size: 'default' | 'mini' | 'small' = 'default';
 
 	// Is a pure component, will not change the prop-value straightly
 	export let pure = false;
@@ -98,7 +99,8 @@
 			'input--readonly': $finalReadonlyDerived,
 			'input--loading': $finalLoadingDerived,
 			'input--invalid-num': !isDisplayValueValid,
-			'input--disabled-by-step-operations': isInputElDisabledByStepOperations
+			'input--disabled-by-step-operations': isInputElDisabledByStepOperations,
+			['input--size-' + size]: size
 		},
 		$miscClasses,
 		$$restProps.class

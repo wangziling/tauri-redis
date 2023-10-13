@@ -27,6 +27,7 @@
 
 	export let type: 'text' | 'textarea' | 'password' = 'text';
 	export let name = defaultName;
+	export let size: 'default' | 'mini' | 'small' = 'default';
 
 	let innerType = type;
 	$: innerType = type;
@@ -71,6 +72,7 @@
 			'input--readonly': $finalReadonlyDerived,
 			'input--loading': $finalLoadingDerived,
 			['input--type-' + type]: type,
+			['input--size-' + size]: size,
 			'input--resizable': resizable
 		},
 		$miscClasses,

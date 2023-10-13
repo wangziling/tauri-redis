@@ -24,6 +24,14 @@
 	--base-success-font-color: #{$color-green-light};
 	--base-warning-font-color: #{$color-yellow-light};
 	--base-danger-font-color: #{$color-red-dark};
+	--base-field-padding: 1.2rem 1.5rem;
+	--base-field-padding-small: 0.9rem 1.2rem;
+	--base-field-padding-mini: 0.7rem 0.9rem;
+	--base-field-operation-padding: 0.7rem 1.2rem;
+	--base-field-operation-padding-small: 0.5rem 1rem;
+	--base-field-operation-padding-mini: 0.3rem 0.8rem;
+	--base-field-font-size-small: 0.8em;
+	--base-field-font-size-mini: 0.6em;
 
 	--base-box-shadow: 0 0px 3px 0 rgba(0, 0, 0, 0.5);
 	--base-layered-bg-color: rgba(0, 0, 0, 0.3);

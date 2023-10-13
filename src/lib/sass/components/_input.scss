@@ -1,5 +1,4 @@
 :root {
-	--input-padding: 1.2rem 1.5rem;
 	--input-operation-color: #{$color-grey-dark};
 	--input-operation-active-color: #{$color-grey-dark-3};
 	--input-operation-inactive-color: #{$color-grey-light-3};
@@ -25,7 +24,7 @@
 		align-items: center;
 		border: 1px solid var(--input-border-color);
 		border-radius: var(--base-border-radius);
-		padding: var(--input-padding);
+		padding: var(--base-field-padding);
 	}
 
 	&__input,
@@ -38,6 +37,7 @@
 	&__prefix,
 	&__suffix {
 		height: 100%;
+		white-space: nowrap;
 
 		> * + * {
 			margin-left: 0.5rem;
@@ -131,6 +131,24 @@
 
 		textarea {
 			resize: none;
+		}
+	}
+
+	&--size {
+		&-small {
+			font-size: var(--base-field-font-size-small);
+
+			.input-wrapper {
+				padding: var(--base-field-padding-small);
+			}
+		}
+
+		&-mini {
+			font-size: var(--base-field-font-size-mini);
+
+			.input-wrapper {
+				padding: var(--base-field-padding-mini);
+			}
 		}
 	}
 }

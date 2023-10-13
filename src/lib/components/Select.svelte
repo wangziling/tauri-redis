@@ -27,6 +27,7 @@
 	export let value: any = initialValue;
 	export let emptyNotice = 'Empty.';
 	export let unmatchedNotice = 'Unmatched.';
+	export let size: 'default' | 'mini' | 'small' = 'default';
 
 	let optionsVisible = defaultOptionsVisible;
 	let searchContent = '';
@@ -69,7 +70,8 @@
 			'select--loading': $finalLoadingDerived,
 			'select--options-visible': optionsVisible,
 			'select--searchable': searchable,
-			'select--valued': $finalValueDerived !== initialValue
+			'select--valued': $finalValueDerived !== initialValue,
+			['select--size-' + size]: size
 		},
 		$$restProps.class,
 		miscClasses

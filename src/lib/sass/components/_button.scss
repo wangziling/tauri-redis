@@ -61,4 +61,16 @@
 			border-color: var(--button-danger-hover-border-color);
 		}
 	}
+
+	&--size {
+		&-small {
+			padding: var(--base-field-padding-small);
+			font-size: var(--base-field-font-size-small);
+		}
+
+		&-mini {
+			padding: var(--base-field-padding-mini);
+			font-size: var(--base-field-font-size-mini);
+		}
+	}
 }
