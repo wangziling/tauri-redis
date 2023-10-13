@@ -9,7 +9,12 @@ export type Themes = Array<{
 	value: Theme;
 }>;
 
-type Language = `${string}-${Uppercase<string>}`;
+export type Language = `${string}-${Uppercase<string>}`;
+
+export type Languages = Array<{
+	labelTranslationKey: string;
+	value: Language;
+}>;
 
 export interface Settings {
 	theme: Theme;
@@ -20,6 +25,7 @@ export interface Settings {
 
 export interface SettingsPresets {
 	themes: Themes;
+	languages: Languages;
 }
 
 export interface SettingsResources {

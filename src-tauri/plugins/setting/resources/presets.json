@@ -12,5 +12,15 @@
 			"labelTranslationKey": "theme light",
 			"value": "light"
 		}
+	],
+	"languages": [
+		{
+			"labelTranslationKey": "translation en-us",
+			"value": "en-US"
+		},
+		{
+			"labelTranslationKey": "translation zh-cn",
+			"value": "zh-CN"
+		}
 	]
 }

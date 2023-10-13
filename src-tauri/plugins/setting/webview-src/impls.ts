@@ -5,7 +5,8 @@ import { SettingsResources, Theme } from './types';
 class Settings {
 	private _resources = writable({
 		presets: {
-			themes: []
+			themes: [],
+			languages: []
 		},
 		settings: {
 			theme: Theme.System,
