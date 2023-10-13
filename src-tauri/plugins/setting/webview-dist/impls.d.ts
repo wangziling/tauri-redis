@@ -1,19 +1,22 @@
 /// <reference types="svelte" />
 import { Writable } from 'svelte/store';
-import { get, set, reset } from './ipc';
-import { Settings as Resources, Theme } from './types';
+import { fetchGet, fetchSet, fetchReset, fetchGetPreset } from './ipc';
+import { SettingsResources, Theme } from './types';
 declare class Settings {
     private _resources;
     private _update;
     constructor();
-    resources(): Promise<Resources>;
-    get<T = any>(...args: Parameters<typeof get>): Promise<T>;
-    set(...args: Parameters<typeof set>): Promise<void>;
-    reset(...args: Parameters<typeof reset>): Promise<void>;
+    resources(): Promise<SettingsResources>;
+    presets(): Promise<SettingsResources>;
+    settings(): Promise<SettingsResources>;
+    get<T = any>(...args: Parameters<typeof fetchGet>): Promise<T>;
+    getPreset<T = any>(...args: Parameters<typeof fetchGetPreset>): Promise<T>;
+    set(...args: Parameters<typeof fetchSet>): Promise<void>;
+    reset(...args: Parameters<typeof fetchReset>): Promise<void>;
     getTheme(): Promise<Theme>;
     getLanguage(): Promise<string>;
-    subscribe(...args: Parameters<Writable<Resources>['subscribe']>): import("svelte/store").Unsubscriber;
-    derived(callback?: (resources: Resources) => any): import("svelte/store").Readable<Resources>;
+    subscribe(...args: Parameters<Writable<SettingsResources>['subscribe']>): import("svelte/store").Unsubscriber;
+    derived(callback?: (resources: SettingsResources) => any): import("svelte/store").Readable<SettingsResources>;
 }
 export declare const settings: Settings;
 export {};

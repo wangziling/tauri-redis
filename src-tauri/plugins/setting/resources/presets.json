@@ -1,0 +1,16 @@
+{
+	"themes": [
+		{
+			"labelTranslationKey": "theme system",
+			"value": "system"
+		},
+		{
+			"labelTranslationKey": "theme dark",
+			"value": "dark"
+		},
+		{
+			"labelTranslationKey": "theme light",
+			"value": "light"
+		}
+	]
+}

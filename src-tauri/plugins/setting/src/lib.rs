@@ -16,7 +16,10 @@ pub fn init<R: Runtime>(filename: String) -> TauriPlugin<R> {
     Builder::new("setting")
         .invoke_handler(tauri::generate_handler![
             command::resources,
+            command::settings,
+            command::presets,
             command::get,
+            command::get_preset,
             command::set,
             command::reset,
         ])

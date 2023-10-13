@@ -9,10 +9,20 @@ export type Themes = Array<{
 	value: Theme;
 }>;
 
+type Language = `${string}-${Uppercase<string>}`;
+
 export interface Settings {
 	theme: Theme;
-	themes: Themes;
-	language: `${string}-${Uppercase<string>}`;
+	language: Language;
 	fontFamily: string[];
 	redisEachScanCount: number;
+}
+
+export interface SettingsPresets {
+	themes: Themes;
+}
+
+export interface SettingsResources {
+	presets: SettingsPresets;
+	settings: Settings;
 }

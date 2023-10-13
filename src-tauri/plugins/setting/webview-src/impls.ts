@@ -1,11 +1,21 @@
-import { derived, Writable, writable } from 'svelte/store';
-import { get, resources, set, reset } from './ipc';
-import { Settings as Resources, Theme } from './types';
+import { derived, Writable, writable, get } from 'svelte/store';
+import { fetchGet, fetchResources, fetchSet, fetchReset, fetchPresets, fetchSettings, fetchGetPreset } from './ipc';
+import { SettingsResources, Theme } from './types';
 
 class Settings {
-	private _resources = writable({} as Resources);
+	private _resources = writable({
+		presets: {
+			themes: []
+		},
+		settings: {
+			theme: Theme.System,
+			language: 'en-US',
+			fontFamily: [],
+			redisEachScanCount: 1000
+		}
+	} as SettingsResources);
 
-	private _update(res: Resources) {
+	private _update(res: SettingsResources) {
 		this._resources.set(res);
 
 		return res;
@@ -16,21 +26,43 @@ class Settings {
 	}
 
 	resources() {
-		return resources().then(this._update);
+		return fetchResources().then(this._update);
 	}
 
-	get<T = any>(...args: Parameters<typeof get>) {
-		return get<T>(...args);
+	presets() {
+		return fetchPresets().then((presets) => {
+			return this._update({
+				...get(this._resources),
+				presets
+			});
+		});
 	}
 
-	set(...args: Parameters<typeof set>) {
-		return set(...args).then((res) => {
+	settings() {
+		return fetchSettings().then((settings) => {
+			return this._update({
+				...get(this._resources),
+				settings
+			});
+		});
+	}
+
+	get<T = any>(...args: Parameters<typeof fetchGet>) {
+		return fetchGet<T>(...args);
+	}
+
+	getPreset<T = any>(...args: Parameters<typeof fetchGetPreset>) {
+		return fetchGetPreset<T>(...args);
+	}
+
+	set(...args: Parameters<typeof fetchSet>) {
+		return fetchSet(...args).then((res) => {
 			return this.resources().then(() => res);
 		});
 	}
 
-	reset(...args: Parameters<typeof reset>) {
-		return reset(...args).then((res) => {
+	reset(...args: Parameters<typeof fetchReset>) {
+		return fetchReset(...args).then((res) => {
 			return this.resources().then(() => res);
 		});
 	}
@@ -43,12 +75,12 @@ class Settings {
 		return this.get<string>('language');
 	}
 
-	subscribe(...args: Parameters<Writable<Resources>['subscribe']>) {
+	subscribe(...args: Parameters<Writable<SettingsResources>['subscribe']>) {
 		return this._resources.subscribe(...args);
 	}
 
-	derived(callback?: (resources: Resources) => any) {
-		return derived<Writable<Resources>, Resources>(this._resources, function (res) {
+	derived(callback?: (resources: SettingsResources) => any) {
+		return derived<Writable<SettingsResources>, SettingsResources>(this._resources, function (res) {
 			return typeof callback === 'function' ? callback(res) : res;
 		});
 	}

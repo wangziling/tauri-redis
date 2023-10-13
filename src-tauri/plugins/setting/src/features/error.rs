@@ -14,6 +14,10 @@ pub enum Error {
     FailedToSetTargetSettingItem,
     #[error("Failed to save settings.")]
     FailedToSaveSettings,
+    #[error("Failed to get target setting presets item.")]
+    FailedToGetTargetSettingPresetsItem,
+    #[error("Failed to Parse target setting presets item.")]
+    FailedToParseTargetSettingPresetsItem,
     #[error("Invalid parameter.")]
     InvalidParameter,
 }

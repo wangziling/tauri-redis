@@ -1,5 +1,5 @@
 use crate::features::error::{Error, Result};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::path::Path;
 use std::{
     collections::HashMap,
@@ -12,10 +12,22 @@ pub type SettingsMapValue = serde_json::Value;
 
 pub type SettingsMap = HashMap<String, SettingsMapValue>;
 
+#[derive(Serialize)]
+pub struct SettingsResources {
+    pub settings: SettingsMap,
+    pub presets: SettingsMap,
+}
+
+pub struct SettingsPresets {
+    pub cache: FileCache,
+    pub inner: Option<SettingsMap>,
+}
+
 pub struct Settings {
     pub cache: FileCache,
     pub inner: Option<SettingsMap>,
     default_inner: SettingsMap,
+    pub presets: SettingsPresets,
 }
 
 impl Settings {
@@ -23,12 +35,21 @@ impl Settings {
         let mut default_cache = FileCache::new(Path::new(env!("CARGO_MANIFEST_DIR")).to_path_buf());
         let _ = default_cache.load("resources/settings.json".to_string());
 
+        let mut presets_cache = FileCache::new(Path::new(env!("CARGO_MANIFEST_DIR")).to_path_buf());
+        let _ = presets_cache.load("resources/presets.json".to_string());
+
         Self {
             cache: FileCache::new(directory),
             inner: default_cache
                 .as_de()
                 .map_or_else(|_| Default::default(), Some),
             default_inner: default_cache.as_de().unwrap_or_default(),
+            presets: SettingsPresets {
+                inner: presets_cache
+                    .as_de()
+                    .map_or_else(|_| Default::default(), Some),
+                cache: presets_cache,
+            },
         }
     }
 
@@ -83,6 +104,30 @@ impl Settings {
             .and_then(|value| {
                 serde_json::from_value::<V>(value.clone())
                     .map_err(|_| Error::FailedToParseTargetSettingItem)
+            })
+    }
+
+    pub fn get_presets<T>(&self, key: T) -> Option<&SettingsMapValue>
+    where
+        T: Into<String>,
+    {
+        let key = &key.into();
+        // If inner didn't own this key.
+        // Use the default_inner related instead.
+        self.presets.inner.as_ref().and_then(|map| map.get(key))
+    }
+
+    pub fn get_presets_de<V: for<'a> Deserialize<'a>, T>(&self, key: T) -> Result<V>
+    where
+        T: Into<String>,
+    {
+        let key = &key.into();
+
+        self.get_presets(key)
+            .ok_or_else(|| Error::FailedToGetTargetSettingPresetsItem)
+            .and_then(|value| {
+                serde_json::from_value::<V>(value.clone())
+                    .map_err(|_| Error::FailedToParseTargetSettingPresetsItem)
             })
     }
 }
