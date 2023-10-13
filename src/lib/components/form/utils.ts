@@ -315,7 +315,8 @@ export function initialFormItemFieldMisc<Value = FormItemValue>(
 	const finalValueDerived: Readable<Value> = derived(
 		[miscValueWatched, initialState.valueWatched],
 		function ([miscValue, value]) {
-			return miscValue || value;
+			// Use ??.
+			return miscValue ?? value;
 		}
 	);
 
