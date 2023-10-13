@@ -1,50 +1,81 @@
 <script lang="ts">
 	import { translator } from 'tauri-redis-plugin-translation-api';
-	import { settings, Theme } from 'tauri-redis-plugin-setting-api';
+	import type { Theme, Language, SettingsResources } from 'tauri-redis-plugin-setting-api';
 	import Card from '$lib/components/Card.svelte';
 	import Form from '$lib/components/form/Form.svelte';
 	import FormItem from '$lib/components/form/FormItem.svelte';
 	import Select from '$lib/components/Select.svelte';
 	import { writable } from 'svelte/store';
-	import { createThemeMisc } from '$lib/utils/appearance';
+	import { createSettingsMisc, createThemeMisc } from '$lib/utils/appearance';
 
 	const themeMisc = createThemeMisc();
+	const settingsMisc = createSettingsMisc();
 
 	const translations = translator.derived(function () {
 		return {
 			settings: translator.translate('settings|Settings'),
 			'settings appearance': translator.translate('settings appearance|Appearance'),
-			'settings choose theme': translator.translate('settings choose theme|Choose theme')
+			'settings choose theme': translator.translate('settings choose theme|Choose theme'),
+			'settings choose language': translator.translate('settings choose language|Choose language')
 		};
 	});
 
-	const resources = settings.derived();
+	const resources = settingsMisc.resources;
+
+	let themesOptions = calcThemesOptions($resources);
+	let languagesOptions = calcLanguagesOptions($resources);
+
+	// Observe settings change.
+	// Refresh options.
+	settingsMisc.subscribe(function (resources) {
+		themesOptions = calcThemesOptions(resources);
+		languagesOptions = calcLanguagesOptions(resources);
+	});
+
+	// Observe translations change.
+	// Refresh options. Especially for the translation content.
+	translator.subscribe(function () {
+		themesOptions = calcThemesOptions($resources);
+		languagesOptions = calcLanguagesOptions($resources);
+	});
 
 	const model = writable({
-		theme: ''
+		theme: '',
+		language: ''
 	});
 
 	const rules = writable({});
 
-	settings.subscribe((res) => {
+	settingsMisc.subscribe((res) => {
 		model.update((m) => {
 			m.theme = res.settings.theme;
+			m.language = res.settings.language;
 
 			return m;
 		});
 	});
 
-	// Getting resources.
-	settings.resources();
+	function calcThemesOptions(resources: SettingsResources) {
+		return (resources.presets.themes || []).map((th) => ({
+			label: translator.translate(th.labelTranslationKey),
+			value: th.value
+		}));
+	}
+
+	function calcLanguagesOptions(resources: SettingsResources) {
+		return (resources.presets.languages || []).map((th) => ({
+			label: translator.translate(th.labelTranslationKey),
+			value: th.value
+		}));
+	}
 
 	function handleThemeChange(e: CustomEvent<Theme>) {
 		return themeMisc.setThemeFromSettings(e.detail);
 	}
 
-	$: themesOptions = ($resources.presets.themes || []).map((th) => ({
-		label: translator.translate(th.labelTranslationKey),
-		value: th.value
-	}));
+	function handleLanguageChange(e: CustomEvent<Language>) {
+		return settingsMisc.setLanguage(e.detail);
+	}
 </script>
 
 <section class="tauri-redis-settings">
@@ -63,6 +94,9 @@
 					<Form class="settings-form settings-form__appearance" {model} {rules}>
 						<FormItem bind:label={$translations['settings choose theme']} prop="theme">
 							<Select options={themesOptions} on:input={handleThemeChange} />
+						</FormItem>
+						<FormItem bind:label={$translations['settings choose language']} prop="language">
+							<Select options={languagesOptions} on:input={handleLanguageChange} />
 						</FormItem>
 					</Form>
 				</div>

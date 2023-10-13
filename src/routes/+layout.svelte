@@ -1,10 +1,12 @@
 <script lang="ts">
 	import '$lib/sass/main.scss';
-	import { createThemeMisc } from '$lib/utils/appearance';
+	import { createSettingsMisc, createThemeMisc } from '$lib/utils/appearance';
 	import { PageTheme } from '$lib/types';
 	import Aside from './Aside.svelte';
 
 	const themeMisc = createThemeMisc();
+	const settingsMisc = createSettingsMisc();
+
 	themeMisc.initEvents();
 	themeMisc.subscribe(function (theme) {
 		Object.values(PageTheme).forEach(function (th) {
@@ -13,6 +15,8 @@
 
 		document.documentElement.classList.add(`theme-${theme.toLowerCase()}`);
 	});
+
+	settingsMisc.initEvents();
 </script>
 
 <main class="tauri-redis-main">

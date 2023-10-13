@@ -2,7 +2,8 @@ import { derived, get, writable } from 'svelte/store';
 import { PageTheme } from '$lib/types';
 import { get as lodashGet } from 'lodash-es';
 import { onDestroy } from 'svelte';
-import { settings, Theme } from 'tauri-redis-plugin-setting-api';
+import { settings, Theme, type Language } from 'tauri-redis-plugin-setting-api';
+import { translator } from 'tauri-redis-plugin-translation-api';
 
 const matchMediaEventTarget = window.matchMedia('(prefers-color-scheme: dark)');
 
@@ -25,6 +26,10 @@ const themeMisc = {
 	useSystemTheme() {
 		themeMisc.theme.set(calcTheme());
 	}
+};
+
+const settingsMisc = {
+	eventInitialized: false
 };
 
 function prefersColorSchemeChange(e: Event) {
@@ -62,6 +67,25 @@ const deInitThemeEvents = function deInitThemeEvents() {
 	}
 
 	matchMediaEventTarget.removeEventListener('change', prefersColorSchemeChange);
+};
+
+const initSettingsEvents = function initSettingsEvents() {
+	if (settingsMisc.eventInitialized) {
+		return;
+	}
+
+	settingsMisc.eventInitialized = true;
+
+	// Getting resources.
+	settings.resources();
+};
+
+const deInitSettingsEvents = function deInitSettingsEvents() {
+	if (!settingsMisc.eventInitialized) {
+		return;
+	}
+
+	settingsMisc.eventInitialized = false;
 };
 
 export const createThemeMisc = function createThemeMisc() {
@@ -143,6 +167,59 @@ export const createThemeMisc = function createThemeMisc() {
 		deInitEvents: deInitThemeEvents,
 		subscribe,
 		unsubscribe
+	};
+
+	return result;
+};
+
+export const createSettingsMisc = function createSettingsMisc() {
+	const subscribes: Array<Function> = [];
+	const subscribe: (typeof settings)['subscribe'] = function subscribe(run, _) {
+		const us = settings.subscribe(run);
+
+		subscribes.push(us);
+
+		return us;
+	};
+
+	const unsubscribe = function unsubscribe() {
+		subscribes.forEach(function (sub) {
+			sub();
+		});
+	};
+
+	onDestroy(function () {
+		unsubscribe();
+	});
+
+	const result = {
+		// resources: settings.derived(function(res) {
+		// 	return res;
+		// }),
+		resources: settings.derived(),
+		settings: settings.derived(function (res) {
+			return res.settings;
+		}),
+		presets: settings.derived(function (res) {
+			return res.presets;
+		}),
+		setLanguage(language: Language) {
+			return settings.set('language', language).then(() => translator.switchTo(language));
+		},
+		getLanguage() {
+			return settings.get('language');
+		},
+		getLanguages() {
+			return settings.getPreset('languages');
+		},
+		getThemes() {
+			return settings.getPreset('themes');
+		},
+		initEvents: initSettingsEvents,
+		deInitEvents: deInitSettingsEvents,
+		subscribe,
+		unsubscribe,
+		derived: settings.derived
 	};
 
 	return result;
