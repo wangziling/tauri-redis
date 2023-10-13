@@ -45,7 +45,7 @@
 
 	function listAllKeys(
 		guid: IpcConnection['guid'],
-		options?: Partial<{ useRefresh?: boolean; refreshOffset?: number }>
+		options?: Partial<{ useRefresh: boolean; refreshOffset: number; useLoadMore: boolean }>
 	) {
 		return (
 			lodashGet(options, 'useRefresh')
@@ -65,14 +65,14 @@
 					return res;
 				}
 
-				(
-					targetTab as Extract<
-						MainTab,
-						{
-							type: MainTabType.Dashboard;
-						}
-					>
-				).data.keys = allKeys;
+				const tab = targetTab as Extract<
+					MainTab,
+					{
+						type: MainTabType.Dashboard;
+					}
+				>;
+
+				tab.data.keys = lodashGet(options, 'useLoadMore') ? (tab.data.keys || []).concat(allKeys) : allKeys;
 				mainTabsConfig.tabs = mainTabsConfig.tabs;
 			})
 			.catch(invokeErrorHandle);
@@ -304,6 +304,14 @@
 		editConnectionDialogConfig.currentConnection = connection;
 	}
 
+	function handleLoadMoreKeys(
+		e: CustomEvent<{
+			guid: IpcConnection['guid'];
+		}>
+	) {
+		return listAllKeys(e.detail.guid, { useLoadMore: true });
+	}
+
 	function handleRefreshKeys(
 		e: CustomEvent<{
 			guid: IpcConnection['guid'];
@@ -445,9 +453,10 @@
 	<Main
 		bind:tabs={mainTabsConfig.tabs}
 		bind:activeIdx={mainTabsConfig.activeIdx}
+		on:loadMoreKeys={handleLoadMoreKeys}
 		on:refreshKeys={handleRefreshKeys}
 		on:createNewKey={handleCreateNewKey}
-		on:grepKeys={debounce(handleGrepKeys, 300)}
+		on:grepKeys={handleGrepKeys}
 		on:removeKey={handleRemoveKey}
 		on:previewKey={handlePreviewKey}
 		on:chooseTab={handleChooseTab}

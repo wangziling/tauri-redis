@@ -40,7 +40,8 @@
 			refresh: translator.translate('refresh|Refresh'),
 			'grep keys by press enter': translator.translate('grep keys by press enter|Grep keys by pressing Enter.'),
 			'remove key': translator.translate('remove key|Remove key'),
-			'n/a': translator.translate('n/a|N/A')
+			'n/a': translator.translate('n/a|N/A'),
+			'load more keys': translator.translate('load more keys|Load more keys')
 		};
 	});
 
@@ -91,6 +92,9 @@
 			return acc;
 		}, {} as Record<string /** dbname */, Record<string, string>>);
 
+	const handleLoadMoreKeysClick = function handleLoadMoreKeysClick() {
+		dispatch('loadMoreKeys', { guid: data.connectionInfo.guid });
+	};
 	const handleRefreshKeysClick = function handleRefreshKeysClick() {
 		dispatch('refreshKeys', { guid: data.connectionInfo.guid });
 	};
@@ -123,10 +127,17 @@
 					placeholder={$translations['grep keys by press enter']}
 					bind:value={grepContent}
 					pure={false}
+					size="mini"
 					on:keyup={handleGrepKeys}
 				>
 					<span class="fa fa-search" slot="prefix" />
 				</Input>
+				<Button
+					class="dashboard__header-operation dashboard__header-operation-load-more-keys"
+					title={$translations['load more keys']}
+					size="mini"
+					on:click={handleLoadMoreKeysClick}>{$translations['load more keys']}</Button
+				>
 				<span
 					class="dashboard__header-operation dashboard__header-operation-refresh-keys fa fa-refresh"
 					title={$translations['refresh']}
