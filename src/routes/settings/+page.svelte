@@ -34,22 +34,12 @@
 		});
 	});
 
+	// Getting resources.
 	settings.resources();
 
 	function handleThemeChange(e: CustomEvent<Theme>) {
-		switch (e.detail) {
-			case Theme.Dark: {
-				themeMisc.useDarkTheme();
-				break;
-			}
-			case Theme.Light: {
-				themeMisc.useLightTheme();
-				break;
-			}
-			case Theme.System: {
-				themeMisc.useSystemTheme();
-			}
-		}
+		return themeMisc.setThemeFromSettings(e.detail);
+	}
 
 	$: themesOptions = ($resources.presets.themes || []).map((th) => ({
 		label: translator.translate(th.labelTranslationKey),

@@ -2,6 +2,7 @@ import { derived, get, writable } from 'svelte/store';
 import { PageTheme } from '$lib/types';
 import { get as lodashGet } from 'lodash-es';
 import { onDestroy } from 'svelte';
+import { settings, Theme } from 'tauri-redis-plugin-setting-api';
 
 const matchMediaEventTarget = window.matchMedia('(prefers-color-scheme: dark)');
 
@@ -11,7 +12,19 @@ const calcTheme = function calcTheme() {
 
 const themeMisc = {
 	theme: writable<PageTheme>(calcTheme()),
-	eventInitialized: false
+	eventInitialized: false,
+	setTheme(th: PageTheme) {
+		themeMisc.theme.set(th);
+	},
+	useDarkTheme() {
+		themeMisc.theme.set(PageTheme.Dark);
+	},
+	useLightTheme() {
+		themeMisc.theme.set(PageTheme.Light);
+	},
+	useSystemTheme() {
+		themeMisc.theme.set(calcTheme());
+	}
 };
 
 function prefersColorSchemeChange(e: Event) {
@@ -25,6 +38,22 @@ const initThemeEvents = function initThemeEvents() {
 
 	themeMisc.eventInitialized = true;
 	matchMediaEventTarget.addEventListener('change', prefersColorSchemeChange);
+	// Get settings theme.
+	settings.getTheme().then((theme) => {
+		switch (theme) {
+			case Theme.Dark: {
+				themeMisc.useDarkTheme();
+				break;
+			}
+			case Theme.Light: {
+				themeMisc.useLightTheme();
+				break;
+			}
+			case Theme.System: {
+				themeMisc.useSystemTheme();
+			}
+		}
+	});
 };
 
 const deInitThemeEvents = function deInitThemeEvents() {
@@ -60,25 +89,55 @@ export const createThemeMisc = function createThemeMisc() {
 			return th;
 		}),
 		toggleTheme() {
-			if (get(result.theme) === PageTheme.Light) {
-				result.setTheme(PageTheme.Dark);
-
-				return;
+			if (get(themeMisc.theme) === PageTheme.Light) {
+				return result.setTheme(PageTheme.Dark);
 			}
 
-			result.setTheme(PageTheme.Light);
+			return result.setTheme(PageTheme.Light);
 		},
 		setTheme(th: PageTheme) {
-			themeMisc.theme.set(th);
+			themeMisc.setTheme(th);
+
+			let themeInSettings = Theme.System;
+			switch (th) {
+				case PageTheme.Dark: {
+					themeInSettings = Theme.Dark;
+					break;
+				}
+				case PageTheme.Light: {
+					themeInSettings = Theme.Light;
+					break;
+				}
+			}
+
+			return settings.set('theme', themeInSettings);
+		},
+		setThemeFromSettings(th: Theme) {
+			switch (th) {
+				case Theme.Dark: {
+					themeMisc.useDarkTheme();
+					break;
+				}
+				case Theme.Light: {
+					themeMisc.useLightTheme();
+					break;
+				}
+				case Theme.System: {
+					themeMisc.useSystemTheme();
+					break;
+				}
+			}
+
+			return settings.set('theme', th);
 		},
 		useDarkTheme() {
-			themeMisc.theme.set(PageTheme.Dark);
+			return themeMisc.useDarkTheme();
 		},
 		useLightTheme() {
-			themeMisc.theme.set(PageTheme.Light);
+			return themeMisc.useLightTheme();
 		},
 		useSystemTheme() {
-			themeMisc.theme.set(calcTheme());
+			return themeMisc.useSystemTheme();
 		},
 		initEvents: initThemeEvents,
 		deInitEvents: deInitThemeEvents,
