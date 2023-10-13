@@ -10,7 +10,8 @@
 		},
 		"declaration": true,
 		"declarationDir": "../webview-dist",
-		"rootDir": "./"
+		"rootDir": "./",
+		"lib": ["ESNext"]
 	},
-	"include": ["../"]
+	"include": ["./"]
 }

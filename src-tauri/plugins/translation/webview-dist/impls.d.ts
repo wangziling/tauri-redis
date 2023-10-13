@@ -14,6 +14,6 @@ export declare class Translator {
     translateDerived(keyMayContainsDefaultContent: keyof Translations, ...args: string[]): Readable<TranslationContent>;
     format(content: TranslationContent, ...args: string[]): string;
     subscribe(...args: Parameters<Writable<Translations>['subscribe']>): import("svelte/store").Unsubscriber;
-    derived(callback: (translations: Translations) => any): Readable<Translations>;
+    derived(callback?: (translations: Translations) => any): Readable<Translations>;
 }
 export declare const translator: Translator;
