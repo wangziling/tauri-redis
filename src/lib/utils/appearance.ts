@@ -206,6 +206,12 @@ export const createSettingsMisc = function createSettingsMisc() {
 		setLanguage(language: Language) {
 			return settings.set('language', language).then(() => translator.switchTo(language));
 		},
+		setRedisEachScanCount(count: number) {
+			return settings.set('redisEachScanCount', count);
+		},
+		getRedisEachScanCount() {
+			return settings.get('redisEachScanCount');
+		},
 		getLanguage() {
 			return settings.get('language');
 		},

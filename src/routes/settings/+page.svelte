@@ -7,16 +7,23 @@
 	import Select from '$lib/components/Select.svelte';
 	import { writable } from 'svelte/store';
 	import { createSettingsMisc, createThemeMisc } from '$lib/utils/appearance';
+	import InputNumber from '$lib/components/InputNumber.svelte';
 
 	const themeMisc = createThemeMisc();
 	const settingsMisc = createSettingsMisc();
+	const minimumRedisEachScanCount = 50;
+	const maximumRedisEachScanCount = 20000;
+	const redisEachScanCountStepGap = 50;
 
 	const translations = translator.derived(function () {
 		return {
 			settings: translator.translate('settings|Settings'),
 			'settings appearance': translator.translate('settings appearance|Appearance'),
 			'settings choose theme': translator.translate('settings choose theme|Choose theme'),
-			'settings choose language': translator.translate('settings choose language|Choose language')
+			'settings choose language': translator.translate('settings choose language|Choose language'),
+			'settings set redis scan count': translator.translate(
+				'settings set redis scan count|Set each the loading count of the keys.'
+			)
 		};
 	});
 
@@ -41,7 +48,8 @@
 
 	const model = writable({
 		theme: '',
-		language: ''
+		language: '',
+		redisEachScanCount: minimumRedisEachScanCount
 	});
 
 	const rules = writable({});
@@ -50,6 +58,7 @@
 		model.update((m) => {
 			m.theme = res.settings.theme;
 			m.language = res.settings.language;
+			m.redisEachScanCount = res.settings.redisEachScanCount;
 
 			return m;
 		});
@@ -76,6 +85,10 @@
 	function handleLanguageChange(e: CustomEvent<Language>) {
 		return settingsMisc.setLanguage(e.detail);
 	}
+
+	function handleRedisEachScanCountChange(e: CustomEvent<number>) {
+		return settingsMisc.setRedisEachScanCount(e.detail);
+	}
 </script>
 
 <section class="tauri-redis-settings">
@@ -97,6 +110,16 @@
 						</FormItem>
 						<FormItem bind:label={$translations['settings choose language']} prop="language">
 							<Select options={languagesOptions} on:input={handleLanguageChange} />
+						</FormItem>
+						<FormItem bind:label={$translations['settings set redis scan count']} prop="redisEachScanCount">
+							<InputNumber
+								on:input={handleRedisEachScanCountChange}
+								on:change={handleRedisEachScanCountChange}
+								minimum={minimumRedisEachScanCount}
+								maximum={maximumRedisEachScanCount}
+								stepGap={redisEachScanCountStepGap}
+								disableManualInputWhenShowStepOperations
+							/>
 						</FormItem>
 					</Form>
 				</div>
