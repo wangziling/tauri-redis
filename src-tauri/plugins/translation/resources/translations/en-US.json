@@ -23,6 +23,7 @@
 	"db metrics": "DB metrics",
 	"db": "DB",
 	"keys num": "Keys",
+	"keys": "Keys",
 	"average ttl": "Average TTL",
 	"expired keys num": "Expired keys",
 	"nothing here": "Nothing here",
@@ -45,5 +46,11 @@
 	"n/a": "N/A",
 	"theme system": "System",
 	"theme dark": "Dark",
-	"theme light": "Light"
+	"theme light": "Light",
+	"settings": "Settings",
+	"settings appearance": "Appearance",
+	"settings choose theme": "Choose theme",
+	"settings choose language": "Choose language",
+	"translation en-us": "English",
+	"translation zh-cn": "简体中文"
 }
