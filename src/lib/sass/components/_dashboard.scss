@@ -25,6 +25,8 @@
 			margin-left: auto;
 			user-select: none;
 			text-align: right;
+			display: flex;
+			align-items: center;
 
 			> * + * {
 				margin-left: 0.7rem;
