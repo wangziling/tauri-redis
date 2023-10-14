@@ -34,7 +34,8 @@
 				"title": "Tauri redis - A simple redis desktop manager.",
 				"width": 1200,
 				"height": 800,
-				"visible": false
+				"visible": false,
+				"center": true
 			},
 			{
 				"width": 325,
