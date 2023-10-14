@@ -33,7 +33,16 @@
 				"resizable": true,
 				"title": "Tauri redis - A simple redis desktop manager.",
 				"width": 1200,
-				"height": 800
+				"height": 800,
+				"visible": false
+			},
+			{
+				"width": 325,
+				"height": 105,
+				"decorations": false,
+				"center": true,
+				"url": "splashscreen.html",
+				"label": "splashscreen"
 			}
 		],
 		"systemTray": {

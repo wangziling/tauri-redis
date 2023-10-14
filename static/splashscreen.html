@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Initializing...</title>
+		<script type="text/javascript">
+			const matchMediaEventTarget = window.matchMedia('(prefers-color-scheme: dark)');
+			document.documentElement.classList.add(matchMediaEventTarget.matches ? 'theme-dark' : 'theme-light');
+		</script>
+		<style>
+			html {
+				box-sizing: border-box;
+			}
+
+			* {
+				padding: 0;
+				margin: 0;
+			}
+
+			*,
+			*::before,
+			*::after {
+				box-sizing: inherit;
+			}
+
+			main {
+				height: 100vh;
+				width: 100%;
+				background-image: url('/tauri.svg');
+				background-repeat: no-repeat;
+				background-position: center;
+			}
+
+			h1 {
+				display: none;
+			}
+
+			.theme-dark main {
+				background-image: url('/tauri-dark.svg');
+				background-color: #000;
+			}
+		</style>
+	</head>
+	<body>
+		<main>
+			<header>
+				<h1>Tauri redis - A simple redis desktop manager.</h1>
+			</header>
+		</main>
+		<script type="text/javascript">
+			document.addEventListener('DOMContentLoaded', function () {
+				setTimeout(function () {
+					// This will wait for the window to load, but you could
+					// run this function on whatever trigger you want
+					// With the Tauri global script:
+					const invoke = window.__TAURI_INVOKE__;
+					// This will wait for the window to load, but you could
+					// run this function on whatever trigger you want
+					invoke('close_splashscreen');
+				}, 500);
+			});
+		</script>
+	</body>
+</html>
