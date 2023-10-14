@@ -50,7 +50,7 @@ impl SettingsEvents {
     where
         R: Runtime,
     {
-        handle.trigger_global(SettingsEvents::Set.into_event_name(), None);
+        handle.trigger_global(SettingsEvents::Reset.into_event_name(), None);
 
         handle
             .emit_all(SettingsEvents::Reset.into_event_name(), NonePayload)
@@ -72,7 +72,7 @@ impl SettingsEvents {
     where
         R: Runtime,
     {
-        handle.trigger_global(SettingsEvents::Set.into_event_name(), None);
+        handle.trigger_global(SettingsEvents::Initialized.into_event_name(), None);
 
         handle
             .emit_all(SettingsEvents::Initialized.into_event_name(), NonePayload)
