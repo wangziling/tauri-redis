@@ -1,70 +1,57 @@
 use crate::features::error::Result;
-use crate::TranslationManager;
+use crate::{TranslationEvents, TranslationManager};
 use std::collections::HashMap;
-use tauri::{AppHandle, Runtime, State, Window};
+use tauri::{AppHandle, Runtime, State};
 
 #[tauri::command]
 pub async fn translate<R: Runtime>(
-    _app: AppHandle<R>,
-    _window: Window<R>,
     state: State<'_, TranslationManager>,
     key: String,
     rest: Option<Vec<String>>,
 ) -> Result<String> {
-    state.read().unwrap().translate(key, rest)
+    state.read().await.translate(key, rest)
 }
 
 #[tauri::command]
 pub async fn translate_group<R: Runtime>(
-    _app: AppHandle<R>,
-    _window: Window<R>,
     state: State<'_, TranslationManager>,
     keys: Vec<String>,
 ) -> Result<HashMap<String, String>> {
-    state.read().unwrap().translate_group(keys)
+    state.read().await.translate_group(keys)
 }
 
 #[tauri::command]
 pub async fn switch_to<R: Runtime>(
-    _app: AppHandle<R>,
-    _window: Window<R>,
+    handle: AppHandle<R>,
     state: State<'_, TranslationManager>,
     language: String,
 ) -> Result<()> {
-    let mut lock = state.write().unwrap();
+    let mut lock = state.write().await;
 
-    lock.switch_to(language)
+    lock.switch_to(language.clone())?;
+
+    TranslationEvents::emit_switch_language(&handle, language)
 }
 
 #[tauri::command]
 pub async fn resources<R: Runtime>(
-    _app: AppHandle<R>,
-    _window: Window<R>,
     state: State<'_, TranslationManager>,
 ) -> Result<HashMap<String, String>> {
-    let lock = state.read().unwrap();
+    let lock = state.read().await;
 
     lock.resources()
 }
 
 #[tauri::command]
-pub async fn language<R: Runtime>(
-    _app: AppHandle<R>,
-    _window: Window<R>,
-    state: State<'_, TranslationManager>,
-) -> Result<String> {
-    let lock = state.read().unwrap();
+pub async fn language<R: Runtime>(state: State<'_, TranslationManager>) -> Result<String> {
+    let lock = state.read().await;
 
     lock.language()
 }
 
 #[tauri::command]
-pub async fn languages<R: Runtime>(
-    _app: AppHandle<R>,
-    _window: Window<R>,
-    state: State<'_, TranslationManager>,
-) -> Result<Vec<String>> {
-    let lock = state.read().unwrap();
+pub async fn languages<R: Runtime>(state: State<'_, TranslationManager>) -> Result<Vec<String>> {
+    let lock = state.read().await;
 
     lock.languages()
 }

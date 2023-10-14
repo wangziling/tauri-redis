@@ -231,10 +231,9 @@ impl Translations {
         Ok(self.languages.clone())
     }
 
-    pub fn translate<K, R>(&self, key: K, rest: Option<Vec<R>>) -> Result<String>
+    pub fn translate<K>(&self, key: K, rest: Option<Vec<K>>) -> Result<String>
     where
         K: Into<String>,
-        R: Into<String>,
     {
         self.inner
             .as_ref()

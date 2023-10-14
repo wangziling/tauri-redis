@@ -1,9 +1,12 @@
 mod command;
+mod events;
 mod features;
 
+pub use crate::events::TranslationEvents;
 use crate::features::state::Translations;
 use once_cell::sync::Lazy;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
+use tauri::async_runtime::{block_on, RwLock};
 use tauri::{
     plugin::{Builder, TauriPlugin},
     Manager, Runtime,
@@ -25,12 +28,16 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             command::languages,
             command::language,
         ])
-        .setup(|app| {
-            let mut translations = TRANSLATIONS.write().unwrap();
-            translations.count_languages()?;
-            translations.load("en-US".to_string())?;
+        .setup(|handle| {
+            block_on(async {
+                let mut translations = TRANSLATIONS.write().await;
+                translations.count_languages().unwrap();
+                translations.load("en-US".to_string()).unwrap();
 
-            app.manage(TRANSLATIONS.clone());
+                handle.manage(TRANSLATIONS.clone());
+
+                TranslationEvents::initialized(&handle.app_handle()).unwrap();
+            });
 
             Ok(())
         })
