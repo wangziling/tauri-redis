@@ -5,6 +5,7 @@ use tauri::{AppHandle, Runtime, State};
 
 #[tauri::command]
 pub async fn translate<R: Runtime>(
+    _app: AppHandle<R>,
     state: State<'_, TranslationManager>,
     key: String,
     rest: Option<Vec<String>>,
@@ -14,6 +15,7 @@ pub async fn translate<R: Runtime>(
 
 #[tauri::command]
 pub async fn translate_group<R: Runtime>(
+    _app: AppHandle<R>,
     state: State<'_, TranslationManager>,
     keys: Vec<String>,
 ) -> Result<HashMap<String, String>> {
@@ -35,6 +37,7 @@ pub async fn switch_to<R: Runtime>(
 
 #[tauri::command]
 pub async fn resources<R: Runtime>(
+    _app: AppHandle<R>,
     state: State<'_, TranslationManager>,
 ) -> Result<HashMap<String, String>> {
     let lock = state.read().await;
@@ -43,14 +46,20 @@ pub async fn resources<R: Runtime>(
 }
 
 #[tauri::command]
-pub async fn language<R: Runtime>(state: State<'_, TranslationManager>) -> Result<String> {
+pub async fn language<R: Runtime>(
+    _app: AppHandle<R>,
+    state: State<'_, TranslationManager>,
+) -> Result<String> {
     let lock = state.read().await;
 
     lock.language()
 }
 
 #[tauri::command]
-pub async fn languages<R: Runtime>(state: State<'_, TranslationManager>) -> Result<Vec<String>> {
+pub async fn languages<R: Runtime>(
+    _app: AppHandle<R>,
+    state: State<'_, TranslationManager>,
+) -> Result<Vec<String>> {
     let lock = state.read().await;
 
     lock.languages()
