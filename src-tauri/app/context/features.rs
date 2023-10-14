@@ -3,6 +3,7 @@ use tauri::{
     Builder, CustomMenuItem, Manager, Runtime, SystemTray, SystemTrayEvent, SystemTrayMenu,
     SystemTrayMenuItem,
 };
+use tauri_plugin_tauri_redis_translation::TRANSLATIONS;
 
 fn generate_system_tray<R>(b: Builder<R>) -> Builder<R>
 where
@@ -24,7 +25,7 @@ where
                     // note that `tray_handle` can be called anywhere,
                     // just get an `AppHandle` instance with `app.handle()` on the setup hook
                     // and move it to another function or thread
-                    // let item_handle = app.tray_handle().get_item(&id);
+                    let item_handle = app.tray_handle().get_item(&id);
 
                     match id.into() {
                         InternalSystemTrayMenuId::QuitApp => {
@@ -32,16 +33,33 @@ where
                         }
                         InternalSystemTrayMenuId::ToggleAppVisible => {
                             let window = app.get_window("main").unwrap();
+                            let is_window_visible = window.is_visible().unwrap();
 
-                            if window.is_visible().unwrap() {
+                            if is_window_visible {
                                 window.hide().unwrap();
                                 // you can also `set_selected`, `set_enabled` and `set_native_image` (macOS only).
-                                // item_handle.set_title("Show").unwrap();
                             } else {
                                 window.show().unwrap();
                                 // you can also `set_selected`, `set_enabled` and `set_native_image` (macOS only).
-                                // item_handle.set_title("Hide").unwrap();
                             }
+
+                            tauri::async_runtime::spawn(async move {
+                                let translator = TRANSLATIONS.read().await;
+                                item_handle
+                                    .set_title(
+                                        translator
+                                            .translate(
+                                                if is_window_visible {
+                                                    "show app|Show"
+                                                } else {
+                                                    "hide app|Hide"
+                                                },
+                                                None,
+                                            )
+                                            .unwrap(),
+                                    )
+                                    .unwrap();
+                            });
                         } // _ => {}
                     }
                 }
