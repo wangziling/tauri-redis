@@ -22,11 +22,12 @@ where
             let is_window_visible = window.is_visible().unwrap();
 
             if is_window_visible {
+                // you can also `set_selected`, `set_enabled` and `set_native_image` (macOS only).
                 window.hide().unwrap();
-                // you can also `set_selected`, `set_enabled` and `set_native_image` (macOS only).
             } else {
-                window.show().unwrap();
                 // you can also `set_selected`, `set_enabled` and `set_native_image` (macOS only).
+                window.show().unwrap();
+                window.set_focus().unwrap();
             }
 
             tauri::async_runtime::spawn(async move {
