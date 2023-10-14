@@ -21,7 +21,7 @@
 	export let resizable = true;
 
 	// Is a pure component, will not change the prop-value straightly
-	export let pure = false;
+	export let pure = true;
 	// Consider that the component is a pure component. Will not straightly manipulate the props.
 	export let value = '';
 
