@@ -20,6 +20,18 @@ where
     b.system_tray(SystemTray::new().with_menu(menu))
         .on_system_tray_event(move |app, event| {
             match event {
+                SystemTrayEvent::LeftClick { .. } | SystemTrayEvent::DoubleClick { .. } => {
+                    let window = app.get_window("main").unwrap();
+                    let is_window_visible = window.is_visible().unwrap();
+
+                    if is_window_visible {
+                        window.hide().unwrap();
+                        // you can also `set_selected`, `set_enabled` and `set_native_image` (macOS only).
+                    } else {
+                        window.show().unwrap();
+                        // you can also `set_selected`, `set_enabled` and `set_native_image` (macOS only).
+                    }
+                }
                 SystemTrayEvent::MenuItemClick { id, .. } => {
                     // get a handle to the clicked menu item
                     // note that `tray_handle` can be called anywhere,
