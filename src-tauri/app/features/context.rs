@@ -28,6 +28,6 @@ impl Into<&'static str> for InternalSystemTrayMenuId {
 
 impl From<String> for InternalSystemTrayMenuId {
     fn from(value: String) -> Self {
-        serde_json::from_str(value.as_str()).unwrap()
+        serde_json::from_value(serde_json::to_value(value).unwrap()).unwrap()
     }
 }
