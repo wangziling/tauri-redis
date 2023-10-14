@@ -24,6 +24,7 @@ where
         client::get_key_content_type_string,
         client::set_key_ttl,
         client::set_key_content_type_string,
+        client::rename_key,
         client::scan_all_keys,
         client::refresh_scanned_all_keys,
     ])

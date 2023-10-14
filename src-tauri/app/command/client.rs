@@ -287,6 +287,30 @@ pub async fn set_key_ttl(
 }
 
 #[tauri::command]
+pub async fn rename_key(
+    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    guid: Guid,
+    key_name: String,
+    new_key_name: String,
+) -> Result<Response<()>> {
+    if key_name.is_empty() || new_key_name.is_empty() {
+        return Err(Error::InvalidRedisKeyName);
+    }
+
+    let mut lock = redis_client_manager.lock().await;
+    let conn = lock
+        .get_mut(&guid)
+        .ok_or_else(|| Error::FailedToFindExistedRedisConnection)?
+        .conn()?;
+
+    conn.rename(key_name, new_key_name)
+        .await
+        .map_err(Error::RedisInternalError)?;
+
+    Ok(Response::default())
+}
+
+#[tauri::command]
 pub async fn get_key_content_type_string(
     redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
     guid: Guid,
