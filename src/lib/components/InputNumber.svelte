@@ -144,7 +144,21 @@
 			}
 		}
 
-		if (!judgeValidNum($valueWatched, { maximum, minimum })) {
+		let validValue = $valueWatched;
+
+		if (validValue > maximum) {
+			validValue = maximum;
+		}
+
+		if (validValue < minimum) {
+			validValue = minimum;
+		}
+
+		if (precise > 0) {
+			validValue = parseNumLikeStr($finalValueDerived.toFixed(precise));
+		}
+
+		if (!judgeValidNum(validValue, { maximum, minimum })) {
 			return;
 		}
 
@@ -162,17 +176,17 @@
 			}
 
 			if (!silent) {
-				formItemFieldMisc.events.handleFieldSetValue($valueWatched, FormRuleTrigger.Input);
+				formItemFieldMisc.events.handleFieldSetValue(validValue, FormRuleTrigger.Input);
 			}
 		}
 
 		// A pure component shouldn't manipulate the prop straightly.
 		if (!$isPuredDerived) {
-			value = $finalValueDerived;
+			value = validValue;
 		}
 
 		if (!silent) {
-			dispatch('input', $finalValueDerived);
+			dispatch('input', validValue);
 		}
 	}
 
