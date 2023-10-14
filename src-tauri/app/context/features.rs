@@ -1,7 +1,7 @@
 use crate::features::context::InternalSystemTrayMenuId;
 use tauri::{
     Builder, CustomMenuItem, Manager, Runtime, SystemTray, SystemTrayEvent, SystemTrayMenu,
-    SystemTrayMenuItem,
+    SystemTrayMenuItem, SystemTrayMenuItemHandle, Window,
 };
 use tauri_plugin_tauri_redis_translation::TRANSLATIONS;
 
@@ -17,20 +17,46 @@ where
         .add_native_item(SystemTrayMenuItem::Separator)
         .add_item(hide);
 
+    let handle_toggle_window_visible =
+        move |window: Window<R>, item_handle: SystemTrayMenuItemHandle<R>| {
+            let is_window_visible = window.is_visible().unwrap();
+
+            if is_window_visible {
+                window.hide().unwrap();
+                // you can also `set_selected`, `set_enabled` and `set_native_image` (macOS only).
+            } else {
+                window.show().unwrap();
+                // you can also `set_selected`, `set_enabled` and `set_native_image` (macOS only).
+            }
+
+            tauri::async_runtime::spawn(async move {
+                let translator = TRANSLATIONS.read().await;
+                item_handle
+                    .set_title(
+                        translator
+                            .translate(
+                                if is_window_visible {
+                                    "show app|Show"
+                                } else {
+                                    "hide app|Hide"
+                                },
+                                None,
+                            )
+                            .unwrap(),
+                    )
+                    .unwrap();
+            });
+        };
+
     b.system_tray(SystemTray::new().with_menu(menu))
         .on_system_tray_event(move |app, event| {
             match event {
                 SystemTrayEvent::LeftClick { .. } | SystemTrayEvent::DoubleClick { .. } => {
-                    let window = app.get_window("main").unwrap();
-                    let is_window_visible = window.is_visible().unwrap();
-
-                    if is_window_visible {
-                        window.hide().unwrap();
-                        // you can also `set_selected`, `set_enabled` and `set_native_image` (macOS only).
-                    } else {
-                        window.show().unwrap();
-                        // you can also `set_selected`, `set_enabled` and `set_native_image` (macOS only).
-                    }
+                    handle_toggle_window_visible(
+                        app.get_window("main").unwrap(),
+                        app.tray_handle()
+                            .get_item(InternalSystemTrayMenuId::ToggleAppVisible.into()),
+                    );
                 }
                 SystemTrayEvent::MenuItemClick { id, .. } => {
                     // get a handle to the clicked menu item
@@ -44,35 +70,11 @@ where
                             std::process::exit(0);
                         }
                         InternalSystemTrayMenuId::ToggleAppVisible => {
-                            let window = app.get_window("main").unwrap();
-                            let is_window_visible = window.is_visible().unwrap();
-
-                            if is_window_visible {
-                                window.hide().unwrap();
-                                // you can also `set_selected`, `set_enabled` and `set_native_image` (macOS only).
-                            } else {
-                                window.show().unwrap();
-                                // you can also `set_selected`, `set_enabled` and `set_native_image` (macOS only).
-                            }
-
-                            tauri::async_runtime::spawn(async move {
-                                let translator = TRANSLATIONS.read().await;
-                                item_handle
-                                    .set_title(
-                                        translator
-                                            .translate(
-                                                if is_window_visible {
-                                                    "show app|Show"
-                                                } else {
-                                                    "hide app|Hide"
-                                                },
-                                                None,
-                                            )
-                                            .unwrap(),
-                                    )
-                                    .unwrap();
-                            });
-                        } // _ => {}
+                            handle_toggle_window_visible(
+                                app.get_window("main").unwrap(),
+                                item_handle,
+                            );
+                        }
                     }
                 }
                 _ => {}
