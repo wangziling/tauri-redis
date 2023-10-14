@@ -302,7 +302,7 @@ impl RedisClient {
                             let scanned_count_raw = scanned_count.load(Ordering::Relaxed);
                             let scanned_enough = scanned_count_raw >= needed_count || !can_continue;
                             if scanned_enough {
-                                scanned_count.fetch_and(keys.len() as u32, Ordering::Relaxed);
+                                scanned_count.fetch_add(keys.len() as u32, Ordering::Relaxed);
 
                                 sx.send(Ok(RedisScannerResult { keys, can_continue }))
                                     .unwrap();
