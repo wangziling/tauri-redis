@@ -20,6 +20,8 @@ pub enum Error {
     FailedToParseTargetSettingPresetsItem,
     #[error("Invalid parameter.")]
     InvalidParameter,
+    #[error("{0}")]
+    TauriInternalError(String),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

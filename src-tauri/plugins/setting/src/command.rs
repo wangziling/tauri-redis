@@ -1,7 +1,8 @@
+use crate::events::{SettingsEvents, SettingsSetPayload};
 use crate::features::error::{Error, Result};
 use crate::features::state::{SettingsMap, SettingsMapValue, SettingsResources};
 use crate::SettingsManager;
-use tauri::State;
+use tauri::{AppHandle, Runtime, State};
 
 #[tauri::command]
 pub async fn resources(state: State<'_, SettingsManager>) -> Result<SettingsResources> {
@@ -74,29 +75,44 @@ pub async fn get_preset(
 }
 
 #[tauri::command]
-pub async fn set(
+pub async fn set<R>(
     state: State<'_, SettingsManager>,
+    handle: AppHandle<R>,
     key: String,
     value: SettingsMapValue,
-) -> Result<()> {
+) -> Result<()>
+where
+    R: Runtime,
+{
     if key.is_empty() {
         return Err(Error::InvalidParameter);
     }
 
     let mut lock = state.write().await;
 
-    lock.insert(key, value)
+    lock.insert(key.clone(), value.clone())
         .ok_or_else(|| Error::FailedToSetTargetSettingItem)?;
 
-    lock.save()
+    lock.save()?;
+
+    SettingsEvents::emit_set(&handle, SettingsSetPayload { key, value })?;
+
+    Ok(())
 }
 
 #[tauri::command]
-pub async fn reset(state: State<'_, SettingsManager>) -> Result<()> {
+pub async fn reset<R>(state: State<'_, SettingsManager>, handle: AppHandle<R>) -> Result<()>
+where
+    R: Runtime,
+{
     let mut lock = state.write().await;
 
     lock.reset()
         .map_err(|_| Error::FailedToLoadTheSettingFile)?;
 
-    lock.save()
+    lock.save()?;
+
+    SettingsEvents::emit_reset(&handle)?;
+
+    Ok(())
 }

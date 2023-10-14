@@ -1,6 +1,8 @@
 mod command;
+mod events;
 mod features;
 
+pub use crate::events::SettingsEvents;
 use crate::features::state::Settings;
 use std::sync::Arc;
 use tauri::async_runtime::RwLock;
@@ -32,6 +34,9 @@ pub fn init<R: Runtime>(filename: String) -> TauriPlugin<R> {
 
             // Try save.
             let _ = settings.save();
+
+            // Set initialized.
+            SettingsEvents::initialized(&handle.app_handle()).unwrap();
 
             handle.manage(Arc::new(RwLock::new(settings)));
 
