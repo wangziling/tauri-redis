@@ -29,7 +29,7 @@
 	"nothing here": "这儿什么都没有",
 	"connections": "连接",
 	"logs": "日志",
-	"this project description": "Tauri redis · 一个简易的Redis桌面管理工具.",
+	"this project description": "Tauri redis · 一个简易的Redis桌面管理工具。",
 	"quit app": "退出",
 	"hide app": "隐藏",
 	"show app": "显示",
@@ -41,7 +41,7 @@
 	"release connection": "释放连接",
 	"remove connection": "移除连接",
 	"edit": "编辑",
-	"grep keys by press enter": "按下Enter键来过滤 Redis 键.",
+	"grep keys by press enter": "按下Enter键来过滤 Redis 键",
 	"remove key": "删除键",
 	"key ttl": "存活时间",
 	"invalid key metrics": "不合规的键数据",
@@ -58,5 +58,6 @@
 	"settings choose language": "选择语言",
 	"translation en-us": "English",
 	"translation zh-cn": "简体中文",
-	"settings set redis scan count": "设置每次加载的键的数量"
+	"settings set redis scan count": "设置每次加载的键的数量",
+	"operation succeed": "操作成功。"
 }

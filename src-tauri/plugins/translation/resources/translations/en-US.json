@@ -58,5 +58,6 @@
 	"settings choose language": "Choose language",
 	"translation en-us": "English",
 	"translation zh-cn": "简体中文",
-	"settings set redis scan count": "Set the each loading count of the keys."
+	"settings set redis scan count": "Set the each loading count of the keys.",
+	"operation succeed": "Operation succeed."
 }
