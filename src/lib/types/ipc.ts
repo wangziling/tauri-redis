@@ -62,3 +62,8 @@ export type SetIpcKeyContentTypeStringPayload = {
 	name: string;
 	content: string;
 };
+
+export type IpcRenameKeyPayload = {
+	name: string;
+	newName: string;
+};

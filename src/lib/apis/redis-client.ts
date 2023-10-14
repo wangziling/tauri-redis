@@ -1,6 +1,7 @@
 import type {
 	IpcClientMetrics,
 	IpcConnection,
+	IpcRenameKeyPayload,
 	SaveIpcNewKeyPayload,
 	SetIpcKeyContentTypeStringPayload,
 	SetIpcKeyTTLPayload
@@ -49,4 +50,8 @@ export function fetchSetKeyTTL(guid: IpcConnection['guid'], params: SetIpcKeyTTL
 
 export function fetchSetKeyContentTypeString(guid: IpcConnection['guid'], params: SetIpcKeyContentTypeStringPayload) {
 	return fetchIpc<void>('set_key_content_type_string', { guid, keyName: params.name, content: params.content });
+}
+
+export function fetchRenameKey(guid: IpcConnection['guid'], params: IpcRenameKeyPayload) {
+	return fetchIpc<void>('rename_key', { guid, keyName: params.name, newKeyName: params.newName });
 }

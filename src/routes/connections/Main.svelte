@@ -123,7 +123,12 @@
 						</div>
 					{:else if tab['type'] === MainTabType.KeyDetail}
 						<div class={calcTabContentDynamicClasses(idx, 'tab-content__type-key-detail')}>
-							<KeyDetail class="tauri-redis-tab tauri-redis-tab__key-detail" bind:data={tab.data} />
+							<KeyDetail
+								class="tauri-redis-tab tauri-redis-tab__key-detail"
+								bind:data={tab.data}
+								on:setKeyTTL
+								on:renameKey
+							/>
 						</div>
 					{/if}
 				{/each}

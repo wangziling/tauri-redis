@@ -5,7 +5,7 @@
 	import Input from '$lib/components/Input.svelte';
 	import InputNumber from '$lib/components/InputNumber.svelte';
 	import { IpcKeyType } from '$lib/types';
-	import { fetchGetKeyTTL, fetchGetKeyType, fetchSetKeyTTL } from '$lib/apis';
+	import { fetchGetKeyTTL, fetchGetKeyType, fetchRenameKey, fetchSetKeyTTL } from '$lib/apis';
 	import { invokeErrorHandle } from '$lib/utils/page';
 	import KeyTypeStringDetailContent from '$lib/components/page/key-detail/KeyTypeStringDetailContent.svelte';
 	import { createEventDispatcher } from 'svelte';
@@ -19,7 +19,8 @@
 	let keyMetrics = {
 		ttl: -1,
 		type: null as null | IpcKeyType,
-		content: null
+		content: null,
+		name: data.key
 	};
 
 	const translations = translator.derived(function () {
@@ -32,6 +33,16 @@
 		return fetchSetKeyTTL(data.connectionInfo.guid, { name: data.key, ttl: keyMetrics.ttl })
 			.then((res) => {
 				dispatch('setKeyTTL', { guid: data.connectionInfo.guid, name: data.key, ttl: keyMetrics.ttl });
+
+				return res;
+			})
+			.catch(invokeErrorHandle);
+	}
+
+	function handleRenameKey() {
+		return fetchRenameKey(data.connectionInfo.guid, { name: data.key, newName: keyMetrics.name })
+			.then((res) => {
+				dispatch('renameKey', { guid: data.connectionInfo.guid, name: data.key, newName: keyMetrics.name });
 
 				return res;
 			})
@@ -66,14 +77,21 @@
 	<div class="key-detail-wrapper">
 		<div class="key-detail-header">
 			<div class="key-detail-metrics">
-				<Input bind:value={data.key}>
+				<Input bind:value={keyMetrics.name} pure={false}>
 					<span slot="prefix">{keyMetrics.type}</span>
-					<span slot="suffix" class="input__operation fa fa-check" />
+					<span
+						slot="suffix"
+						class="input__operation fa fa-check"
+						role="button"
+						tabindex="0"
+						on:click={handleRenameKey}
+					/>
 				</Input>
 				<InputNumber
 					bind:value={keyMetrics.ttl}
 					minimum={minimumKeyTTL}
 					maximum={maximumKeyTTL}
+					pure={false}
 					showStepOperations={false}
 				>
 					<span slot="prefix">{$translations['key ttl']}</span>
