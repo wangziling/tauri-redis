@@ -102,12 +102,11 @@ where
     let new_handle = handle.clone();
 
     let handle_switch_language = move |_| {
-        let quit_app_item_handle = new_handle
-            .tray_handle()
-            .get_item(InternalSystemTrayMenuId::QuitApp.into());
-        let toggle_app_visible_item_handle = new_handle
-            .tray_handle()
-            .get_item(InternalSystemTrayMenuId::ToggleAppVisible.into());
+        let tray_handle = new_handle.tray_handle();
+        let quit_app_item_handle = tray_handle.get_item(InternalSystemTrayMenuId::QuitApp.into());
+        let toggle_app_visible_item_handle =
+            tray_handle.get_item(InternalSystemTrayMenuId::ToggleAppVisible.into());
+
         let main_window = new_handle.get_window("main").unwrap();
         let is_main_window_visible = main_window.is_visible().unwrap();
 
@@ -125,7 +124,14 @@ where
                 })
                 .unwrap();
 
-            main_window.set_title(translator.translate("this project description|Tauri redis - A simple redis desktop manager.", None).unwrap().as_str()).unwrap();
+            let app_title = translator
+                .translate(
+                    "this project description|Tauri redis - A simple redis desktop manager.",
+                    None,
+                )
+                .unwrap();
+            main_window.set_title(app_title.as_str()).unwrap();
+            tray_handle.set_tooltip(app_title.as_str()).unwrap();
         });
     };
 
