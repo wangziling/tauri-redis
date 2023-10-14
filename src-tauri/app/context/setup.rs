@@ -1,10 +1,11 @@
 use crate::features::cache::FileCacheManager;
 use crate::features::client::RedisClientManager;
+use crate::features::context::InternalSystemTrayMenuId;
 use crate::utils::config::{get_connections_file_cache_manager_key, get_connections_file_name};
 use std::sync::Arc;
 use tauri::{App, Manager, Result, Runtime};
-use tauri_plugin_tauri_redis_setting::SettingsManager;
-use tauri_plugin_tauri_redis_translation::TRANSLATIONS;
+use tauri_plugin_tauri_redis_setting::{SettingsEvents, SettingsManager};
+use tauri_plugin_tauri_redis_translation::{TranslationEvents, TRANSLATIONS};
 use tauri_redis_core::cache::abstracts::FileCacheBase;
 use tauri_redis_core::cache::impls::FileCache;
 
@@ -58,21 +59,77 @@ where
     let handle = app.handle();
 
     // Get the current language and enable it.
-    let settings_manager = handle.state::<SettingsManager>();
-
-    tauri::async_runtime::block_on(async move {
+    tauri::async_runtime::spawn(async move {
+        let settings_manager = handle.state::<SettingsManager>();
         let settings_manager_lock = settings_manager.read().await;
-        let target_language = settings_manager_lock.get("language");
-        if target_language.is_some() {
-            let target_language = target_language.unwrap().as_str().unwrap();
 
-            TRANSLATIONS
-                .write()
-                .unwrap()
-                .switch_to(target_language)
-                .unwrap();
+        let new_handle = handle.clone();
+        let language = settings_manager_lock.get("language");
+        if language.is_some() {
+            let language = language.unwrap().as_str().unwrap();
+
+            TRANSLATIONS.write().await.switch_to(language).unwrap();
+
+            TranslationEvents::emit_switch_language(&new_handle, language).unwrap();
         }
     });
+
+    Ok(())
+}
+
+fn setup_events<R>(app: &mut App<R>) -> Result<()>
+where
+    R: Runtime,
+{
+    let handle = app.handle();
+    let new_handle = handle.clone();
+
+    SettingsEvents::listen_set(&handle, move |event| {
+        let payload = SettingsEvents::calc_set_payload(&event);
+        let new_handle = new_handle.clone();
+
+        if payload.key.as_str() == "language" {
+            tauri::async_runtime::spawn(async move {
+                let language = payload.value.as_str().unwrap();
+
+                TRANSLATIONS.write().await.switch_to(language).unwrap();
+
+                TranslationEvents::emit_switch_language(&new_handle, language).unwrap();
+            });
+        }
+    });
+
+    let new_handle = handle.clone();
+
+    let handle_switch_language = move |_| {
+        let quit_app_item_handle = new_handle
+            .tray_handle()
+            .get_item(InternalSystemTrayMenuId::QuitApp.into());
+        let toggle_app_visible_item_handle = new_handle
+            .tray_handle()
+            .get_item(InternalSystemTrayMenuId::ToggleAppVisible.into());
+        let main_window = new_handle.get_window("main").unwrap();
+        let is_main_window_visible = main_window.is_visible().unwrap();
+
+        tauri::async_runtime::spawn(async move {
+            let translator = TRANSLATIONS.read().await;
+
+            quit_app_item_handle
+                .set_title(translator.translate("quit app|Quit", None).unwrap())
+                .unwrap();
+            toggle_app_visible_item_handle
+                .set_title(if is_main_window_visible {
+                    translator.translate("hide app|Hide", None).unwrap()
+                } else {
+                    translator.translate("show app|Show", None).unwrap()
+                })
+                .unwrap();
+
+            main_window.set_title(translator.translate("this project description|Tauri redis - A simple redis desktop manager.", None).unwrap().as_str()).unwrap();
+        });
+    };
+
+    TranslationEvents::listen_switch_language(&handle, handle_switch_language);
 
     Ok(())
 }
@@ -85,5 +142,7 @@ where
 
     setup_redis_client_manager(app)?;
 
-    setup_page_metrics(app)
+    setup_page_metrics(app)?;
+
+    setup_events(app)
 }
