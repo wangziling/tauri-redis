@@ -6,7 +6,7 @@
 	import InputNumber from '$lib/components/InputNumber.svelte';
 	import { IpcKeyType } from '$lib/types';
 	import { fetchGetKeyTTL, fetchGetKeyType, fetchRenameKey, fetchSetKeyTTL } from '$lib/apis';
-	import { invokeErrorHandle } from '$lib/utils/page';
+	import { invokeErrorHandle, invokeOperationSuccessHandle } from '$lib/utils/page';
 	import KeyTypeStringDetailContent from '$lib/components/page/key-detail/KeyTypeStringDetailContent.svelte';
 	import { createEventDispatcher } from 'svelte';
 
@@ -36,6 +36,7 @@
 
 				return res;
 			})
+			.then(invokeOperationSuccessHandle)
 			.catch(invokeErrorHandle);
 	}
 
@@ -46,6 +47,7 @@
 
 				return res;
 			})
+			.then(invokeOperationSuccessHandle)
 			.catch(invokeErrorHandle);
 	}
 

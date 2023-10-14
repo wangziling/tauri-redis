@@ -21,7 +21,7 @@
 	} from '$lib/apis';
 	import { fetchCreateNewKey, fetchListRedisClientMetrics, fetchRemoveKey } from '$lib/apis';
 	import Main from './Main.svelte';
-	import { invokeErrorHandle } from '$lib/utils/page';
+	import { invokeErrorHandle, invokeOperationSuccessHandle } from '$lib/utils/page';
 	import NewConnectionDialog from './NewConnectionDialog.svelte';
 	import NewKeyDialog from './NewKeyDialog.svelte';
 	import { debounce, merge, remove, get as lodashGet } from 'lodash-es';
@@ -156,9 +156,11 @@
 	}
 
 	function handleConfirmCreateNewConnection(payload: SaveIpcConnectionPayload) {
-		return fetchSaveConnection(payload).then(() => {
-			return getConnections().then(() => payload);
-		});
+		return fetchSaveConnection(payload)
+			.then(invokeOperationSuccessHandle)
+			.then(() => {
+				return getConnections().then(() => payload);
+			});
 	}
 
 	function handleConfirmEditConnection(payload: SaveIpcConnectionPayload) {
@@ -172,9 +174,11 @@
 			guid: editConnectionDialogConfig.currentConnection.guid
 		});
 
-		return fetchSaveConnection(payload).then(() => {
-			return getConnections().then(() => payload);
-		});
+		return fetchSaveConnection(payload)
+			.then(invokeOperationSuccessHandle)
+			.then(() => {
+				return getConnections().then(() => payload);
+			});
 	}
 
 	function handleConfirmCreateNewKey(payload: SaveIpcNewKeyPayload) {
@@ -183,6 +187,7 @@
 		}
 
 		return fetchCreateNewKey(newKeyDialogConfig.currentGuid, payload)
+			.then(invokeOperationSuccessHandle)
 			.then(() => previewKey(newKeyDialogConfig.currentGuid, payload.name))
 			.then(() => listAllKeys(newKeyDialogConfig.currentGuid, { useRefresh: true, refreshOffset: 1 }))
 			.then(() => payload)
@@ -328,6 +333,7 @@
 	) {
 		const { key, guid } = e.detail;
 		return fetchRemoveKey(guid, key)
+			.then(invokeOperationSuccessHandle)
 			.then(() => listAllKeys(guid, { useRefresh: true }))
 			.catch(invokeErrorHandle);
 	}
