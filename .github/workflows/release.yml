@@ -176,8 +176,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
 
-      - name: Updater JSON
-        run: pnpm updater --token=${{ secrets.GITHUB_TOKEN }}
+      # Temporarily no need.
+      #      - name: Updater JSON
+      #        run: pnpm updater --token=${{ secrets.GITHUB_TOKEN }}
 
       - name: Deploy install.json
         uses: peaceiris/actions-gh-pages@v3
