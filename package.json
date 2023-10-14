@@ -14,10 +14,7 @@
 		"format": "prettier --plugin-search-dir . --write .",
 		"tauri": "tauri",
 		"tauri:dev": "npx tauri dev",
-		"tauri:build": "npx tauri build",
-		"tr": "tauir-release",
-		"updater": "tr updater",
-		"release": "tr release --git"
+		"tauri:build": "npx tauri build"
 	},
 	"dependencies": {
 		"@tauri-apps/api": "^1.5.0",
@@ -33,7 +30,6 @@
 		"@sveltejs/adapter-static": "^2.0.3",
 		"@sveltejs/kit": "^1.25.1",
 		"@tauri-apps/cli": "^1.5.1",
-		"@tauri-release/cli": "^0.2.5",
 		"@types/cookie": "^0.5.2",
 		"@types/lodash-es": "^4.17.9",
 		"@typescript-eslint/eslint-plugin": "^6.7.4",
