@@ -103,6 +103,7 @@ jobs:
           name: artifacts-${{ matrix.arch }}
           path: |
             ./src-tauri/target/${{ matrix.target }}/release/bundle/msi/**
+            ./src-tauri/target/${{ matrix.target }}/release/bundle/nsis/**
 
   release-tauri-redis:
     needs: build-tauri-redis
