@@ -134,6 +134,7 @@ jobs:
           mv "artifacts/x86_64/deb/tauri-redis_${{ env.version }}_amd64.deb" "artifacts/x86_64/deb/tauri_redis_${{ env.version }}_linux_x86_64.deb"
 
           mv "artifacts/x86_64/tauri-redis_${{ env.version }}_x64_en-US.msi" "artifacts/tauri_redis_${{ env.version }}_windows_x86_64.msi"
+          mv "artifacts/x86_64/tauri-redis_${{ env.version }}_x64-setup.exe" "artifacts/tauri_redis_${{ env.version }}_windows_x86_64.exe"
 
       - name: Create Release
         uses: softprops/action-gh-release@master
