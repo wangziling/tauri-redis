@@ -290,20 +290,18 @@ impl RedisClient {
                             let can_continue = value.has_more();
                             let mut scanned_keys = value.take_results().unwrap_or_default();
 
-                            // Record scanned count.
-                            let scanned_keys_len = scanned_keys.len() as u32;
-                            scanned_count.fetch_add(scanned_keys_len, Ordering::Relaxed);
-
                             // Append
                             keys.append(&mut scanned_keys);
+
+                            // Record scanned count.
+                            // Use keys.len() to use the `.with_capacity` related functionality.
+                            scanned_count.fetch_add(keys.len() as u32, Ordering::Relaxed);
 
                             // If we scanned enough items
                             // or cannot scan anymore.
                             let scanned_count_raw = scanned_count.load(Ordering::Relaxed);
                             let scanned_enough = scanned_count_raw >= needed_count || !can_continue;
                             if scanned_enough {
-                                scanned_count.fetch_and(keys.len() as u32, Ordering::Relaxed);
-
                                 sx.send(Ok(RedisScannerResult { keys, can_continue }))
                                     .unwrap();
                                 sent = true;
@@ -373,11 +371,27 @@ impl RedisClient {
         &mut self,
         pattern: String,
         iter_count: u32,
-        needed_count: u32,
+        offset: Option<u32>,
         r#type: Option<ScanType>,
     ) -> Result<RedisScannerResult> {
-        self._invoke_new_scan(pattern, iter_count.max(needed_count), needed_count, r#type)
-            .await?;
+        let needed_count = if self.scanner.is_some() {
+            self.scanner
+                .as_ref()
+                .unwrap()
+                .scanned_count
+                .load(Ordering::Relaxed)
+        } else {
+            iter_count
+        };
+
+        self._invoke_new_scan(
+            pattern,
+            iter_count,
+            // Add offset until reaching the maximum num.
+            needed_count.saturating_add(offset.unwrap_or_default()),
+            r#type,
+        )
+        .await?;
 
         // Continue scan.
         let scanner = self.scanner.as_mut().unwrap();

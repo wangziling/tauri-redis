@@ -135,12 +135,7 @@ pub async fn refresh_scanned_all_keys(
     let redis_each_scan_count: u32 = settings_lock.get_de("redisEachScanCount").unwrap();
 
     let scan_result = manager
-        .refresh_scan(
-            pattern,
-            redis_each_scan_count,
-            redis_each_scan_count + offset.unwrap_or_default(),
-            None,
-        )
+        .refresh_scan(pattern, redis_each_scan_count, offset, None)
         .await?;
 
     let result = scan_result
