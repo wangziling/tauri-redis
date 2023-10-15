@@ -1,0 +1,62 @@
+:root {
+}
+
+.loading {
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	right: 0;
+	height: 100%;
+	width: 100%;
+	background-color: var(--base-layered-bg-color);
+	transition: opacity 0.3s;
+	cursor: wait;
+	text-align: center;
+	font-size: 1.4rem;
+
+	&::after {
+		content: '';
+		display: inline-block;
+		vertical-align: middle;
+		height: 100%;
+		width: 0;
+	}
+
+	&-wrapper {
+		max-width: 27.5rem;
+		width: 100%;
+		overflow: hidden;
+		vertical-align: middle;
+		display: inline-block;
+		position: relative;
+	}
+
+	&__parent {
+		position: relative;
+	}
+
+	&__spinner {
+		font-size: 1.5em;
+
+		+ .loading__content {
+			margin-top: 1.2rem;
+		}
+	}
+
+	&__content {
+		@extend %break-word;
+
+		&:empty {
+			display: none;
+		}
+	}
+
+	&--fullscreen {
+		position: fixed;
+	}
+
+	&:not(.loading--visible) {
+		display: none;
+	}
+}
