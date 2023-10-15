@@ -103,8 +103,8 @@ export class Translator {
 	translateDerived(keyMayContainsDefaultContent: keyof Translations, ...args: string[]): Readable<TranslationContent> {
 		const self = this;
 
-		return derived(this.translations, function (this: Translator, translations) {
-			return self._translate.apply(this, [translations, keyMayContainsDefaultContent, ...args]);
+		return derived(this.translations, function (translations) {
+			return self._translate.apply(self, [translations, keyMayContainsDefaultContent, ...args]);
 		});
 	}
 
