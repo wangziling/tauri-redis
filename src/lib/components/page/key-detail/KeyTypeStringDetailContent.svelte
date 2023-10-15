@@ -2,7 +2,7 @@
 	import { calcDynamicClasses } from '$lib/utils/calculators';
 	import { translator } from 'tauri-redis-plugin-translation-api';
 	import { fetchGetKeyContentTypeString, fetchSetKeyContentTypeString } from '$lib/apis';
-	import { invokeErrorHandle } from '$lib/utils/page.js';
+	import { invokeErrorHandle, invokeOperationSuccessHandle } from '$lib/utils/page.js';
 	import Input from '$lib/components/Input.svelte';
 	import Button from '$lib/components/Button.svelte';
 	import { createEventDispatcher } from 'svelte';
@@ -34,6 +34,7 @@
 
 					return res;
 				})
+				.then(invokeOperationSuccessHandle)
 				.catch(invokeErrorHandle)
 		);
 	}
