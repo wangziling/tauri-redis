@@ -18,3 +18,11 @@ export interface ComponentsManualRenderingBaseEventsGenerateSlotParams {
 	target: string | HTMLElement | Element; // 'string' means dom query selector.
 	placeholder: string;
 }
+
+export enum LoadingArea {
+	Global = 'Global',
+	ConnectionsMain = 'ConnectionsMain',
+	DashboardKeys = 'DashboardKeys',
+	KeyDetail = 'KeyDetail',
+	KeyDetailContent = 'KeyDetailContent'
+}

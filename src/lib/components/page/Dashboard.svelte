@@ -8,9 +8,15 @@
 	import { createEventDispatcher } from 'svelte';
 	import Input from '$lib/components/Input.svelte';
 	import Button from '$lib/components/Button.svelte';
+	import Loading from '$lib/components/interaction/Loading.svelte';
+	import { createLoadingMisc } from '$lib/utils/appearance';
+	import { LoadingArea } from '$lib/types';
 
 	const dispatch = createEventDispatcher();
 	const calcKeysKey = createEachTagKeyGenerator('keys');
+	const loadingMisc = createLoadingMisc();
+	const keysLoadingDerived = loadingMisc.judgeLoadingDerived(LoadingArea.DashboardKeys);
+	const keysLoadingParentDynamicClassesDerived = loadingMisc.calcParentDynamicClassesDerived(LoadingArea.DashboardKeys);
 
 	export let data: Extract<MainTab, { type: MainTabType.Dashboard }>['data'] = {} as any;
 
@@ -91,6 +97,11 @@
 
 			return acc;
 		}, {} as Record<string /** dbname */, Record<string, string>>);
+	$: keysLoadingParentDynamicClasses = calcDynamicClasses([
+		'dashboard__card',
+		'dashboard__card-keys',
+		$keysLoadingParentDynamicClassesDerived
+	]);
 
 	const handleLoadMoreKeysClick = function handleLoadMoreKeysClick() {
 		dispatch('loadMoreKeys', { guid: data.connectionInfo.guid });
@@ -117,7 +128,7 @@
 </script>
 
 <div class={dynamicClasses}>
-	<Card class="dashboard__card dashboard__card-keys">
+	<Card class={keysLoadingParentDynamicClasses}>
 		<div slot="header" class="dashboard__header">
 			<div class="dashboard__header-icon fa fa-key" />
 			<div class="dashboard__header-content">{$translations['keys']}</div>
@@ -172,6 +183,7 @@
 				</div>
 			{/each}
 		</div>
+		<Loading visible={$keysLoadingDerived} />
 	</Card>
 	<Card class="dashboard__card dashboard__card-server-metrics">
 		<div slot="header" class="dashboard__header">

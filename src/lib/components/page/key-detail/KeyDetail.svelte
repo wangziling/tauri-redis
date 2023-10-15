@@ -1,16 +1,20 @@
 <script lang="ts">
 	import type { MainTab, MainTabType } from '$lib/types';
+	import { IpcKeyType, LoadingArea } from '$lib/types';
 	import { calcDynamicClasses, calcIpcKeyType } from '$lib/utils/calculators';
 	import { translator } from 'tauri-redis-plugin-translation-api';
 	import Input from '$lib/components/Input.svelte';
 	import InputNumber from '$lib/components/InputNumber.svelte';
-	import { IpcKeyType } from '$lib/types';
 	import { fetchGetKeyTTL, fetchGetKeyType, fetchRenameKey, fetchSetKeyTTL } from '$lib/apis';
 	import { invokeErrorHandle, invokeOperationSuccessHandle } from '$lib/utils/page';
 	import KeyTypeStringDetailContent from '$lib/components/page/key-detail/KeyTypeStringDetailContent.svelte';
 	import { createEventDispatcher } from 'svelte';
+	import { createLoadingMisc } from '$lib/utils/appearance';
+	import Loading from '$lib/components/interaction/Loading.svelte';
 
 	const dispatch = createEventDispatcher();
+	const loadingMisc = createLoadingMisc(LoadingArea.KeyDetail);
+	const { loading, parentDynamicClasses } = loadingMisc;
 
 	export let data: Extract<MainTab, { type: MainTabType.KeyDetail }>['data'] = {} as any;
 	export let maximumKeyTTL = 2 ** 32 - 1;
@@ -30,28 +34,32 @@
 	});
 
 	function handleSetKeyTTL() {
-		return fetchSetKeyTTL(data.connectionInfo.guid, { name: data.key, ttl: keyMetrics.ttl })
-			.then((res) => {
-				dispatch('setKeyTTL', { guid: data.connectionInfo.guid, name: data.key, ttl: keyMetrics.ttl });
+		return loadingMisc.wrapPromise(
+			fetchSetKeyTTL(data.connectionInfo.guid, { name: data.key, ttl: keyMetrics.ttl })
+				.then((res) => {
+					dispatch('setKeyTTL', { guid: data.connectionInfo.guid, name: data.key, ttl: keyMetrics.ttl });
 
-				return res;
-			})
-			.then(invokeOperationSuccessHandle)
-			.catch(invokeErrorHandle);
+					return res;
+				})
+				.then(invokeOperationSuccessHandle)
+				.catch(invokeErrorHandle)
+		);
 	}
 
 	function handleRenameKey() {
-		return fetchRenameKey(data.connectionInfo.guid, { name: data.key, newName: keyMetrics.name })
-			.then((res) => {
-				dispatch('renameKey', { guid: data.connectionInfo.guid, name: data.key, newName: keyMetrics.name });
+		return loadingMisc.wrapPromise(
+			fetchRenameKey(data.connectionInfo.guid, { name: data.key, newName: keyMetrics.name })
+				.then((res) => {
+					dispatch('renameKey', { guid: data.connectionInfo.guid, name: data.key, newName: keyMetrics.name });
 
-				return res;
-			})
-			.then(invokeOperationSuccessHandle)
-			.catch(invokeErrorHandle);
+					return res;
+				})
+				.then(invokeOperationSuccessHandle)
+				.catch(invokeErrorHandle)
+		);
 	}
 
-	$: dynamicClasses = calcDynamicClasses(['key-detail', $$restProps.class]);
+	$: dynamicClasses = calcDynamicClasses(['key-detail', $parentDynamicClasses, $$restProps.class]);
 
 	fetchGetKeyType(data.connectionInfo.guid, data.key)
 		.then((res) => {
@@ -111,4 +119,5 @@
 			<KeyTypeStringDetailContent guid={data.connectionInfo.guid} keyName={data.key} />
 		{/if}
 	</div>
+	<Loading visible={$loading} />
 </div>

@@ -1,11 +1,16 @@
 <script lang="ts">
 	import '$lib/sass/main.scss';
-	import { createSettingsMisc, createThemeMisc } from '$lib/utils/appearance';
+	import { createLoadingMisc, createSettingsMisc, createThemeMisc } from '$lib/utils/appearance';
 	import { PageTheme } from '$lib/types';
 	import Aside from './Aside.svelte';
+	import Loading from '$lib/components/interaction/Loading.svelte';
+	import { calcDynamicClasses } from '$lib/utils/calculators';
 
 	const themeMisc = createThemeMisc();
 	const settingsMisc = createSettingsMisc();
+
+	const loadingMisc = createLoadingMisc();
+	const { loading, parentDynamicClasses } = loadingMisc;
 
 	themeMisc.initEvents();
 	themeMisc.subscribe(function (theme) {
@@ -17,11 +22,13 @@
 	});
 
 	settingsMisc.initEvents();
+	$: dynamicClasses = calcDynamicClasses(['tauri-redis-main', $parentDynamicClasses]);
 </script>
 
-<main class="tauri-redis-main">
+<main class={dynamicClasses}>
 	<Aside class="tauri-redis-aside" />
 	<section class="tauri-redis-content">
 		<slot />
 	</section>
+	<Loading visible={$loading} />
 </main>

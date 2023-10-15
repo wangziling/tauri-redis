@@ -8,7 +8,7 @@
 		SaveIpcConnectionPayload,
 		SaveIpcNewKeyPayload
 	} from '$lib/types';
-	import { MainTabType } from '$lib/types';
+	import { LoadingArea, MainTabType } from '$lib/types';
 	import { translator } from 'tauri-redis-plugin-translation-api';
 	import {
 		fetchEstablishConnection,
@@ -24,8 +24,11 @@
 	import { invokeErrorHandle, invokeOperationSuccessHandle } from '$lib/utils/page';
 	import NewConnectionDialog from './NewConnectionDialog.svelte';
 	import NewKeyDialog from './NewKeyDialog.svelte';
-	import { debounce, merge, remove, get as lodashGet } from 'lodash-es';
+	import { merge, remove, get as lodashGet } from 'lodash-es';
 	import EditConnectionDialog from './EditConnectionDialog.svelte';
+	import { createLoadingMisc } from '$lib/utils/appearance';
+
+	const loadingMisc = createLoadingMisc();
 
 	let pageConnections: PageConnections = [];
 	let mainTabsConfig = {
@@ -156,11 +159,13 @@
 	}
 
 	function handleConfirmCreateNewConnection(payload: SaveIpcConnectionPayload) {
-		return fetchSaveConnection(payload)
-			.then(invokeOperationSuccessHandle)
-			.then(() => {
-				return getConnections().then(() => payload);
-			});
+		return loadingMisc.wrapPromise(
+			fetchSaveConnection(payload)
+				.then(invokeOperationSuccessHandle)
+				.then(() => {
+					return getConnections().then(() => payload);
+				})
+		);
 	}
 
 	function handleConfirmEditConnection(payload: SaveIpcConnectionPayload) {
@@ -174,11 +179,13 @@
 			guid: editConnectionDialogConfig.currentConnection.guid
 		});
 
-		return fetchSaveConnection(payload)
-			.then(invokeOperationSuccessHandle)
-			.then(() => {
-				return getConnections().then(() => payload);
-			});
+		return loadingMisc.wrapPromise(
+			fetchSaveConnection(payload)
+				.then(invokeOperationSuccessHandle)
+				.then(() => {
+					return getConnections().then(() => payload);
+				})
+		);
 	}
 
 	function handleConfirmCreateNewKey(payload: SaveIpcNewKeyPayload) {
@@ -186,12 +193,14 @@
 			return;
 		}
 
-		return fetchCreateNewKey(newKeyDialogConfig.currentGuid, payload)
-			.then(invokeOperationSuccessHandle)
-			.then(() => previewKey(newKeyDialogConfig.currentGuid, payload.name))
-			.then(() => listAllKeys(newKeyDialogConfig.currentGuid, { useRefresh: true, refreshOffset: 1 }))
-			.then(() => payload)
-			.catch(invokeErrorHandle);
+		return loadingMisc.wrapPromise(
+			fetchCreateNewKey(newKeyDialogConfig.currentGuid, payload)
+				.then(invokeOperationSuccessHandle)
+				.then(() => previewKey(newKeyDialogConfig.currentGuid, payload.name))
+				.then(() => listAllKeys(newKeyDialogConfig.currentGuid, { useRefresh: true, refreshOffset: 1 }))
+				.then(() => payload)
+				.catch(invokeErrorHandle)
+		);
 	}
 
 	function handleConfirmConnection(e: CustomEvent<IpcConnection>) {
@@ -208,88 +217,99 @@
 		}
 
 		// Using refresh in case the config had already connected.
-		fetchEstablishConnection(connection.guid)
-			.then(() =>
-				Promise.all([fetchListRedisClientMetrics(connection.guid), fetchRefreshScanRedisAllKeys(connection.guid)])
-			)
-			.then(([metricsRes, keysRes]) => {
-				const keys = keysRes.data;
-				const targetConnection = pageConnections.find(function (conn) {
-					return conn.info.guid === connection.guid;
-				});
-				if (targetConnection) {
-					targetConnection.selected = true;
+		loadingMisc.wrapPromise(
+			fetchEstablishConnection(connection.guid)
+				.then(() =>
+					Promise.all([fetchListRedisClientMetrics(connection.guid), fetchRefreshScanRedisAllKeys(connection.guid)])
+				)
+				.then(([metricsRes, keysRes]) => {
+					const keys = keysRes.data;
+					const targetConnection = pageConnections.find(function (conn) {
+						return conn.info.guid === connection.guid;
+					});
+					if (targetConnection) {
+						targetConnection.selected = true;
 
-					if (Array.isArray(keys)) {
-						targetConnection.keys = keys;
+						if (Array.isArray(keys)) {
+							targetConnection.keys = keys;
+						}
 					}
-				}
 
-				mainTabsConfig.tabs.push({
-					type: MainTabType.Dashboard,
-					data: {
-						metrics: metricsRes.data,
-						connectionInfo: connection,
-						keys: targetConnection.keys
-					}
-				});
+					mainTabsConfig.tabs.push({
+						type: MainTabType.Dashboard,
+						data: {
+							metrics: metricsRes.data,
+							connectionInfo: connection,
+							keys: targetConnection.keys
+						}
+					});
 
-				pageConnections = pageConnections;
-				mainTabsConfig.tabs = mainTabsConfig.tabs;
-				mainTabsConfig.activeIdx = mainTabsConfig.tabs.length - 1;
-			})
-			.catch(invokeErrorHandle);
+					pageConnections = pageConnections;
+					mainTabsConfig.tabs = mainTabsConfig.tabs;
+					mainTabsConfig.activeIdx = mainTabsConfig.tabs.length - 1;
+				})
+				.catch(invokeErrorHandle)
+		);
 	}
 
 	function handleReleaseConnection(e: CustomEvent<IpcConnection>) {
 		const connection = e.detail;
 
-		return fetchReleaseConnection(connection.guid)
-			.then(() => {
-				pageConnections.forEach(function (conn) {
-					if (conn.info.guid === connection.guid) {
-						conn.selected = false;
+		return loadingMisc.wrapPromise(
+			fetchReleaseConnection(connection.guid)
+				.then(() => {
+					pageConnections.forEach(function (conn) {
+						if (conn.info.guid === connection.guid) {
+							conn.selected = false;
+						}
+					});
+					remove(mainTabsConfig.tabs, function (tab) {
+						return tab.data.connectionInfo.guid === connection.guid;
+					});
+
+					mainTabsConfig.tabs = mainTabsConfig.tabs;
+					// If activeIdx is not a valid idx.
+					// Reset it as the last item idx.
+					if (mainTabsConfig.activeIdx < 0 || mainTabsConfig.activeIdx >= mainTabsConfig.tabs.length) {
+						mainTabsConfig.activeIdx = Math.max(mainTabsConfig.tabs.length - 1, 0);
 					}
-				});
-				remove(mainTabsConfig.tabs, function (tab) {
-					return tab.data.connectionInfo.guid === connection.guid;
-				});
 
-				mainTabsConfig.tabs = mainTabsConfig.tabs;
-				// If activeIdx is not a valid idx.
-				// Reset it as the last item idx.
-				if (mainTabsConfig.activeIdx < 0 || mainTabsConfig.activeIdx >= mainTabsConfig.tabs.length) {
-					mainTabsConfig.activeIdx = Math.max(mainTabsConfig.tabs.length - 1, 0);
-				}
-
-				pageConnections = pageConnections;
-			})
-			.catch(invokeErrorHandle);
+					pageConnections = pageConnections;
+				})
+				.catch(invokeErrorHandle)
+		);
 	}
 
 	function handleRemoveConnection(e: CustomEvent<IpcConnection>) {
 		const connection = e.detail;
 
-		return fetchRemoveConnection(connection.guid)
-			.then(() => {
-				const removedConnections = remove(pageConnections, function (conn) {
-					return conn.info.guid === connection.guid;
-				});
-				removedConnections.forEach(function (conn) {
-					if (conn.selected) {
-						fetchReleaseConnection(conn.info.guid);
-					}
-				});
+		return loadingMisc.wrapPromise(
+			fetchRemoveConnection(connection.guid)
+				.then(() => {
+					const removedConnections = remove(pageConnections, function (conn) {
+						return conn.info.guid === connection.guid;
+					});
 
-				remove(mainTabsConfig.tabs, function (tab) {
-					return tab.data.connectionInfo.guid === connection.guid;
-				});
+					remove(mainTabsConfig.tabs, function (tab) {
+						return tab.data.connectionInfo.guid === connection.guid;
+					});
 
-				pageConnections = pageConnections;
-				mainTabsConfig.tabs = mainTabsConfig.tabs;
-			})
-			.then(getConnections)
-			.catch(invokeErrorHandle);
+					pageConnections = pageConnections;
+					mainTabsConfig.tabs = mainTabsConfig.tabs;
+
+					const pendingTasks: Promise<any>[] = [];
+					removedConnections.forEach(function (conn) {
+						if (conn.selected) {
+							pendingTasks.push(fetchReleaseConnection(conn.info.guid));
+						}
+					});
+
+					// Use allSettled. Ignore the failure.
+					return Promise.allSettled(pendingTasks);
+				})
+				.then(getConnections)
+				.catch(invokeErrorHandle)
+		);
 	}
 
 	function handleEditConnection(e: CustomEvent<IpcConnection>) {
@@ -299,10 +319,12 @@
 			return conn.info.guid === connection.guid && conn.selected;
 		});
 		if (isTargetConnectionEstablished) {
-			return handleReleaseConnection(e).then(() => {
-				editConnectionDialogConfig.opened = true;
-				editConnectionDialogConfig.currentConnection = connection;
-			});
+			return loadingMisc.wrapPromise(
+				handleReleaseConnection(e).then(() => {
+					editConnectionDialogConfig.opened = true;
+					editConnectionDialogConfig.currentConnection = connection;
+				})
+			);
 		}
 
 		editConnectionDialogConfig.opened = true;
@@ -314,7 +336,7 @@
 			guid: IpcConnection['guid'];
 		}>
 	) {
-		return listAllKeys(e.detail.guid, { useLoadMore: true });
+		return loadingMisc.wrapPromise(listAllKeys(e.detail.guid, { useLoadMore: true }), [LoadingArea.DashboardKeys]);
 	}
 
 	function handleRefreshKeys(
@@ -322,7 +344,7 @@
 			guid: IpcConnection['guid'];
 		}>
 	) {
-		return listAllKeys(e.detail.guid, { useRefresh: true });
+		return loadingMisc.wrapPromise(listAllKeys(e.detail.guid, { useRefresh: true }), [LoadingArea.DashboardKeys]);
 	}
 
 	function handleRemoveKey(
@@ -332,10 +354,13 @@
 		}>
 	) {
 		const { key, guid } = e.detail;
-		return fetchRemoveKey(guid, key)
-			.then(invokeOperationSuccessHandle)
-			.then(() => listAllKeys(guid, { useRefresh: true }))
-			.catch(invokeErrorHandle);
+		return loadingMisc.wrapPromise(
+			fetchRemoveKey(guid, key)
+				.then(invokeOperationSuccessHandle)
+				.then(() => listAllKeys(guid, { useRefresh: true }))
+				.catch(invokeErrorHandle),
+			[LoadingArea.DashboardKeys]
+		);
 	}
 
 	function handlePreviewKey(
@@ -383,42 +408,44 @@
 	}
 
 	function getConnections() {
-		return fetchGetConnections().then(function (res) {
-			if (Array.isArray(res.data)) {
-				if (pageConnections.length) {
-					pageConnections = res.data.map(function (info) {
-						const targetConnection = pageConnections.find(function (conn) {
-							return conn.info.guid === info.guid;
-						});
+		return loadingMisc.wrapPromise(
+			fetchGetConnections().then(function (res) {
+				if (Array.isArray(res.data)) {
+					if (pageConnections.length) {
+						pageConnections = res.data.map(function (info) {
+							const targetConnection = pageConnections.find(function (conn) {
+								return conn.info.guid === info.guid;
+							});
 
-						if (targetConnection) {
+							if (targetConnection) {
+								return {
+									info,
+									selected: targetConnection.selected,
+									keys: []
+								};
+							}
 							return {
 								info,
-								selected: targetConnection.selected,
+								selected: false,
 								keys: []
 							};
-						}
-						return {
-							info,
-							selected: false,
-							keys: []
-						};
-					});
-				} else {
-					pageConnections = res.data.map(function (info) {
-						return {
-							info,
-							selected: false,
-							keys: []
-						};
-					});
+						});
+					} else {
+						pageConnections = res.data.map(function (info) {
+							return {
+								info,
+								selected: false,
+								keys: []
+							};
+						});
+					}
 				}
-			}
 
-			pageConnections = pageConnections;
+				pageConnections = pageConnections;
 
-			return res;
-		});
+				return res;
+			})
+		);
 	}
 
 	// Trigger immediately.

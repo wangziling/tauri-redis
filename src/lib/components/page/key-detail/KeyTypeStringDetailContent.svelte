@@ -6,9 +6,13 @@
 	import Input from '$lib/components/Input.svelte';
 	import Button from '$lib/components/Button.svelte';
 	import { createEventDispatcher } from 'svelte';
-	import { IpcKeyType } from '$lib/types';
+	import { IpcKeyType, LoadingArea } from '$lib/types';
+	import { createLoadingMisc } from '$lib/utils/appearance';
+	import Loading from '$lib/components/interaction/Loading.svelte';
 
 	const dispatch = createEventDispatcher();
+	const loadingMisc = createLoadingMisc(LoadingArea.KeyDetailContent);
+	const { loading, parentDynamicClasses } = loadingMisc;
 
 	export let guid = '';
 	export let keyName = '';
@@ -23,13 +27,15 @@
 	});
 
 	function handleSetKeyContent() {
-		return fetchSetKeyContentTypeString(guid, { name: keyName, content })
-			.then((res) => {
-				dispatch('setKeyContent', { guid, keyName, content, type: IpcKeyType.String });
+		return loadingMisc.wrapPromise(
+			fetchSetKeyContentTypeString(guid, { name: keyName, content })
+				.then((res) => {
+					dispatch('setKeyContent', { guid, keyName, content, type: IpcKeyType.String });
 
-				return res;
-			})
-			.catch(invokeErrorHandle);
+					return res;
+				})
+				.catch(invokeErrorHandle)
+		);
 	}
 
 	$: metricsInvalid = !(guid && keyName);
@@ -37,21 +43,24 @@
 	$: dynamicClasses = calcDynamicClasses([
 		'key-detail-content',
 		'key-detail-content__type-string',
+		$parentDynamicClasses,
 		{
 			'key-detail-content--invalid': metricsInvalid
 		}
 	]);
 
 	$: {
-		fetchGetKeyContentTypeString(guid, keyName)
-			.then((res) => {
-				content = res.data;
+		loadingMisc.wrapPromise(
+			fetchGetKeyContentTypeString(guid, keyName)
+				.then((res) => {
+					content = res.data;
 
-				dispatch('getKeyContent', { guid, keyName, type: IpcKeyType.String });
+					dispatch('getKeyContent', { guid, keyName, type: IpcKeyType.String });
 
-				return res;
-			})
-			.catch(invokeErrorHandle);
+					return res;
+				})
+				.catch(invokeErrorHandle)
+		);
 	}
 </script>
 
@@ -70,4 +79,5 @@
 			>
 		</div>
 	{/if}
+	<Loading visible={$loading} />
 </div>
