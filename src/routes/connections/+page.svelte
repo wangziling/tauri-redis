@@ -408,44 +408,42 @@
 	}
 
 	function getConnections() {
-		return loadingMisc.wrapPromise(
-			fetchGetConnections().then(function (res) {
-				if (Array.isArray(res.data)) {
-					if (pageConnections.length) {
-						pageConnections = res.data.map(function (info) {
-							const targetConnection = pageConnections.find(function (conn) {
-								return conn.info.guid === info.guid;
-							});
+		return fetchGetConnections().then(function (res) {
+			if (Array.isArray(res.data)) {
+				if (pageConnections.length) {
+					pageConnections = res.data.map(function (info) {
+						const targetConnection = pageConnections.find(function (conn) {
+							return conn.info.guid === info.guid;
+						});
 
-							if (targetConnection) {
-								return {
-									info,
-									selected: targetConnection.selected,
-									keys: []
-								};
-							}
+						if (targetConnection) {
 							return {
 								info,
-								selected: false,
+								selected: targetConnection.selected,
 								keys: []
 							};
-						});
-					} else {
-						pageConnections = res.data.map(function (info) {
-							return {
-								info,
-								selected: false,
-								keys: []
-							};
-						});
-					}
+						}
+						return {
+							info,
+							selected: false,
+							keys: []
+						};
+					});
+				} else {
+					pageConnections = res.data.map(function (info) {
+						return {
+							info,
+							selected: false,
+							keys: []
+						};
+					});
 				}
+			}
 
-				pageConnections = pageConnections;
+			pageConnections = pageConnections;
 
-				return res;
-			})
-		);
+			return res;
+		});
 	}
 
 	// Trigger immediately.
