@@ -19,7 +19,7 @@ where
 
     let handle_toggle_window_visible =
         move |window: Window<R>, item_handle: SystemTrayMenuItemHandle<R>| {
-            let is_window_visible = window.is_visible().unwrap();
+            let mut is_window_visible = window.is_visible().unwrap();
 
             if is_window_visible {
                 // you can also `set_selected`, `set_enabled` and `set_native_image` (macOS only).
@@ -29,6 +29,8 @@ where
                 window.show().unwrap();
                 window.set_focus().unwrap();
             }
+
+            is_window_visible = !is_window_visible;
 
             tauri::async_runtime::spawn(async move {
                 let translator = TRANSLATIONS.read().await;
