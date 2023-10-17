@@ -1,18 +1,18 @@
-use crate::features::cache::FileCacheManager;
-use crate::features::client::{RedisClientConnectionPayload, RedisClientManager};
+use crate::features::cache::FileCacheManagerState;
+use crate::features::client::{
+    RedisClientConnectionPayload, RedisClientManager, RedisClientManagerState,
+};
 use crate::features::command::{ConnectionInfo, Guid, SaveConnectionPayload};
 use crate::features::error::{Error, Result};
 use crate::features::response::Response;
 use crate::utils::calculator::{gen_uuid, get_cur_time};
 use crate::utils::config::get_connections_file_cache_manager_key;
 use crate::utils::judgements::judge_guid_valid;
-use std::sync::Arc;
 use tauri::State;
 use tauri_redis_core::cache::abstracts::FileCacheBase;
-use tokio::sync::Mutex;
 
 async fn invoke_get_connections(
-    file_cache_manager: &State<'_, Arc<Mutex<FileCacheManager>>>,
+    file_cache_manager: &State<'_, FileCacheManagerState>,
 ) -> Result<Vec<ConnectionInfo>> {
     let lock = file_cache_manager.lock().await;
     let connections_file_cache = lock
@@ -39,8 +39,8 @@ async fn invoke_find_connection<'a>(
 }
 
 async fn invoke_establish_connection<'a>(
-    file_cache_manager: &State<'_, Arc<Mutex<FileCacheManager>>>,
-    redis_client_manager: &State<'_, Arc<Mutex<RedisClientManager>>>,
+    file_cache_manager: &State<'_, FileCacheManagerState>,
+    redis_client_manager: &State<'_, RedisClientManagerState>,
     guid: &'a Guid,
 ) -> Result<()> {
     let connections_info = invoke_get_connections(&file_cache_manager).await?;
@@ -76,8 +76,8 @@ async fn invoke_establish_connection<'a>(
 }
 
 async fn invoke_release_connection<'a>(
-    file_cache_manager: &State<'_, Arc<Mutex<FileCacheManager>>>,
-    redis_client_manager: &State<'_, Arc<Mutex<RedisClientManager>>>,
+    file_cache_manager: &State<'_, FileCacheManagerState>,
+    redis_client_manager: &State<'_, RedisClientManagerState>,
     guid: &'a Guid,
 ) -> Result<()> {
     let mut connections_info = invoke_get_connections(&file_cache_manager).await?;
@@ -118,7 +118,7 @@ async fn invoke_release_connection<'a>(
 }
 
 async fn invoke_save_connection(
-    file_cache_manager: &State<'_, Arc<Mutex<FileCacheManager>>>,
+    file_cache_manager: &State<'_, FileCacheManagerState>,
     info: SaveConnectionPayload,
 ) -> Result<()> {
     let connections_info = invoke_get_connections(&file_cache_manager).await;
@@ -182,7 +182,7 @@ async fn invoke_save_connection(
 }
 
 async fn invoke_remove_connection<'a>(
-    file_cache_manager: &State<'_, Arc<Mutex<FileCacheManager>>>,
+    file_cache_manager: &State<'_, FileCacheManagerState>,
     guid: &'a Guid,
 ) -> Result<()> {
     judge_guid_valid(guid)?;
@@ -213,7 +213,7 @@ async fn invoke_remove_connection<'a>(
 
 #[tauri::command]
 pub async fn save_connection(
-    file_cache_manager: State<'_, Arc<Mutex<FileCacheManager>>>,
+    file_cache_manager: State<'_, FileCacheManagerState>,
     connection_info: &str,
 ) -> Result<Response<()>> {
     let info: Result<SaveConnectionPayload> =
@@ -229,7 +229,7 @@ pub async fn save_connection(
 
 #[tauri::command]
 pub async fn get_connections(
-    file_cache_manager: State<'_, Arc<Mutex<FileCacheManager>>>,
+    file_cache_manager: State<'_, FileCacheManagerState>,
 ) -> Result<Response<Vec<ConnectionInfo>>> {
     invoke_get_connections(&file_cache_manager)
         .await
@@ -239,8 +239,8 @@ pub async fn get_connections(
 
 #[tauri::command]
 pub async fn establish_connection(
-    file_cache_manager: State<'_, Arc<Mutex<FileCacheManager>>>,
-    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    file_cache_manager: State<'_, FileCacheManagerState>,
+    redis_client_manager: State<'_, RedisClientManagerState>,
     guid: String,
 ) -> Result<Response<()>> {
     invoke_establish_connection(&file_cache_manager, &redis_client_manager, &guid)
@@ -251,8 +251,8 @@ pub async fn establish_connection(
 
 #[tauri::command]
 pub async fn release_connection(
-    file_cache_manager: State<'_, Arc<Mutex<FileCacheManager>>>,
-    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    file_cache_manager: State<'_, FileCacheManagerState>,
+    redis_client_manager: State<'_, RedisClientManagerState>,
     guid: String,
 ) -> Result<Response<()>> {
     invoke_release_connection(&file_cache_manager, &redis_client_manager, &guid)
@@ -263,7 +263,7 @@ pub async fn release_connection(
 
 #[tauri::command]
 pub async fn remove_connection(
-    file_cache_manager: State<'_, Arc<Mutex<FileCacheManager>>>,
+    file_cache_manager: State<'_, FileCacheManagerState>,
     guid: Guid,
 ) -> Result<Response<()>> {
     invoke_remove_connection(&file_cache_manager, &guid)

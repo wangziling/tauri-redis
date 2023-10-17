@@ -1,18 +1,16 @@
-use crate::features::client::{RedisClientManager, RedisInfoDict, RedisKeyType};
+use crate::features::client::{RedisClientManagerState, RedisInfoDict, RedisKeyType};
 use crate::features::command::{Guid, TTL};
 use crate::features::error::{Error, Result};
 use crate::features::response::Response;
 use fred::interfaces::{ClientLike, HashesInterface, KeysInterface};
 use fred::types::{CustomCommand, InfoKind, RedisValue};
 use std::collections::HashMap;
-use std::sync::Arc;
 use tauri::State;
 use tauri_plugin_tauri_redis_setting::SettingsManager;
-use tokio::sync::Mutex;
 
 #[tauri::command]
 pub async fn list_client_metrics(
-    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    redis_client_manager: State<'_, RedisClientManagerState>,
     guid: Guid,
 ) -> Result<Response<HashMap<String, String>>> {
     let mut lock = redis_client_manager.lock().await;
@@ -44,7 +42,7 @@ pub async fn list_client_metrics(
 
 #[tauri::command]
 pub async fn list_all_keys(
-    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    redis_client_manager: State<'_, RedisClientManagerState>,
     guid: Guid,
     condition_part: Option<String>,
 ) -> Result<Response<Vec<String>>> {
@@ -82,7 +80,7 @@ pub async fn list_all_keys(
 
 #[tauri::command]
 pub async fn scan_all_keys(
-    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    redis_client_manager: State<'_, RedisClientManagerState>,
     settings_manager: State<'_, SettingsManager>,
     guid: Guid,
     condition_part: Option<String>,
@@ -115,7 +113,7 @@ pub async fn scan_all_keys(
 
 #[tauri::command]
 pub async fn refresh_scanned_all_keys(
-    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    redis_client_manager: State<'_, RedisClientManagerState>,
     settings_manager: State<'_, SettingsManager>,
     guid: Guid,
     condition_part: Option<String>,
@@ -149,7 +147,7 @@ pub async fn refresh_scanned_all_keys(
 
 #[tauri::command]
 pub async fn create_new_key(
-    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    redis_client_manager: State<'_, RedisClientManagerState>,
     guid: Guid,
     key_name: String,
     key_type: RedisKeyType,
@@ -188,7 +186,7 @@ pub async fn create_new_key(
 
 #[tauri::command]
 pub async fn remove_key(
-    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    redis_client_manager: State<'_, RedisClientManagerState>,
     guid: Guid,
     key_name: String,
 ) -> Result<Response<()>> {
@@ -211,7 +209,7 @@ pub async fn remove_key(
 
 #[tauri::command]
 pub async fn get_key_type(
-    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    redis_client_manager: State<'_, RedisClientManagerState>,
     guid: Guid,
     key_name: String,
 ) -> Result<Response<RedisKeyType>> {
@@ -235,7 +233,7 @@ pub async fn get_key_type(
 
 #[tauri::command]
 pub async fn get_key_ttl(
-    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    redis_client_manager: State<'_, RedisClientManagerState>,
     guid: Guid,
     key_name: String,
 ) -> Result<Response<TTL>> {
@@ -259,7 +257,7 @@ pub async fn get_key_ttl(
 
 #[tauri::command]
 pub async fn set_key_ttl(
-    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    redis_client_manager: State<'_, RedisClientManagerState>,
     guid: Guid,
     key_name: String,
     ttl: TTL,
@@ -283,7 +281,7 @@ pub async fn set_key_ttl(
 
 #[tauri::command]
 pub async fn rename_key(
-    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    redis_client_manager: State<'_, RedisClientManagerState>,
     guid: Guid,
     key_name: String,
     new_key_name: String,
@@ -307,7 +305,7 @@ pub async fn rename_key(
 
 #[tauri::command]
 pub async fn get_key_content_type_string(
-    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    redis_client_manager: State<'_, RedisClientManagerState>,
     guid: Guid,
     key_name: String,
 ) -> Result<Response<String>> {
@@ -331,7 +329,7 @@ pub async fn get_key_content_type_string(
 
 #[tauri::command]
 pub async fn set_key_content_type_string(
-    redis_client_manager: State<'_, Arc<Mutex<RedisClientManager>>>,
+    redis_client_manager: State<'_, RedisClientManagerState>,
     guid: Guid,
     key_name: String,
     content: String,

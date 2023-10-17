@@ -1,16 +1,14 @@
-use crate::features::cache::FileCacheManager;
+use crate::features::cache::FileCacheManagerState;
 use crate::features::command::Miscs;
 use crate::features::error::{Error, Result};
 use crate::features::response::Response;
 use crate::utils::config::get_miscs_file_cache_manager_key;
-use std::sync::Arc;
 use tauri::State;
 use tauri_redis_core::cache::abstracts::FileCacheBase;
-use tokio::sync::Mutex;
 
 #[tauri::command]
 pub async fn record_page_route_visited(
-    file_cache_manager: State<'_, Arc<Mutex<FileCacheManager>>>,
+    file_cache_manager: State<'_, FileCacheManagerState>,
     page_route: String,
 ) -> Result<Response<()>> {
     let mut lock = file_cache_manager.lock().await;
@@ -39,7 +37,7 @@ pub async fn record_page_route_visited(
 
 #[tauri::command]
 pub async fn judge_page_route_visited(
-    file_cache_manager: State<'_, Arc<Mutex<FileCacheManager>>>,
+    file_cache_manager: State<'_, FileCacheManagerState>,
     page_route: String,
 ) -> Result<Response<bool>> {
     let mut lock = file_cache_manager.lock().await;

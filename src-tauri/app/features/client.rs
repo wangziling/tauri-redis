@@ -14,7 +14,7 @@ use serde::Serialize;
 use std::collections::{hash_map, HashMap};
 use std::ops::{Deref, DerefMut};
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use std::time::Duration;
 use tauri::command::{CommandArg, CommandItem};
 use tauri::{InvokeError, Runtime};
@@ -22,8 +22,8 @@ use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver};
 use tokio::task::JoinHandle;
 use tokio_stream::StreamExt;
 
-static PENDING_REDIS_CONNECTION_TASKS: Lazy<Arc<Mutex<Vec<Guid>>>> =
-    Lazy::new(|| Arc::new(Mutex::new(vec![])));
+static PENDING_REDIS_CONNECTION_TASKS: Lazy<Arc<std::sync::Mutex<Vec<Guid>>>> =
+    Lazy::new(|| Arc::new(std::sync::Mutex::new(vec![])));
 
 pub struct RedisInfoDict {
     map: HashMap<String, RedisValue>,
@@ -176,6 +176,8 @@ pub struct RedisClient {
     manager: fred::clients::RedisClient,
     scanner: Option<RedisScanner>,
 }
+
+pub type RedisClientManagerState = Arc<tauri::async_runtime::Mutex<RedisClientManager>>;
 
 #[derive(Default)]
 pub struct RedisClientManager {

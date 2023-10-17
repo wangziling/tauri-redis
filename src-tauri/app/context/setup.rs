@@ -57,7 +57,9 @@ where
             file_cache
         });
 
-    handle.manage(Arc::new(tokio::sync::Mutex::new(file_cache_manager)));
+    handle.manage(Arc::new(tauri::async_runtime::Mutex::new(
+        file_cache_manager,
+    )));
 
     Ok(())
 }
@@ -68,7 +70,9 @@ where
 {
     let handle = app.handle();
 
-    handle.manage(Arc::new(tokio::sync::Mutex::new(RedisClientManager::new())));
+    handle.manage(Arc::new(tauri::async_runtime::Mutex::new(
+        RedisClientManager::new(),
+    )));
 
     Ok(())
 }

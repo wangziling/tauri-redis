@@ -1,6 +1,10 @@
 use std::collections::HashMap;
 use std::ops::{Deref, DerefMut};
+use std::sync::Arc;
+use tauri::async_runtime::Mutex;
 use tauri_redis_core::cache::impls::FileCache;
+
+pub type FileCacheManagerState = Arc<Mutex<FileCacheManager>>;
 
 #[derive(Default)]
 pub struct FileCacheManager {
