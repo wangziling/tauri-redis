@@ -19,6 +19,7 @@ pub trait FileCacheBase {
     fn as_de<T: for<'a> Deserialize<'a>>(&self) -> Result<T, AnyError>;
     fn replace(&mut self, value: Value) -> Result<(), AnyError>;
     fn replace_se<T: Serialize>(&mut self, value: T) -> Result<(), AnyError>;
-    fn load(&mut self, filename: String) -> Result<(), AnyError>;
+    fn load(&mut self, filename: String, ignore_empty: bool) -> Result<(), AnyError>;
+    fn load_ignore_empty(&mut self, filename: String) -> Result<(), AnyError>;
     fn save(&self, pretty: bool) -> Result<(), AnyError>;
 }

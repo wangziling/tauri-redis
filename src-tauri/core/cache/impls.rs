@@ -141,7 +141,7 @@ impl FileCacheBase for FileCache {
         self.replace(value)
     }
 
-    fn load(&mut self, filename: String) -> Result<(), AnyError> {
+    fn load(&mut self, filename: String, ignore_emtpy: bool) -> Result<(), AnyError> {
         // Load the initialized file data.
         if self.filename.as_ref().is_some_and(|f| f == &filename) && self.inner.is_some() {
             return Ok(());
@@ -152,7 +152,7 @@ impl FileCacheBase for FileCache {
         let mut handle = fs::File::open(self.filepath.as_ref().unwrap())?;
         handle.read_to_string(&mut file_content)?;
 
-        if file_content.is_empty() {
+        if !ignore_emtpy && file_content.is_empty() {
             return Err(AnyError::msg("Empty content."));
         }
 
@@ -160,6 +160,10 @@ impl FileCacheBase for FileCache {
         self.inner = Some(serde_json::from_str(file_content.as_str())?);
 
         Ok(())
+    }
+
+    fn load_ignore_empty(&mut self, filename: String) -> Result<(), AnyError> {
+        return self.load(filename, true);
     }
 
     fn save(&self, pretty: bool) -> Result<(), AnyError> {
