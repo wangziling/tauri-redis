@@ -13,9 +13,9 @@ where
     let hide = CustomMenuItem::new(InternalSystemTrayMenuId::ToggleAppVisible, "Hide");
 
     let menu = SystemTrayMenu::new()
-        .add_item(quit)
+        .add_item(hide)
         .add_native_item(SystemTrayMenuItem::Separator)
-        .add_item(hide);
+        .add_item(quit);
 
     let handle_toggle_window_visible =
         move |window: Window<R>, item_handle: SystemTrayMenuItemHandle<R>| {
