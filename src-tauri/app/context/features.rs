@@ -37,9 +37,9 @@ where
                         translator
                             .translate(
                                 if is_window_visible {
-                                    "show app|Show"
-                                } else {
                                     "hide app|Hide"
+                                } else {
+                                    "show app|Show"
                                 },
                                 None,
                             )
