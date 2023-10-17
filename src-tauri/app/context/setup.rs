@@ -27,7 +27,7 @@ where
         .or_insert_with(|| {
             let connections_path = path_resolver.app_local_data_dir().unwrap();
             let mut file_cache = FileCache::new(connections_path);
-            let _ = file_cache.load(
+            let _ = file_cache.load_ignore_empty(
                 get_connections_file_name()
                     .map_err(|err| err.into_anyhow())
                     .unwrap(),

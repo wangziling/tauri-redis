@@ -33,10 +33,10 @@ pub struct Settings {
 impl Settings {
     pub fn new(directory: PathBuf) -> Self {
         let mut default_cache = FileCache::new(Path::new(env!("CARGO_MANIFEST_DIR")).to_path_buf());
-        let _ = default_cache.load("resources/settings.json".to_string());
+        let _ = default_cache.load_ignore_empty("resources/settings.json".to_string());
 
         let mut presets_cache = FileCache::new(Path::new(env!("CARGO_MANIFEST_DIR")).to_path_buf());
-        let _ = presets_cache.load("resources/presets.json".to_string());
+        let _ = presets_cache.load_ignore_empty("resources/presets.json".to_string());
 
         Self {
             cache: FileCache::new(directory),
@@ -55,7 +55,7 @@ impl Settings {
 
     pub(crate) fn load(&mut self, filename: impl Into<String>) -> Result<()> {
         self.cache
-            .load(filename.into())
+            .load_ignore_empty(filename.into())
             .map_err(|_| Error::FailedToLoadTheSettingFile)?;
 
         self.inner = Some(

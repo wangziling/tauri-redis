@@ -194,7 +194,7 @@ impl Translations {
         }
 
         self.cache
-            .load(language.clone() + ".json")
+            .load_ignore_empty(language.clone() + ".json")
             .map_err(|_| Error::FailedToFindTargetTranslationFile)?;
 
         let result = self
