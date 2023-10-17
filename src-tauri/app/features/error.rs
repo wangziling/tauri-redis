@@ -9,6 +9,9 @@ pub enum Error {
     #[error("Unexpected issue.")]
     UnexpectedIssue,
 
+    #[error(transparent)]
+    TauriInternalError(#[from] tauri::Error),
+
     #[error("Invalid guid.")]
     InvalidGuid,
 

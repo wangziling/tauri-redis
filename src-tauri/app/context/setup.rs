@@ -1,6 +1,7 @@
 use crate::features::cache::FileCacheManager;
 use crate::features::client::RedisClientManager;
 use crate::features::context::InternalSystemTrayMenuId;
+use crate::features::events::Events;
 use crate::utils::config::{
     get_connections_file_cache_manager_key, get_connections_file_name,
     get_miscs_file_cache_manager_key, get_miscs_file_name,
@@ -161,6 +162,33 @@ where
     };
 
     TranslationEvents::listen_switch_language(&handle, handle_switch_language);
+
+    let new_handle = handle.clone();
+    Events::listen_with_type(
+        &handle,
+        Events::WindowVisibleChangedManually,
+        move |_event| {
+            let new_handle = new_handle.clone();
+
+            tauri::async_runtime::spawn(async move {
+                let translator = TRANSLATIONS.read().await;
+                let tray_handle = new_handle.tray_handle();
+                let toggle_app_visible_item_handle =
+                    tray_handle.get_item(InternalSystemTrayMenuId::ToggleAppVisible.into());
+
+                let main_window = new_handle.get_window("main").unwrap();
+                let is_main_window_visible = main_window.is_visible().unwrap();
+
+                toggle_app_visible_item_handle
+                    .set_title(if is_main_window_visible {
+                        translator.translate("hide app|Hide", None).unwrap()
+                    } else {
+                        translator.translate("show app|Show", None).unwrap()
+                    })
+                    .unwrap();
+            });
+        },
+    );
 
     Ok(())
 }

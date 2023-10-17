@@ -1,8 +1,9 @@
 use crate::features::error::Result;
-use tauri::{Manager, Runtime, Window};
+use crate::features::events::Events;
+use tauri::{AppHandle, Manager, Runtime, Window};
 
 #[tauri::command]
-pub async fn close_splashscreen<R>(window: Window<R>) -> Result<()>
+pub async fn close_splashscreen<R>(window: Window<R>, handle: AppHandle<R>) -> Result<()>
 where
     R: Runtime,
 {
@@ -19,6 +20,8 @@ where
         .expect("no window labeled 'main' found")
         .show()
         .unwrap();
+
+    Events::trigger_with_type(&handle, Events::WindowVisibleChangedManually, None)?;
 
     Ok(())
 }
