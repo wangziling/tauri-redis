@@ -21,3 +21,13 @@ pub fn get_settings_file_name() -> Result<String> {
     CFG.get_string("settings.filename")
         .map_err(Error::FailedToGetRelatedConfig)
 }
+
+pub fn get_miscs_file_cache_manager_key() -> Result<String> {
+    CFG.get_string("miscs.file_cache_manager_key")
+        .map_err(Error::FailedToGetRelatedConfig)
+}
+
+pub fn get_miscs_file_name() -> Result<String> {
+    CFG.get_string("miscs.filename")
+        .map_err(Error::FailedToGetRelatedConfig)
+}

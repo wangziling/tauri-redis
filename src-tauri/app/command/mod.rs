@@ -3,6 +3,7 @@ use tauri::{Builder, Runtime};
 mod client;
 mod connections;
 mod system;
+mod telemetry;
 
 pub fn register_commands<R>(b: Builder<R>) -> Builder<R>
 where
@@ -10,6 +11,8 @@ where
 {
     b.invoke_handler(tauri::generate_handler![
         system::close_splashscreen,
+        telemetry::record_page_route_visited,
+        telemetry::judge_page_route_visited,
         connections::save_connection,
         connections::get_connections,
         connections::establish_connection,

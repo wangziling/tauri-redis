@@ -1,7 +1,10 @@
 use crate::features::cache::FileCacheManager;
 use crate::features::client::RedisClientManager;
 use crate::features::context::InternalSystemTrayMenuId;
-use crate::utils::config::{get_connections_file_cache_manager_key, get_connections_file_name};
+use crate::utils::config::{
+    get_connections_file_cache_manager_key, get_connections_file_name,
+    get_miscs_file_cache_manager_key, get_miscs_file_name,
+};
 use std::sync::Arc;
 use tauri::{App, Manager, Result, Runtime};
 use tauri_plugin_tauri_redis_setting::{SettingsEvents, SettingsManager};
@@ -29,6 +32,24 @@ where
             let mut file_cache = FileCache::new(connections_path);
             let _ = file_cache.load_ignore_empty(
                 get_connections_file_name()
+                    .map_err(|err| err.into_anyhow())
+                    .unwrap(),
+            );
+
+            file_cache
+        });
+
+    file_cache_manager
+        .entry(
+            get_miscs_file_cache_manager_key()
+                .map_err(|err| err.into_anyhow())
+                .unwrap(),
+        )
+        .or_insert_with(|| {
+            let miscs_path = path_resolver.app_local_data_dir().unwrap();
+            let mut file_cache = FileCache::new(miscs_path);
+            let _ = file_cache.load_ignore_empty(
+                get_miscs_file_name()
                     .map_err(|err| err.into_anyhow())
                     .unwrap(),
             );

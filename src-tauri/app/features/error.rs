@@ -43,6 +43,11 @@ pub enum Error {
     InvalidRedisKeyType,
     #[error("Invalid redis key name.")]
     InvalidRedisKeyName,
+
+    #[error("Failed to get the cached miscs info.")]
+    FailedToGetCachedMiscsInfo,
+    #[error("Failed to parse the cached miscs info.")]
+    FailedToParseCachedMiscsInfo,
 }
 
 impl Error {

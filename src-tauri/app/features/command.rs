@@ -42,3 +42,9 @@ pub struct SaveConnectionPayload {
     // Non matched, Error thrown.
     pub guid: Option<Guid>,
 }
+
+#[derive(Default, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Miscs {
+    pub visited_page_routes: Vec<String>,
+}
