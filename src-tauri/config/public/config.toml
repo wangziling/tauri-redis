@@ -5,5 +5,9 @@ connection_timeout = 8
 filename = "connections.json"
 file_cache_manager_key = "connections"
 
+[miscs]
+filename = "miscs.json"
+file_cache_manager_key = "miscs"
+
 [settings]
 filename = "settings.json"
