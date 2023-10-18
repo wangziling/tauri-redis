@@ -2,11 +2,63 @@ use crate::features::client::{RedisClientManagerState, RedisInfoDict, RedisKeyTy
 use crate::features::command::{Guid, TTL};
 use crate::features::error::{Error, Result};
 use crate::features::response::Response;
-use fred::interfaces::{ClientLike, HashesInterface, KeysInterface};
+use crate::utils::config::get_redis_max_db_nums;
+use fred::interfaces::{ClientLike, HashesInterface, KeysInterface, ServerInterface};
 use fred::types::{CustomCommand, InfoKind, RedisValue};
 use std::collections::HashMap;
 use tauri::State;
 use tauri_plugin_tauri_redis_setting::SettingsManager;
+
+#[tauri::command]
+pub async fn db_nums(
+    redis_client_manager: State<'_, RedisClientManagerState>,
+    guid: Guid,
+) -> Result<Response<u8>> {
+    let mut lock = redis_client_manager.lock().await;
+    let _ = lock
+        .get_mut(&guid)
+        .ok_or_else(|| Error::FailedToFindExistedRedisConnection)?
+        .conn()?;
+
+    let nums = get_redis_max_db_nums()?;
+
+    Ok(Response::success(Some(nums), None))
+}
+
+#[tauri::command]
+pub async fn switch_db(
+    redis_client_manager: State<'_, RedisClientManagerState>,
+    guid: Guid,
+    db: u8,
+) -> Result<Response<()>> {
+    let mut lock = redis_client_manager.lock().await;
+    let conn = lock
+        .get_mut(&guid)
+        .ok_or_else(|| Error::FailedToFindExistedRedisConnection)?
+        .conn()?;
+
+    conn.select(db).await.map_err(Error::RedisInternalError)?;
+
+    Ok(Response::default())
+}
+
+#[tauri::command]
+pub async fn flush_all(
+    redis_client_manager: State<'_, RedisClientManagerState>,
+    guid: Guid,
+) -> Result<Response<()>> {
+    let mut lock = redis_client_manager.lock().await;
+    let conn = lock
+        .get_mut(&guid)
+        .ok_or_else(|| Error::FailedToFindExistedRedisConnection)?
+        .conn()?;
+
+    conn.flushall(true)
+        .await
+        .map_err(Error::RedisInternalError)?;
+
+    Ok(Response::default())
+}
 
 #[tauri::command]
 pub async fn list_client_metrics(

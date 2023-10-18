@@ -17,6 +17,12 @@ pub fn get_redis_connection_timeout() -> Result<u8> {
         .map_err(Error::FailedToGetRelatedConfig)
 }
 
+pub fn get_redis_max_db_nums() -> Result<u8> {
+    CFG.get_int("redis.max_db_nums")
+        .map(|num| num as u8)
+        .map_err(Error::FailedToGetRelatedConfig)
+}
+
 pub fn get_settings_file_name() -> Result<String> {
     CFG.get_string("settings.filename")
         .map_err(Error::FailedToGetRelatedConfig)
