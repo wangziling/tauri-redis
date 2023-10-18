@@ -1,5 +1,6 @@
 [redis]
 connection_timeout = 8
+max_db_nums = 16
 
 [connections]
 filename = "connections.json"
