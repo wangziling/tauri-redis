@@ -4,13 +4,16 @@
 	import Card from '$lib/components/Card.svelte';
 	import { translator } from 'tauri-redis-plugin-translation-api';
 	import constants from '$lib/constants';
-	import { merge } from 'lodash-es';
+	import { merge, times } from 'lodash-es';
 	import { createEventDispatcher } from 'svelte';
 	import Input from '$lib/components/Input.svelte';
 	import Button from '$lib/components/Button.svelte';
 	import Loading from '$lib/components/interaction/Loading.svelte';
 	import { createLoadingMisc } from '$lib/utils/appearance';
-	import { LoadingArea } from '$lib/types';
+	import { LoadingArea, type SelectOptions } from '$lib/types';
+	import Select from '$lib/components/Select.svelte';
+	import { fetchDbNums, fetchSwitchDb } from '$lib/apis';
+	import { invokeErrorHandle } from '$lib/utils/page';
 
 	const dispatch = createEventDispatcher();
 	const calcKeysKey = createEachTagKeyGenerator('keys');
@@ -21,6 +24,8 @@
 	export let data: Extract<MainTab, { type: MainTabType.Dashboard }>['data'] = {} as any;
 
 	let grepContent = '';
+	let dbNums = 15;
+	let currentDb = 0;
 
 	const translations = translator.derived(function () {
 		return {
@@ -74,6 +79,9 @@
 		return emptyInsteadBy(content, $translations['n/a']);
 	}
 
+	// Get the db nums.
+	fetchDbNums(data.connectionInfo.guid).then((res) => (dbNums = res.data));
+
 	// db0: "keys=4,expires=2,avg_ttl=6346900"
 	$: dynamicClasses = calcDynamicClasses(['dashboard', $$restProps.class]);
 	$: dbMetrics = Object.entries(data.metrics)
@@ -102,6 +110,7 @@
 		'dashboard__card-keys',
 		$keysLoadingParentDynamicClassesDerived
 	]);
+	$: dbNumsOptions = times(dbNums, (i) => ({ label: i + '', value: i })) as SelectOptions;
 
 	const handleLoadMoreKeysClick = function handleLoadMoreKeysClick() {
 		dispatch('loadMoreKeys', { guid: data.connectionInfo.guid });
@@ -125,6 +134,19 @@
 	const handleRemoveKey = function handleRemoveKey(key: string) {
 		dispatch('removeKey', { guid: data.connectionInfo.guid, key });
 	};
+	const handleSwitchDb = function handleSwitchDb(e: CustomEvent<number>) {
+		const db = e.detail;
+
+		return fetchSwitchDb(data.connectionInfo.guid, db)
+			.then(() => {
+				dispatch('switchDb', { guid: data.connectionInfo.guid, db });
+				currentDb = db;
+			})
+			.catch(invokeErrorHandle)
+			.catch(() => {
+				currentDb = currentDb;
+			});
+	};
 </script>
 
 <div class={dynamicClasses}>
@@ -133,6 +155,13 @@
 			<div class="dashboard__header-icon fa fa-key" />
 			<div class="dashboard__header-content">{$translations['keys']}</div>
 			<div class="dashboard__header-operations">
+				<Select
+					class="dashboard__header-operation dashboard__header-operation-switch-db"
+					size="mini"
+					options={dbNumsOptions}
+					bind:value={currentDb}
+					on:input={handleSwitchDb}
+				/>
 				<Input
 					class="dashboard__header-operation dashboard__header-operation-grep-keys"
 					placeholder={$translations['grep keys by press enter']}

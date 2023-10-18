@@ -8,6 +8,18 @@ import type {
 } from '$lib/types';
 import { fetchIpc } from '$lib/utils/async';
 
+export function fetchDbNums(guid: IpcConnection['guid']) {
+	return fetchIpc<number>('db_nums', { guid });
+}
+
+export function fetchFlushAll(guid: IpcConnection['guid']) {
+	return fetchIpc<void>('flush_all', { guid });
+}
+
+export function fetchSwitchDb(guid: IpcConnection['guid'], db: number) {
+	return fetchIpc<void>('switch_db', { guid, db });
+}
+
 export function fetchListRedisClientMetrics(guid: IpcConnection['guid']) {
 	return fetchIpc<IpcClientMetrics>('list_client_metrics', { guid });
 }

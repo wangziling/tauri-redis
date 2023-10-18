@@ -119,6 +119,7 @@
 								on:grepKeys
 								on:removeKey
 								on:previewKey
+								on:switchDb
 							/>
 						</div>
 					{:else if tab['type'] === MainTabType.KeyDetail}

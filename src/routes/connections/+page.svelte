@@ -110,6 +110,10 @@
 		mainTabsConfig.activeIdx = mainTabsConfig.tabs.length - 1;
 	}
 
+	function refreshAllKeys(guid: IpcConnection['guid']) {
+		return loadingMisc.wrapPromise(listAllKeys(guid, { useRefresh: true }), [LoadingArea.DashboardKeys]);
+	}
+
 	function handleNewConnection() {
 		newConnectionDialogOpened = true;
 	}
@@ -344,7 +348,7 @@
 			guid: IpcConnection['guid'];
 		}>
 	) {
-		return loadingMisc.wrapPromise(listAllKeys(e.detail.guid, { useRefresh: true }), [LoadingArea.DashboardKeys]);
+		return refreshAllKeys(e.detail.guid);
 	}
 
 	function handleRemoveKey(
@@ -405,6 +409,15 @@
 		if (mainTabsConfig.activeIdx < 0 || mainTabsConfig.activeIdx >= mainTabsConfig.tabs.length) {
 			mainTabsConfig.activeIdx = Math.max(mainTabsConfig.tabs.length - 1, 0);
 		}
+	}
+
+	function handleSwitchDb(
+		e: CustomEvent<{
+			guid: IpcConnection['guid'];
+			db: number;
+		}>
+	) {
+		return refreshAllKeys(e.detail.guid);
 	}
 
 	function getConnections() {
@@ -492,6 +505,7 @@
 		on:previewKey={handlePreviewKey}
 		on:chooseTab={handleChooseTab}
 		on:closeTab={handleCloseTab}
+		on:switchDb={handleSwitchDb}
 	/>
 	{#if newConnectionDialogOpened}
 		<NewConnectionDialog
