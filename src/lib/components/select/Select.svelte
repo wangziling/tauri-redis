@@ -7,6 +7,7 @@
 	import { writable } from 'svelte/store';
 	import { initialFormItemFieldMisc } from '$lib/components/form/utils';
 	import { FormRuleTrigger } from '$lib/types';
+	import Options from '$lib/components/select/Options.svelte';
 
 	const initialValue = Symbol('initialValue');
 	const dispatch = createEventDispatcher();
@@ -28,6 +29,7 @@
 	export let emptyNotice = 'Empty.';
 	export let unmatchedNotice = 'Unmatched.';
 	export let size: 'default' | 'mini' | 'small' = 'default';
+	export let appendToBody = true;
 
 	let optionsVisible = defaultOptionsVisible;
 	let searchContent = '';
@@ -88,7 +90,9 @@
 		return options && typeof option.label === 'string' && option.label && option.value;
 	}
 
-	function handleChooseOptionItem(option: SelectOptionItem) {
+	function handleChooseOptionItem(e: CustomEvent<{ option: SelectOptionItem }>) {
+		const { option } = e.detail;
+
 		if ($finalDisabledDerived || $finalReadonlyDerived) {
 			return;
 		}
@@ -236,22 +240,15 @@
 				<span class="select-operation select-operation__arrow fa fa-angle-down" />
 			</div>
 		</div>
-		<div class="select-options">
-			{#each grepedOptions as option}
-				{@const isOptionValid = judgeOptionInvalid(option)}
-				{#if isOptionValid || !hideInvalidOptions}
-					<div
-						class={calcSelectOptionClass(option, $finalValueDerived)}
-						on:click={handleChooseOptionItem.bind(this, option)}
-					>
-						{@html option.label}
-					</div>
-				{/if}
-			{:else}
-				<div class="select-option select-option--disabled">
-					{@html searchContent ? unmatchedNotice : emptyNotice}
-				</div>
-			{/each}
-		</div>
+		{#if optionsVisible}
+			<Options
+				options={grepedOptions}
+				{hideInvalidOptions}
+				selectedValue={$finalValueDerived}
+				unmatchedNotice={searchContent ? unmatchedNotice : emptyNotice}
+				{appendToBody}
+				on:chooseOptionItem={handleChooseOptionItem}
+			/>
+		{/if}
 	</div>
 </div>
