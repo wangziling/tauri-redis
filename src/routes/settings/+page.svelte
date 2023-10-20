@@ -4,7 +4,7 @@
 	import Card from '$lib/components/Card.svelte';
 	import Form from '$lib/components/form/Form.svelte';
 	import FormItem from '$lib/components/form/FormItem.svelte';
-	import Select from '$lib/components/Select.svelte';
+	import Select from '$lib/components/select/Select.svelte';
 	import { writable } from 'svelte/store';
 	import { createSettingsMisc, createThemeMisc } from '$lib/utils/appearance';
 	import InputNumber from '$lib/components/InputNumber.svelte';

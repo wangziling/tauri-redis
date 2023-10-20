@@ -11,7 +11,7 @@
 	import Loading from '$lib/components/interaction/Loading.svelte';
 	import { createLoadingMisc } from '$lib/utils/appearance';
 	import { LoadingArea, type SelectOptions } from '$lib/types';
-	import Select from '$lib/components/Select.svelte';
+	import Select from '$lib/components/select/Select.svelte';
 	import { fetchDbNums, fetchSwitchDb } from '$lib/apis';
 	import { invokeErrorHandle } from '$lib/utils/page';
 
