@@ -33,5 +33,6 @@ where
         client::rename_key,
         client::scan_all_keys,
         client::refresh_scanned_all_keys,
+        client::get_key_content_type_hash,
     ])
 }

@@ -402,3 +402,27 @@ pub async fn set_key_content_type_string(
 
     Ok(Response::default())
 }
+
+#[tauri::command]
+pub async fn get_key_content_type_hash(
+    redis_client_manager: State<'_, RedisClientManagerState>,
+    guid: Guid,
+    key_name: String,
+) -> Result<Response<HashMap<String, String>>> {
+    if key_name.is_empty() {
+        return Err(Error::InvalidRedisKeyName);
+    }
+
+    let mut lock = redis_client_manager.lock().await;
+    let conn = lock
+        .get_mut(&guid)
+        .ok_or_else(|| Error::FailedToFindExistedRedisConnection)?
+        .conn()?;
+
+    let content: HashMap<String, String> = conn
+        .hgetall(key_name)
+        .await
+        .map_err(Error::RedisInternalError)?;
+
+    Ok(Response::success(Some(content), None))
+}
