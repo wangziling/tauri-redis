@@ -136,6 +136,7 @@ pub async fn scan_all_keys(
     settings_manager: State<'_, SettingsManager>,
     guid: Guid,
     condition_part: Option<String>,
+    force_new: Option<bool>,
 ) -> Result<Response<Vec<String>>> {
     let mut lock = redis_client_manager.lock().await;
 
@@ -150,9 +151,15 @@ pub async fn scan_all_keys(
     let settings_lock = settings_manager.read().await;
     let redis_each_scan_count: u32 = settings_lock.get_de("redisEachScanCount").unwrap();
 
-    let scan_result = manager
-        .scan(pattern, redis_each_scan_count, redis_each_scan_count, None)
-        .await?;
+    let scan_result = if force_new.is_some_and(|f| f) {
+        manager
+            .force_new_scan(pattern, redis_each_scan_count, redis_each_scan_count, None)
+            .await?
+    } else {
+        manager
+            .scan(pattern, redis_each_scan_count, redis_each_scan_count, None)
+            .await?
+    };
 
     let result = scan_result
         .keys()
@@ -434,6 +441,7 @@ pub async fn hscan_key_all_values(
     guid: Guid,
     key_name: String,
     condition_part: Option<String>,
+    force_new: Option<bool>,
 ) -> Result<Response<HashMap<String, String>>> {
     let mut lock = redis_client_manager.lock().await;
 
@@ -448,14 +456,25 @@ pub async fn hscan_key_all_values(
     let settings_lock = settings_manager.read().await;
     let redis_each_scan_count: u32 = settings_lock.get_de("redisEachScanCount").unwrap();
 
-    let scan_result = manager
-        .hscan(
-            key_name.into(),
-            pattern,
-            redis_each_scan_count,
-            redis_each_scan_count,
-        )
-        .await?;
+    let scan_result = if force_new.is_some_and(|f| f) {
+        manager
+            .force_new_hscan(
+                key_name.into(),
+                pattern,
+                redis_each_scan_count,
+                redis_each_scan_count,
+            )
+            .await?
+    } else {
+        manager
+            .hscan(
+                key_name.into(),
+                pattern,
+                redis_each_scan_count,
+                redis_each_scan_count,
+            )
+            .await?
+    };
 
     let map = scan_result.take_map().inner();
 

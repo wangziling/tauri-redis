@@ -406,6 +406,20 @@ impl RedisClient {
         Err(Error::FailedToGetRedisScanResult)
     }
 
+    pub async fn force_new_scan(
+        &mut self,
+        pattern: String,
+        iter_count: u32,
+        needed_count: u32,
+        r#type: Option<ScanType>,
+    ) -> Result<RedisScannerResult> {
+        let old = self.scanner.take();
+
+        drop(old);
+
+        self.scan(pattern, iter_count, needed_count, r#type).await
+    }
+
     pub async fn refresh_scan(
         &mut self,
         pattern: String,
@@ -575,6 +589,20 @@ impl RedisClient {
         }
 
         Err(Error::FailedToGetRedisScanResult)
+    }
+
+    pub async fn force_new_hscan(
+        &mut self,
+        key: RedisKey,
+        pattern: String,
+        iter_count: u32,
+        needed_count: u32,
+    ) -> Result<RedisHScannerResult> {
+        let old = self.hscanner.take();
+
+        drop(old);
+
+        self.hscan(key, pattern, iter_count, needed_count).await
     }
 
     pub async fn refresh_hscan(
