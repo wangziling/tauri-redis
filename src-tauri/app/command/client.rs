@@ -426,3 +426,85 @@ pub async fn get_key_content_type_hash(
 
     Ok(Response::success(Some(content), None))
 }
+
+#[tauri::command]
+pub async fn hscan_key_all_values(
+    redis_client_manager: State<'_, RedisClientManagerState>,
+    settings_manager: State<'_, SettingsManager>,
+    guid: Guid,
+    key_name: String,
+    condition_part: Option<String>,
+) -> Result<Response<HashMap<String, String>>> {
+    let mut lock = redis_client_manager.lock().await;
+
+    let manager = lock
+        .get_mut(&guid)
+        .ok_or_else(|| Error::FailedToFindExistedRedisConnection)?;
+
+    let pattern = condition_part
+        .and_then(|part| if part.is_empty() { None } else { Some(part) })
+        .map_or_else(|| "*".to_string(), |part| "*".to_string() + &part + "*");
+
+    let settings_lock = settings_manager.read().await;
+    let redis_each_scan_count: u32 = settings_lock.get_de("redisEachScanCount").unwrap();
+
+    let scan_result = manager
+        .hscan(
+            key_name.into(),
+            pattern,
+            redis_each_scan_count,
+            redis_each_scan_count,
+        )
+        .await?;
+
+    let map = scan_result.take_map().inner();
+
+    dbg!(&map);
+    let mut result = HashMap::default();
+    map.into_iter().for_each(|(key, value)| {
+        result
+            .entry(key.as_str().unwrap_or_default().to_string())
+            .or_insert(value.as_string().unwrap_or_default());
+    });
+
+    dbg!(&result);
+
+    Ok(Response::success(Some(result), None))
+}
+
+#[tauri::command]
+pub async fn refresh_hscaned_key_all_values(
+    redis_client_manager: State<'_, RedisClientManagerState>,
+    settings_manager: State<'_, SettingsManager>,
+    guid: Guid,
+    key_name: String,
+    condition_part: Option<String>,
+    offset: Option<u32>,
+) -> Result<Response<HashMap<String, String>>> {
+    let mut lock = redis_client_manager.lock().await;
+
+    let manager = lock
+        .get_mut(&guid)
+        .ok_or_else(|| Error::FailedToFindExistedRedisConnection)?;
+
+    let pattern = condition_part
+        .and_then(|part| if part.is_empty() { None } else { Some(part) })
+        .map_or_else(|| "*".to_string(), |part| "*".to_string() + &part + "*");
+
+    let settings_lock = settings_manager.read().await;
+    let redis_each_scan_count: u32 = settings_lock.get_de("redisEachScanCount").unwrap();
+
+    let scan_result = manager
+        .refresh_hscan(key_name.into(), pattern, redis_each_scan_count, offset)
+        .await?;
+
+    let map = scan_result.take_map().inner();
+    let mut result = HashMap::default();
+    map.into_iter().for_each(|(key, value)| {
+        result
+            .entry(key.as_str().unwrap_or_default().to_string())
+            .or_insert(value.as_string().unwrap_or_default());
+    });
+
+    Ok(Response::success(Some(result), None))
+}

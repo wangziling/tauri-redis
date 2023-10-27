@@ -34,5 +34,7 @@ where
         client::scan_all_keys,
         client::refresh_scanned_all_keys,
         client::get_key_content_type_hash,
+        client::hscan_key_all_values,
+        client::refresh_hscaned_key_all_values,
     ])
 }

@@ -6,7 +6,7 @@ use crate::utils::config::get_redis_connection_timeout;
 use fred::interfaces::ClientLike;
 use fred::tracing::Level;
 use fred::types::{
-    Blocking, Builder, RedisConfig, RedisKey, RedisValue, RespVersion, ScanType, Scanner,
+    Blocking, Builder, RedisConfig, RedisKey, RedisMap, RedisValue, RespVersion, ScanType, Scanner,
     ServerConfig, TracingConfig,
 };
 use futures::StreamExt;
@@ -162,6 +162,33 @@ impl Default for RedisScannerResult {
     }
 }
 
+#[derive(Debug)]
+pub struct RedisHScannerResult {
+    map: RedisMap,
+    can_continue: bool,
+}
+
+impl RedisHScannerResult {
+    pub fn map(&self) -> &RedisMap {
+        &self.map
+    }
+    pub fn take_map(self) -> RedisMap {
+        self.map
+    }
+    pub fn can_continue(&self) -> bool {
+        self.can_continue
+    }
+}
+
+impl Default for RedisHScannerResult {
+    fn default() -> Self {
+        Self {
+            map: RedisMap::new(),
+            can_continue: true,
+        }
+    }
+}
+
 pub struct RedisScanner {
     pattern: String,
     iter_count: u32,
@@ -172,9 +199,20 @@ pub struct RedisScanner {
     scanned_count: Arc<AtomicU32>,
 }
 
+pub struct RedisHScanner {
+    key: RedisKey,
+    pattern: String,
+    iter_count: u32,
+    rx: UnboundedReceiver<Result<RedisHScannerResult>>,
+    signal: Arc<AtomicBool>,
+    handler: Option<JoinHandle<()>>,
+    scanned_count: Arc<AtomicU32>,
+}
+
 pub struct RedisClient {
     manager: fred::clients::RedisClient,
     scanner: Option<RedisScanner>,
+    hscanner: Option<RedisHScanner>,
 }
 
 pub type RedisClientManagerState = Arc<tauri::async_runtime::Mutex<RedisClientManager>>;
@@ -230,6 +268,7 @@ impl RedisClient {
         Ok(Self {
             manager: client,
             scanner: None,
+            hscanner: None,
         })
     }
 
@@ -400,6 +439,179 @@ impl RedisClient {
         scanner.signal.fetch_or(true, Ordering::Relaxed);
 
         while let Some(result) = scanner.rx.recv().await {
+            return result;
+        }
+
+        Err(Error::FailedToGetRedisScanResult)
+    }
+
+    async fn _invoke_new_hscan(
+        &mut self,
+        key: RedisKey,
+        pattern: String,
+        iter_count: u32,
+        needed_count: u32,
+    ) -> Result<()> {
+        let (sx, rx) = unbounded_channel::<Result<RedisHScannerResult>>();
+
+        let signal = Arc::new(AtomicBool::new(true));
+        let scanned_count = Arc::new(AtomicU32::new(0));
+
+        let old = self.hscanner.replace(RedisHScanner {
+            rx,
+            key: key.clone(),
+            pattern: pattern.clone(),
+            iter_count,
+            signal: signal.clone(),
+            handler: None,
+            scanned_count: scanned_count.clone(),
+        });
+
+        drop(old);
+
+        let conn = self.conn()?;
+        let mut stream = conn.hscan(key, pattern, Some(iter_count)).boxed();
+
+        let signal = signal.clone();
+        let scanned_count = scanned_count.clone();
+        let old = self
+            .hscanner
+            .as_mut()
+            .unwrap()
+            .handler
+            .replace(tokio::spawn(async move {
+                loop {
+                    if signal.load(Ordering::Relaxed) {
+                        signal.fetch_and(false, Ordering::Relaxed);
+
+                        let mut sent = false;
+                        let mut hashmap = HashMap::with_capacity(iter_count as usize);
+                        while let Some(result) = stream.next().await {
+                            let result = result.map_err(Error::RedisInternalError);
+                            if result.is_err() {
+                                sx.send(Err(result.err().unwrap())).unwrap();
+                                sent = true;
+
+                                // End `next` loop.
+                                // Means we only request once.
+                                break;
+                            }
+
+                            let mut value = result.unwrap();
+                            let can_continue = value.has_more();
+                            let scanned_map = value.take_results();
+                            if scanned_map.is_some() {
+                                let scanned_map = scanned_map.unwrap().inner();
+                                scanned_map.into_iter().for_each(|(key, value)| {
+                                    hashmap.entry(key).or_insert(value);
+                                });
+                            }
+
+                            // Record scanned count.
+                            // Use keys.len() to use the `.with_capacity` related functionality.
+                            scanned_count.fetch_add(hashmap.len() as u32, Ordering::Relaxed);
+
+                            // If we scanned enough items
+                            // or cannot scan anymore.
+                            let scanned_count_raw = scanned_count.load(Ordering::Relaxed);
+                            let scanned_enough = scanned_count_raw >= needed_count || !can_continue;
+                            if scanned_enough {
+                                sx.send(Ok(RedisHScannerResult {
+                                    map: hashmap.try_into().unwrap(),
+                                    can_continue,
+                                }))
+                                .unwrap();
+                                sent = true;
+
+                                // Must use this, continue scanning.
+                                // Otherwise we will always got the previous result.
+                                let _ = value.next();
+
+                                // End `next` loop.
+                                break;
+                            }
+
+                            // Continue scanning.
+                            let _ = value.next();
+                        }
+
+                        if !sent {
+                            sx.send(Ok(Default::default())).unwrap();
+                        }
+                    } else {
+                        tokio::time::sleep(Duration::from_millis(500)).await;
+                    }
+                }
+            }));
+
+        drop(old);
+
+        Ok(())
+    }
+
+    pub async fn hscan(
+        &mut self,
+        key: RedisKey,
+        pattern: String,
+        iter_count: u32,
+        needed_count: u32,
+    ) -> Result<RedisHScannerResult> {
+        let iter_count = iter_count.max(needed_count);
+
+        if self.hscanner.is_some() {
+            let hscanner = self.hscanner.as_mut().unwrap();
+
+            if hscanner.pattern != pattern || hscanner.iter_count != iter_count {
+                self._invoke_new_hscan(key, pattern, iter_count, needed_count)
+                    .await?;
+            }
+        } else {
+            self._invoke_new_hscan(key, pattern, iter_count, needed_count)
+                .await?;
+        }
+
+        // Continue scan.
+        let hscanner = self.hscanner.as_mut().unwrap();
+        hscanner.signal.fetch_or(true, Ordering::Relaxed);
+
+        while let Some(result) = hscanner.rx.recv().await {
+            return result;
+        }
+
+        Err(Error::FailedToGetRedisScanResult)
+    }
+
+    pub async fn refresh_hscan(
+        &mut self,
+        key: RedisKey,
+        pattern: String,
+        iter_count: u32,
+        offset: Option<u32>,
+    ) -> Result<RedisHScannerResult> {
+        let needed_count = if self.hscanner.is_some() {
+            self.hscanner
+                .as_ref()
+                .unwrap()
+                .scanned_count
+                .load(Ordering::Relaxed)
+        } else {
+            iter_count
+        };
+
+        self._invoke_new_hscan(
+            key,
+            pattern,
+            iter_count,
+            // Add offset until reaching the maximum num.
+            needed_count.saturating_add(offset.unwrap_or_default()),
+        )
+        .await?;
+
+        // Continue scan.
+        let hscanner = self.hscanner.as_mut().unwrap();
+        hscanner.signal.fetch_or(true, Ordering::Relaxed);
+
+        while let Some(result) = hscanner.rx.recv().await {
             return result;
         }
 
