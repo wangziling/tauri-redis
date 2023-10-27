@@ -459,15 +459,12 @@ pub async fn hscan_key_all_values(
 
     let map = scan_result.take_map().inner();
 
-    dbg!(&map);
     let mut result = HashMap::default();
     map.into_iter().for_each(|(key, value)| {
         result
             .entry(key.as_str().unwrap_or_default().to_string())
             .or_insert(value.as_string().unwrap_or_default());
     });
-
-    dbg!(&result);
 
     Ok(Response::success(Some(result), None))
 }
