@@ -3202,6 +3202,7 @@ dependencies = [
  "anyhow",
  "chrono",
  "fred",
+ "futures",
  "once_cell",
  "serde",
  "serde_json",
@@ -3213,7 +3214,6 @@ dependencies = [
  "tauri_redis_core",
  "thiserror",
  "tokio",
- "tokio-stream",
  "uuid",
 ]
 
