@@ -32,7 +32,7 @@ uuid = { version = "1", features = [
 ] }
 chrono = "0.4"
 fred = { version = "7.0.0", features = ["full-tracing", "redis-json", "check-unresponsive", "metrics"] }
-tokio-stream="0.1"
+futures = "0.3"
 regex = "1.9"
 tokio = { version = "1", features = ["sync"] }
 

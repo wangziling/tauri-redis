@@ -9,6 +9,7 @@ use fred::types::{
     Blocking, Builder, RedisConfig, RedisKey, RedisValue, RespVersion, ScanType, Scanner,
     ServerConfig, TracingConfig,
 };
+use futures::StreamExt;
 use once_cell::sync::Lazy;
 use serde::Serialize;
 use std::collections::{hash_map, HashMap};
@@ -20,7 +21,6 @@ use tauri::command::{CommandArg, CommandItem};
 use tauri::{InvokeError, Runtime};
 use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver};
 use tokio::task::JoinHandle;
-use tokio_stream::StreamExt;
 
 static PENDING_REDIS_CONNECTION_TASKS: Lazy<Arc<std::sync::Mutex<Vec<Guid>>>> =
     Lazy::new(|| Arc::new(std::sync::Mutex::new(vec![])));
