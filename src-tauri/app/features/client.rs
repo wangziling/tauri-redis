@@ -328,7 +328,6 @@ impl RedisClient {
                             }
 
                             let mut value = result.unwrap();
-                            let can_continue = value.has_more();
                             let mut scanned_keys = value.take_results().unwrap_or_default();
 
                             // Append
@@ -337,6 +336,12 @@ impl RedisClient {
                             // Record scanned count.
                             // Use keys.len() to use the `.with_capacity` related functionality.
                             scanned_count.fetch_add(keys.len() as u32, Ordering::Relaxed);
+
+                            let can_continue = value.has_more();
+                            if can_continue {
+                                // Continue scanning.
+                                let _ = value.next();
+                            }
 
                             // If we scanned enough items
                             // or cannot scan anymore.
@@ -347,16 +352,9 @@ impl RedisClient {
                                     .unwrap();
                                 sent = true;
 
-                                // Must use this, continue scanning.
-                                // Otherwise we will always got the previous result.
-                                let _ = value.next();
-
                                 // End `next` loop.
                                 break;
                             }
-
-                            // Continue scanning.
-                            let _ = value.next();
                         }
 
                         if !sent {
@@ -498,7 +496,6 @@ impl RedisClient {
                             }
 
                             let mut value = result.unwrap();
-                            let can_continue = value.has_more();
                             let scanned_map = value.take_results();
                             if scanned_map.is_some() {
                                 let scanned_map = scanned_map.unwrap().inner();
@@ -510,6 +507,12 @@ impl RedisClient {
                             // Record scanned count.
                             // Use keys.len() to use the `.with_capacity` related functionality.
                             scanned_count.fetch_add(hashmap.len() as u32, Ordering::Relaxed);
+
+                            let can_continue = value.has_more();
+                            if can_continue {
+                                // Continue scanning.
+                                let _ = value.next();
+                            }
 
                             // If we scanned enough items
                             // or cannot scan anymore.
@@ -523,16 +526,9 @@ impl RedisClient {
                                 .unwrap();
                                 sent = true;
 
-                                // Must use this, continue scanning.
-                                // Otherwise we will always got the previous result.
-                                let _ = value.next();
-
                                 // End `next` loop.
                                 break;
                             }
-
-                            // Continue scanning.
-                            let _ = value.next();
                         }
 
                         if !sent {
