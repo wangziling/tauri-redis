@@ -1,6 +1,7 @@
 import type {
 	IpcClientMetrics,
 	IpcConnection,
+	IpcHashKeyValues,
 	IpcRenameKeyPayload,
 	SaveIpcNewKeyPayload,
 	SetIpcKeyContentTypeStringPayload,
@@ -66,4 +67,30 @@ export function fetchSetKeyContentTypeString(guid: IpcConnection['guid'], params
 
 export function fetchRenameKey(guid: IpcConnection['guid'], params: IpcRenameKeyPayload) {
 	return fetchIpc<void>('rename_key', { guid, keyName: params.name, newKeyName: params.newName });
+}
+
+export function fetchGetKeyContentTypeHash(guid: IpcConnection['guid'], keyName: string) {
+	return fetchIpc<IpcHashKeyValues>('get_key_content_type_hash', { guid, keyName });
+}
+
+export function fetchRemoveHashKeyField(guid: IpcConnection['guid'], keyName: string, fieldName: string) {
+	return fetchIpc<void>('remove_hash_key_field', { guid, keyName, fieldName });
+}
+
+export function fetchHScanKeyAllValues(
+	guid: IpcConnection['guid'],
+	keyName: string,
+	conditionPart?: string,
+	forceNew?: boolean
+) {
+	return fetchIpc<IpcHashKeyValues>('hscan_key_all_values', { guid, keyName, conditionPart, forceNew });
+}
+
+export function fetchRefreshHScanKeyAllValues(
+	guid: IpcConnection['guid'],
+	keyName: string,
+	conditionPart?: string,
+	offset?: number
+) {
+	return fetchIpc<IpcHashKeyValues>('refresh_hscaned_key_all_values', { guid, keyName, conditionPart, offset });
 }

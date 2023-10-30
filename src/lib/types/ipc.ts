@@ -67,3 +67,8 @@ export type IpcRenameKeyPayload = {
 	name: string;
 	newName: string;
 };
+
+export type IpcHashKeyValues = Array<{
+	name: string;
+	value: string;
+}>;

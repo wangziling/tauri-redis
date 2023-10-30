@@ -11,6 +11,7 @@
 	import { createEventDispatcher } from 'svelte';
 	import { createLoadingMisc } from '$lib/utils/appearance';
 	import Loading from '$lib/components/interaction/Loading.svelte';
+	import KeyTypeHashDetailContent from './KeyTypeHashDetailContent.svelte';
 
 	const dispatch = createEventDispatcher();
 	const loadingMisc = createLoadingMisc(LoadingArea.KeyDetail);
@@ -117,6 +118,8 @@
 		</div>
 		{#if keyMetrics.type === IpcKeyType.String}
 			<KeyTypeStringDetailContent guid={data.connectionInfo.guid} keyName={data.key} />
+		{:else if keyMetrics.type === IpcKeyType.Hash}
+			<KeyTypeHashDetailContent guid={data.connectionInfo.guid} keyName={data.key} />
 		{/if}
 	</div>
 	<Loading visible={$loading} />
