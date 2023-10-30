@@ -1,0 +1,40 @@
+:root {
+	--table-cell-padding: 0.5rem 0.9rem;
+	--table-border-color: var(--base-border-color);
+}
+
+.table {
+	width: 100%;
+
+	th,
+	td {
+		vertical-align: middle;
+		padding: var(--table-cell-padding);
+	}
+
+	&--bordered {
+		th,
+		td {
+			border: 1px solid var(--table-border-color);
+		}
+
+		th + th {
+			border-left: 0;
+		}
+
+		td + td {
+			border-left: 0;
+		}
+
+		tr:fist-of-type {
+			th,
+			td {
+				border-top: 0;
+			}
+		}
+	}
+
+	&--center {
+		text-align: center;
+	}
+}
