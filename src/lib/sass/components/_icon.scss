@@ -1,0 +1,30 @@
+:root {
+	--icon-color: #{$color-grey-dark};
+	--icon-active-color: #{$color-grey-dark-3};
+	--icon-inactive-color: #{$color-grey-light-3};
+}
+
+.icon {
+	color: var(--icon-color);
+	user-select: none;
+
+	&--still {
+		color: var(--icon-active-color);
+	}
+
+	&--role-button {
+		cursor: pointer;
+	}
+
+	&--disabled {
+		color: var(--icon-inactive-color);
+		cursor: not-allowed;
+	}
+
+	&:not(.icon--still, .icon--disabled) {
+		&:hover,
+		&:focus {
+			color: var(--icon-active-color);
+		}
+	}
+}

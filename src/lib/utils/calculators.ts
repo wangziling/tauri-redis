@@ -1,4 +1,4 @@
-import { times, reduce, uniq } from 'lodash-es';
+import { times, reduce, uniq, omit } from 'lodash-es';
 import type { CalcDynamicClassesParams } from '$lib/types';
 import { IpcKeyType } from '$lib/types';
 
@@ -64,4 +64,8 @@ export function createEachTagKeyGenerator(prefix: string = randomString(5)) {
 	return function (key: string | number) {
 		return `${prefix}: ${key} - ${num++}`;
 	};
+}
+
+export function omitRestProps(restProps: Record<any, any>) {
+	return omit(restProps, ['class']);
 }
