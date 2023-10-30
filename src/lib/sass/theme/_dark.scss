@@ -15,6 +15,7 @@
 	--base-danger-font-color: #{$color-red-dark};
 	--base-box-shadow: 0 0px 3px 0 rgba(255, 255, 255, 0.5);
 	--base-layered-bg-color: rgba(255, 255, 255, 0.3);
+	--base-border-color: #{$color-grey-light-3};
 
 	--button-bg-color: #{$color-white};
 	--button-font-color: var(--page-font-revert-color);
@@ -46,6 +47,10 @@
 	--input-operation-inactive-color: #{$color-grey-dark-2};
 
 	--dashboard-item-active-color: var(--page-font-revert-color);
+
+	--icon-color: #{$color-grey-light-4};
+	--icon-active-color: #{$color-grey-light-3};
+	--icon-inactive-color: #{$color-grey-dark-2};
 
 	--aside-action-active-border: 2px solid #{$color-grey-dark};
 	--aside-action-active-bg-color: #{$color-grey-dark-2};
