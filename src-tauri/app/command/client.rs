@@ -435,6 +435,34 @@ pub async fn get_key_content_type_hash(
 }
 
 #[tauri::command]
+pub async fn remove_hash_key_field(
+    redis_client_manager: State<'_, RedisClientManagerState>,
+    guid: Guid,
+    key_name: String,
+    field_name: String,
+) -> Result<Response<()>> {
+    if key_name.is_empty() {
+        return Err(Error::InvalidRedisKeyName);
+    }
+
+    if field_name.is_empty() {
+        return Err(Error::InvalidParameter);
+    }
+
+    let mut lock = redis_client_manager.lock().await;
+    let conn = lock
+        .get_mut(&guid)
+        .ok_or_else(|| Error::FailedToFindExistedRedisConnection)?
+        .conn()?;
+
+    conn.hdel(key_name, field_name)
+        .await
+        .map_err(Error::RedisInternalError)?;
+
+    Ok(Response::default())
+}
+
+#[tauri::command]
 pub async fn hscan_key_all_values(
     redis_client_manager: State<'_, RedisClientManagerState>,
     settings_manager: State<'_, SettingsManager>,

@@ -14,6 +14,8 @@ pub enum Error {
 
     #[error("Invalid guid.")]
     InvalidGuid,
+    #[error("Invalid parameter.")]
+    InvalidParameter,
 
     #[error(transparent)]
     FailedToGetRelatedConfig(#[from] tauri_redis_config::ConfigError),

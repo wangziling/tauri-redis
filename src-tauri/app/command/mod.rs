@@ -36,5 +36,6 @@ where
         client::get_key_content_type_hash,
         client::hscan_key_all_values,
         client::refresh_hscaned_key_all_values,
+        client::remove_hash_key_field,
     ])
 }
