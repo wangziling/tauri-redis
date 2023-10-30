@@ -48,3 +48,9 @@ pub struct SaveConnectionPayload {
 pub struct Miscs {
     pub visited_page_routes: Vec<String>,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RedisHScanResultItem {
+    pub name: String,
+    pub value: String,
+}

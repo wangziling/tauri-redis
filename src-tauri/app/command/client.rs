@@ -1,5 +1,5 @@
 use crate::features::client::{RedisClientManagerState, RedisInfoDict, RedisKeyType};
-use crate::features::command::{Guid, TTL};
+use crate::features::command::{Guid, RedisHScanResultItem, TTL};
 use crate::features::error::{Error, Result};
 use crate::features::response::Response;
 use crate::utils::config::get_redis_max_db_nums;
@@ -442,7 +442,7 @@ pub async fn hscan_key_all_values(
     key_name: String,
     condition_part: Option<String>,
     force_new: Option<bool>,
-) -> Result<Response<HashMap<String, String>>> {
+) -> Result<Response<Vec<RedisHScanResultItem>>> {
     let mut lock = redis_client_manager.lock().await;
 
     let manager = lock
@@ -478,11 +478,12 @@ pub async fn hscan_key_all_values(
 
     let map = scan_result.take_map().inner();
 
-    let mut result = HashMap::default();
-    map.into_iter().for_each(|(key, value)| {
-        result
-            .entry(key.as_str().unwrap_or_default().to_string())
-            .or_insert(value.as_string().unwrap_or_default());
+    let mut result: Vec<RedisHScanResultItem> = Default::default();
+    map.into_iter().for_each(|(name, value)| {
+        result.push(RedisHScanResultItem {
+            name: name.as_str().unwrap_or_default().to_string(),
+            value: value.as_string().unwrap_or_default(),
+        });
     });
 
     Ok(Response::success(Some(result), None))
@@ -496,7 +497,7 @@ pub async fn refresh_hscaned_key_all_values(
     key_name: String,
     condition_part: Option<String>,
     offset: Option<u32>,
-) -> Result<Response<HashMap<String, String>>> {
+) -> Result<Response<Vec<RedisHScanResultItem>>> {
     let mut lock = redis_client_manager.lock().await;
 
     let manager = lock
@@ -515,11 +516,12 @@ pub async fn refresh_hscaned_key_all_values(
         .await?;
 
     let map = scan_result.take_map().inner();
-    let mut result = HashMap::default();
-    map.into_iter().for_each(|(key, value)| {
-        result
-            .entry(key.as_str().unwrap_or_default().to_string())
-            .or_insert(value.as_string().unwrap_or_default());
+    let mut result: Vec<RedisHScanResultItem> = Default::default();
+    map.into_iter().for_each(|(name, value)| {
+        result.push(RedisHScanResultItem {
+            name: name.as_str().unwrap_or_default().to_string(),
+            value: value.as_string().unwrap_or_default(),
+        });
     });
 
     Ok(Response::success(Some(result), None))
