@@ -29,8 +29,8 @@ export function fetchListRedisAllKeys(guid: IpcConnection['guid'], conditionPart
 	return fetchIpc<string[]>('list_all_keys', { guid, conditionPart });
 }
 
-export function fetchScanRedisAllKeys(guid: IpcConnection['guid'], conditionPart?: string) {
-	return fetchIpc<string[]>('scan_all_keys', { guid, conditionPart });
+export function fetchScanRedisAllKeys(guid: IpcConnection['guid'], conditionPart?: string, forceNew?: boolean) {
+	return fetchIpc<string[]>('scan_all_keys', { guid, conditionPart, forceNew });
 }
 
 export function fetchRefreshScanRedisAllKeys(guid: IpcConnection['guid'], conditionPart?: string, offset?: number) {
