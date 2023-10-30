@@ -60,5 +60,10 @@
 	"translation zh-cn": "简体中文",
 	"settings set redis scan count": "设置每次加载的键的数量",
 	"operation succeed": "操作成功。",
-	"loading": "加载中..."
+	"loading": "加载中...",
+	"hash key index": "索引",
+	"hash key field name": "字段名",
+	"hash key field value": "字段值",
+	"hash key remove field": "删除字段",
+	"operations": "操作"
 }
