@@ -8,6 +8,7 @@
 	import { initialFormItemFieldMisc } from '$lib/components/form/utils';
 	import { FormRuleTrigger } from '$lib/types';
 	import Options from '$lib/components/select/Options.svelte';
+	import Icon from '$lib/components/Icon.svelte';
 
 	const initialValue = Symbol('initialValue');
 	const dispatch = createEventDispatcher();
@@ -237,7 +238,7 @@
 				{/if}
 			</div>
 			<div class="select-operations">
-				<span class="select-operation select-operation__arrow fa fa-angle-down" />
+				<Icon class="select-operation select-operation__arrow fa fa-angle-down" still />
 			</div>
 		</div>
 		{#if optionsVisible}

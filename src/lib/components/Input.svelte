@@ -4,6 +4,7 @@
 	import { initialFormItemFieldMisc } from '$lib/components/form/utils';
 	import { FormRuleTrigger } from '$lib/types';
 	import { writable } from 'svelte/store';
+	import Icon from '$lib/components/Icon.svelte';
 
 	const dispatch = createEventDispatcher();
 	const calcDisplayValue = function calcDisplayValue(value: string) {
@@ -254,7 +255,7 @@
 			</div>
 			<div class="input__suffix">
 				{#if type === 'password'}
-					<span
+					<Icon
 						class="input__operation input__operation-pwd-visible fa {isPwdVisible ? 'fa-eye-slash' : 'fa-eye'}"
 						role="button"
 						on:click={handleTogglePwdVisible}

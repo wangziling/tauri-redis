@@ -6,6 +6,7 @@
 	import { judgeValidNum, judgeValidNumLikeStr } from '$lib/utils/judgements';
 	import { get as lodashGet } from 'lodash-es';
 	import { writable } from 'svelte/store';
+	import Icon from '$lib/components/Icon.svelte';
 
 	const dispatch = createEventDispatcher();
 	const defaultValue = 0;
@@ -401,8 +402,8 @@
 			{#if showStepOperations}
 				<div class="input__operation-group">
 					<slot name="suffix" />
-					<span class={stepOperationMinusDynamicClasses} role="button" on:click={handleExecStepGapMinus} />
-					<span class={stepOperationPlusDynamicClasses} role="button" on:click={handleExecStepGapPlus} />
+					<Icon class={stepOperationMinusDynamicClasses} role="button" on:click={handleExecStepGapMinus} />
+					<Icon class={stepOperationPlusDynamicClasses} role="button" on:click={handleExecStepGapPlus} />
 				</div>
 			{:else}
 				<slot name="suffix" />

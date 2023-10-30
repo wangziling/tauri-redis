@@ -4,6 +4,7 @@
 	import { keyboard, type ActionsKeyboardReturnParams } from '$lib/actions/keyboard';
 	import { focusWhenMount } from '$lib/actions/focus-when-mount';
 	import { calcDynamicClasses } from '$lib/utils/calculators';
+	import Icon from '$lib/components/Icon.svelte';
 
 	export let header = '';
 	export let content = '';
@@ -31,35 +32,43 @@
 
 	const dispatch = createEventDispatcher();
 
-	function handleClickClose() {
+	function handleClickClose(e: Event) {
 		shown = false;
+
+		e.stopPropagation();
 
 		dispatch.apply(this, ['close', ...arguments]);
 	}
 
 	function handleKeyupClose(e: KeyboardEvent) {
 		if (e.keyCode === 13 || e.key === 'Enter' || e.keyCode === 32 || e.key === 'Space') {
-			handleClickClose();
+			return handleClickClose(e);
 		}
+
+		e.stopPropagation();
 	}
 
-	function handleClickOutside() {
+	function handleClickOutside(e: Event) {
 		if (still) {
+			e.stopPropagation();
 			dispatch.apply(this, ['outside', ...arguments]);
+
 			return;
 		}
 
-		handleClickClose();
+		handleClickClose(e);
 	}
 
 	function handleWindowKeyup(e: CustomEvent<ActionsKeyboardReturnParams>) {
 		if (e.detail.config.key === 'Escape') {
 			if (still) {
+				e.stopPropagation();
 				dispatch(this, e.detail.eventName, e);
+
 				return;
 			}
 
-			handleClickClose();
+			handleClickClose(e);
 		}
 	}
 </script>
@@ -77,13 +86,13 @@
 					{/if}
 				</div>
 				<div class="dialog-header-operations">
-					<span
+					<Icon
 						class="dialog-header-operation dialog-header-operation__close fa fa-xmark"
 						role="button"
 						aria-label="close"
 						tabindex="0"
-						on:click|stopPropagation={handleClickClose}
-						on:keyup|stopPropagation={handleKeyupClose}
+						on:click={handleClickClose}
+						on:keyup={handleKeyupClose}
 					/>
 				</div>
 			</div>

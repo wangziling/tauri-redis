@@ -2,6 +2,7 @@
 	import { calcDynamicClasses, randomString } from '$lib/utils/calculators';
 	import { type MessageItem, MessageType, type TArrayOrPrimitive } from '$lib/types';
 	import { createEventDispatcher, onMount } from 'svelte';
+	import Icon from '$lib/components/Icon.svelte';
 
 	const dispatch = createEventDispatcher();
 
@@ -73,7 +74,7 @@
 		</div>
 		<div class="message__operations">
 			{#if closable}
-				<span class="message__operation message__operation-close fa fa-xmark" on:click={handleClose} role="button" />
+				<Icon class="message__operation message__operation-close fa fa-xmark" on:click={handleClose} role="button" />
 			{/if}
 		</div>
 	</div>

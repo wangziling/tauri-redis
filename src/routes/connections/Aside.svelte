@@ -4,6 +4,7 @@
 	import type { IpcConnection, PageConnections, TArrayMember } from '$lib/types';
 	import { translator } from 'tauri-redis-plugin-translation-api';
 	import { calcDynamicClasses } from '$lib/utils/calculators';
+	import Icon from '$lib/components/Icon.svelte';
 
 	export let pageConnections: PageConnections = [];
 
@@ -26,15 +27,18 @@
 		dispatch('confirmConnection', connection);
 	}
 
-	function handleRemoveConnection(connection: IpcConnection) {
+	function handleRemoveConnection(connection: IpcConnection, e: Event) {
+		e.stopPropagation();
 		dispatch('removeConnection', connection);
 	}
 
-	function handleReleaseConnection(connection: IpcConnection) {
+	function handleReleaseConnection(connection: IpcConnection, e: Event) {
+		e.stopPropagation();
 		dispatch('releaseConnection', connection);
 	}
 
-	function handleEditConnection(connection: IpcConnection) {
+	function handleEditConnection(connection: IpcConnection, e: Event) {
+		e.stopPropagation();
 		dispatch('editConnection', connection);
 	}
 
@@ -56,7 +60,7 @@
 				on:click={handleNewConnection}
 			>
 				<span>{$translations['new connection']}</span>
-				<span class="fa fa-plus" />
+				<Icon class="fa fa-plus" still />
 			</Button>
 		</div>
 	</header>
@@ -72,28 +76,31 @@
 						>
 							<div class="aside-connection__name">{@html connection.info.connectionName}</div>
 							<div class="aside-connection__operations">
-								<span
+								<Icon
 									class="aside-connection__operation aside-connection__operation-remove fa fa-pen-to-square"
 									tabindex="0"
 									role="button"
 									title={$translations['edit connection']}
-									on:click|stopPropagation={() => handleEditConnection(connection.info)}
+									still
+									on:click={(e) => handleEditConnection(connection.info, e)}
 								/>
 								{#if connection.selected}
-									<span
+									<Icon
 										class="aside-connection__operation aside-connection__operation-remove fa fa-plug-circle-xmark"
 										tabindex="0"
 										role="button"
 										title={$translations['release connection']}
-										on:click|stopPropagation={() => handleReleaseConnection(connection.info)}
+										still
+										on:click={(e) => handleReleaseConnection(connection.info, e)}
 									/>
 								{/if}
-								<span
+								<Icon
 									class="aside-connection__operation aside-connection__operation-remove fa fa-trash-can"
 									tabindex="0"
 									role="button"
 									title={$translations['remove connection']}
-									on:click|stopPropagation={() => handleRemoveConnection(connection.info)}
+									still
+									on:click={(e) => handleRemoveConnection(connection.info, e)}
 								/>
 							</div>
 						</div>

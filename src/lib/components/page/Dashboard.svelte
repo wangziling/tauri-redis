@@ -14,6 +14,7 @@
 	import Select from '$lib/components/select/Select.svelte';
 	import { fetchDbNums, fetchSwitchDb } from '$lib/apis';
 	import { invokeErrorHandle } from '$lib/utils/page';
+	import Icon from '$lib/components/Icon.svelte';
 
 	const dispatch = createEventDispatcher();
 	const calcKeysKey = createEachTagKeyGenerator('keys');
@@ -131,7 +132,8 @@
 	const handlePreviewKey = function handlePreviewKey(key: string) {
 		dispatch('previewKey', { guid: data.connectionInfo.guid, key });
 	};
-	const handleRemoveKey = function handleRemoveKey(key: string) {
+	const handleRemoveKey = function handleRemoveKey(key: string, e: Event) {
+		e.stopPropagation();
 		dispatch('removeKey', { guid: data.connectionInfo.guid, key });
 	};
 	const handleSwitchDb = function handleSwitchDb(e: CustomEvent<number>) {
@@ -152,7 +154,7 @@
 <div class={dynamicClasses}>
 	<Card class={keysLoadingParentDynamicClasses}>
 		<div slot="header" class="dashboard__header">
-			<div class="dashboard__header-icon fa fa-key" />
+			<Icon class="dashboard__header-icon fa fa-key" still />
 			<div class="dashboard__header-content">{$translations['keys']}</div>
 			<div class="dashboard__header-operations">
 				<Select
@@ -170,7 +172,7 @@
 					size="mini"
 					on:keyup={handleGrepKeys}
 				>
-					<span class="fa fa-search" slot="prefix" />
+					<Icon class="fa fa-search" slot="prefix" still />
 				</Input>
 				<Button
 					class="dashboard__header-operation dashboard__header-operation-load-more-keys"
@@ -178,16 +180,18 @@
 					size="mini"
 					on:click={handleLoadMoreKeysClick}>{$translations['load more keys']}</Button
 				>
-				<span
+				<Icon
 					class="dashboard__header-operation dashboard__header-operation-refresh-keys fa fa-refresh"
 					title={$translations['refresh']}
 					role="button"
+					still
 					on:click={handleRefreshKeysClick}
 				/>
-				<span
+				<Icon
 					class="dashboard__header-operation dashboard__header-operation-new-key fa fa-plus"
 					title={$translations['create new key']}
 					role="button"
+					still
 					on:click={handleCreateNewKeyClick}
 				/>
 			</div>
@@ -197,12 +201,13 @@
 				<div class="dashboard__content-item dashboard__content-item--operable" on:click={() => handlePreviewKey(key)}>
 					<div class="dashboard__content-item-content">{key}</div>
 					<div class="dashboard__content-item-operations">
-						<span
+						<Icon
 							class="dashboard__content-item-operation dashboard__content-item-operation-remove-key fa fa-trash-can"
 							role="button"
 							tabindex="0"
 							title={$translations['remove key']}
-							on:click|stopPropagation={() => handleRemoveKey(key)}
+							still
+							on:click={(e) => handleRemoveKey(key, e)}
 						/>
 					</div>
 				</div>
@@ -216,7 +221,7 @@
 	</Card>
 	<Card class="dashboard__card dashboard__card-server-metrics">
 		<div slot="header" class="dashboard__header">
-			<div class="dashboard__header-icon fa fa-server" />
+			<Icon class="dashboard__header-icon fa fa-server" still />
 			<div class="dashboard__header-content">{$translations['server metrics']}</div>
 		</div>
 		<div class="dashboard__content">
@@ -234,7 +239,7 @@
 	</Card>
 	<Card class="dashboard__card dashboard__card-db-metrics">
 		<div slot="header" class="dashboard__header">
-			<div class="dashboard__header-icon fa fa-database" />
+			<Icon class="dashboard__header-icon fa fa-database" still />
 			<div class="dashboard__header-content">{$translations['db metrics']}</div>
 		</div>
 		<div class="dashboard__content">
