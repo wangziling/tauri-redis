@@ -1,4 +1,4 @@
-<script lang='ts'>
+<script lang="ts">
 	import { calcDynamicClasses } from '$lib/utils/calculators';
 	import { translator } from 'tauri-redis-plugin-translation-api';
 	import { fetchHScanKeyAllValues, fetchRefreshHScanKeyAllValues, fetchRemoveHashKeyField } from '$lib/apis';
@@ -20,7 +20,7 @@
 
 	let content = writable([] as IpcHashKeyValues);
 
-	const translations = translator.derived(function() {
+	const translations = translator.derived(function () {
 		return {
 			'invalid key metrics': translator.translate('invalid key metrics|Invalid key metrics'),
 			'hash key index': translator.translate('hash key index|Index'),
@@ -31,15 +31,15 @@
 		};
 	});
 
-	function handleGetScannedValues (data: IpcHashKeyValues) {
-		content.update(function(c) {
+	function handleGetScannedValues(data: IpcHashKeyValues) {
+		content.update(function (c) {
 			return c.concat(data);
 		});
 
 		dispatch('getHashKeyValues', { guid, keyName, type: IpcKeyType.Hash });
 	}
 
-	function handleRemoveField (item: TArrayMember<IpcHashKeyValues>, e: Event) {
+	function handleRemoveField(item: TArrayMember<IpcHashKeyValues>, e: Event) {
 		e.stopPropagation();
 
 		return loadingMisc.wrapPromise(
@@ -53,20 +53,19 @@
 		);
 	}
 
-	function handleRefreshScannedValues () {
+	function handleRefreshScannedValues() {
 		return loadingMisc.wrapPromise(
-			fetchRefreshHScanKeyAllValues(guid, keyName, undefined)
-				.then(res => {
-					content.update(function(c) {
-						if (!Array.isArray(res.data)) {
-							return c;
-						}
+			fetchRefreshHScanKeyAllValues(guid, keyName, undefined).then((res) => {
+				content.update(function (c) {
+					if (!Array.isArray(res.data)) {
+						return c;
+					}
 
-						return res.data;
-					});
+					return res.data;
+				});
 
-					dispatch('refreshHashKeyValues', { guid, keyName, type: IpcKeyType.Hash });
-				})
+				dispatch('refreshHashKeyValues', { guid, keyName, type: IpcKeyType.Hash });
+			})
 		);
 	}
 
@@ -95,45 +94,45 @@
 
 <div class={dynamicClasses}>
 	{#if metricsInvalid}
-		<div class='key-detail-content__content'>{$translations['invalid key metrics']}</div>
+		<div class="key-detail-content__content">{$translations['invalid key metrics']}</div>
 	{:else}
-		<div class='key-detail-content__content'>
-			<table class='key-detail-content__table table table--bordered'>
+		<div class="key-detail-content__content">
+			<table class="key-detail-content__table table table--bordered">
 				<thead>
-				<tr>
-					{#if indexValid}
-						<th>{$translations['hash key index']}</th>
-					{/if}
-					<th>{$translations['hash key field name']}</th>
-					<th>{$translations['hash key field value']}</th>
-					<th>{$translations['operations']}</th>
-				</tr>
-				</thead>
-				<tbody>
-				{#each $content as item, idx (idx)}
 					<tr>
 						{#if indexValid}
-							<td>{idx}</td>
+							<th>{$translations['hash key index']}</th>
 						{/if}
-						<td>{item['name']}</td>
-						<td>{item['value']}</td>
-						<td>
-							<div class='key-detail-content__table-cell-operations'>
-								<Icon
-									class='table-cell-operation table-cell-operation__remove-field fa fa-trash-can'
-									title={$translations['hash key remove field']}
-									role='button'
-									still
-									on:click={(e) => handleRemoveField(item, e)}
-								/>
-							</div>
-						</td>
+						<th>{$translations['hash key field name']}</th>
+						<th>{$translations['hash key field value']}</th>
+						<th>{$translations['operations']}</th>
 					</tr>
-				{/each}
+				</thead>
+				<tbody>
+					{#each $content as item, idx (idx)}
+						<tr>
+							{#if indexValid}
+								<td>{idx}</td>
+							{/if}
+							<td>{item['name']}</td>
+							<td>{item['value']}</td>
+							<td>
+								<div class="key-detail-content__table-cell-operations">
+									<Icon
+										class="table-cell-operation table-cell-operation__remove-field fa fa-trash-can"
+										title={$translations['hash key remove field']}
+										role="button"
+										still
+										on:click={(e) => handleRemoveField(item, e)}
+									/>
+								</div>
+							</td>
+						</tr>
+					{/each}
 				</tbody>
 			</table>
 		</div>
-		<div class='key-detail-content__operations'>
+		<div class="key-detail-content__operations">
 			<!-- <Button
 				class="key-detail-content__operation key-detail-content__operation-save"
 				type="primary"
