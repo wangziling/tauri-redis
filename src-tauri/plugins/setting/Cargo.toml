@@ -7,7 +7,7 @@ license.workspace = true
 repository.workspace = true
 edition.workspace = true
 readme = "README.md"
-rust-version = "1.72"
+rust-version.workspace = true
 exclude = ["/examples", "/webview-dist", "/webview-src", "node_modules"]
 
 [dependencies]
