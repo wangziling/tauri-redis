@@ -2,7 +2,7 @@ use crate::features::error::{Error, Result};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::fs;
-use std::path::Path;
+use std::path::PathBuf;
 use tauri_redis_core::cache::abstracts::FileCacheBase;
 use tauri_redis_core::cache::impls::FileCache;
 
@@ -135,13 +135,9 @@ where
 }
 
 impl Translations {
-    pub fn new() -> Self {
+    pub fn new(folder: PathBuf) -> Self {
         Translations {
-            cache: FileCache::new(
-                Path::new(env!("CARGO_MANIFEST_DIR"))
-                    .to_path_buf()
-                    .join("resources/translations"),
-            ),
+            cache: FileCache::new(folder),
             language: Default::default(),
             inner: Default::default(),
             languages: Default::default(),
