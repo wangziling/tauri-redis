@@ -33,7 +33,7 @@ where
             is_window_visible = !is_window_visible;
 
             tauri::async_runtime::spawn(async move {
-                let translator = TRANSLATIONS.read().await;
+                let translator = TRANSLATIONS.wait().read().await;
                 item_handle
                     .set_title(
                         translator

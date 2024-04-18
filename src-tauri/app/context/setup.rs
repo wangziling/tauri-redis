@@ -94,7 +94,12 @@ where
         if language.is_some() {
             let language = language.unwrap().as_str().unwrap();
 
-            TRANSLATIONS.write().await.switch_to(language).unwrap();
+            TRANSLATIONS
+                .wait()
+                .write()
+                .await
+                .switch_to(language)
+                .unwrap();
 
             TranslationEvents::emit_switch_language(&new_handle, language).unwrap();
         }
@@ -118,7 +123,12 @@ where
             tauri::async_runtime::spawn(async move {
                 let language = payload.value.as_str().unwrap();
 
-                TRANSLATIONS.write().await.switch_to(language).unwrap();
+                TRANSLATIONS
+                    .wait()
+                    .write()
+                    .await
+                    .switch_to(language)
+                    .unwrap();
 
                 TranslationEvents::emit_switch_language(&new_handle, language).unwrap();
             });
@@ -137,7 +147,7 @@ where
         let is_main_window_visible = main_window.is_visible().unwrap();
 
         tauri::async_runtime::spawn(async move {
-            let translator = TRANSLATIONS.read().await;
+            let translator = TRANSLATIONS.wait().read().await;
 
             quit_app_item_handle
                 .set_title(translator.translate("quit app|Quit", None).unwrap())
@@ -171,7 +181,7 @@ where
             let new_handle = new_handle.clone();
 
             tauri::async_runtime::spawn(async move {
-                let translator = TRANSLATIONS.read().await;
+                let translator = TRANSLATIONS.wait().read().await;
                 let tray_handle = new_handle.tray_handle();
                 let toggle_app_visible_item_handle =
                     tray_handle.get_item(InternalSystemTrayMenuId::ToggleAppVisible.into());
