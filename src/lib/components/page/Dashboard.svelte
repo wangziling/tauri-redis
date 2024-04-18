@@ -89,23 +89,26 @@
 		.filter(
 			([key, value]) => constants.regexps.dbMetricsPropertyKeyMatcher.test(key) && value && typeof value === 'string'
 		)
-		.reduce((acc, [dbname, dbValue]) => {
-			const valueSplit = dbValue.split(constants.regexps.dbMetricsPropertyValueSplitter);
-			valueSplit.forEach(function (valueSplitItem) {
-				const valueParis = constants.regexps.dbMetricsPropertyValuePair.exec(valueSplitItem);
-				if (!valueParis) {
-					return;
-				}
-
-				merge(acc, {
-					[dbname.toUpperCase()]: {
-						[valueParis[1]]: valueParis[2]
+		.reduce(
+			(acc, [dbname, dbValue]) => {
+				const valueSplit = dbValue.split(constants.regexps.dbMetricsPropertyValueSplitter);
+				valueSplit.forEach(function (valueSplitItem) {
+					const valueParis = constants.regexps.dbMetricsPropertyValuePair.exec(valueSplitItem);
+					if (!valueParis) {
+						return;
 					}
-				});
-			});
 
-			return acc;
-		}, {} as Record<string /** dbname */, Record<string, string>>);
+					merge(acc, {
+						[dbname.toUpperCase()]: {
+							[valueParis[1]]: valueParis[2]
+						}
+					});
+				});
+
+				return acc;
+			},
+			{} as Record<string /** dbname */, Record<string, string>>
+		);
 	$: keysLoadingParentDynamicClasses = calcDynamicClasses([
 		'dashboard__card',
 		'dashboard__card-keys',
