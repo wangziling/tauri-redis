@@ -3216,7 +3216,7 @@ dependencies = [
 
 [[package]]
 name = "tauri_redis"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "anyhow",
  "chrono",
@@ -3238,7 +3238,7 @@ dependencies = [
 
 [[package]]
 name = "tauri_redis_config"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "config",
  "once_cell",
@@ -3246,7 +3246,7 @@ dependencies = [
 
 [[package]]
 name = "tauri_redis_core"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "anyhow",
  "fs_extra",
