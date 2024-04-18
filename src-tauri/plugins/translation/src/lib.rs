@@ -32,8 +32,8 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
             block_on(async {
                 let path_resolver = handle.path_resolver();
 
-                /** @see https://tauri.app/v1/guides/building/resources/#__docusaurus_skipToContent_fallback */
-                /** @see https://github.com/tauri-apps/tauri/discussions/7323#discussioncomment-6332259 */
+                // See https://tauri.app/v1/guides/building/resources/#__docusaurus_skipToContent_fallback
+                // See https://github.com/tauri-apps/tauri/discussions/7323#discussioncomment-6332259
                 let dir = path_resolver
                     .resolve_resource("../plugins/translation/resources/translations")
                     .and_then(|dir| {
