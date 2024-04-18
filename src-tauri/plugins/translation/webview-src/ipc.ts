@@ -1,11 +1,11 @@
 import { invoke } from '@tauri-apps/api/tauri';
-import { TranslationContent, TranslationLanguage, Translations } from './types';
+import { TranslationContent, TranslationKey, TranslationLanguage, Translations } from './types';
 
-export function translate(key: string): Promise<TranslationContent> {
-	return invoke('plugin:translation|translate', { key });
+export function translate(key: TranslationKey, ...rest: TranslationContent[]): Promise<TranslationContent> {
+	return invoke('plugin:translation|translate', { key, rest });
 }
 
-export function translateGroup(keys: string[]): Promise<Translations> {
+export function translateGroup(keys: TranslationKey[]): Promise<Translations> {
 	return invoke('plugin:translation|translate_group', { keys });
 }
 
@@ -13,7 +13,7 @@ export function translationResources(): Promise<Translations> {
 	return invoke('plugin:translation|resources');
 }
 
-export function translationSwitchTo(language: string): Promise<void> {
+export function translationSwitchTo(language: TranslationLanguage): Promise<void> {
 	return invoke('plugin:translation|switch_to', { language });
 }
 

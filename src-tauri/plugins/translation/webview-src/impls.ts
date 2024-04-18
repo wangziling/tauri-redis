@@ -101,6 +101,7 @@ export class Translator {
 	}
 
 	translateDerived(keyMayContainsDefaultContent: keyof Translations, ...args: string[]): Readable<TranslationContent> {
+		// eslint-disable-next-line
 		const self = this;
 
 		return derived(this.translations, function (translations) {
