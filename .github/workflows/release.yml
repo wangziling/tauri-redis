@@ -39,13 +39,13 @@ jobs:
         name: Install pnpm
         id: pnpm-install
         with:
-          version: 7
+          version: 9
           run_install: false
 
       - name: Install Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: lts/Iron
           cache: pnpm
       - run: pnpm install --frozen-lockfile
 
