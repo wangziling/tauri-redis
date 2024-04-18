@@ -37,7 +37,10 @@ futures = "0.3"
 regex = "1.10"
 tokio = { version = "1", features = ["sync"] }
 
+# See https://tauri.app/v1/guides/building/app-size#rust-build-time-optimizations
 [profile.release]
-strip = true
-lto = true
-opt-level = 'z' # Optimize for the file size
+panic = "abort" # Strip expensive panic clean-up logic
+codegen-units = 1 # Compile crates one after another so the compiler can optimize better
+lto = true # Enables link to optimizations
+opt-level = "s" # Optimize for binary size
+strip = true # Remove debug symbols
