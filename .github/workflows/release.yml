@@ -33,9 +33,9 @@ jobs:
             target: x86_64-pc-windows-msvc
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v3
         name: Install pnpm
         id: pnpm-install
         with:
@@ -43,7 +43,7 @@ jobs:
           run_install: false
 
       - name: Install Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: lts/Iron
           cache: pnpm
@@ -81,7 +81,7 @@ jobs:
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: matrix.os == 'ubuntu-latest'
         with:
           name: artifacts-${{ matrix.arch }}
@@ -89,7 +89,7 @@ jobs:
             ./src-tauri/target/${{ matrix.target }}/release/bundle/appimage/**.AppImage.*
             ./src-tauri/target/${{ matrix.target }}/release/bundle/deb/**.deb
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: matrix.os == 'macos-latest'
         with:
           name: artifacts-${{ matrix.arch }}
@@ -97,7 +97,7 @@ jobs:
             ./src-tauri/target/${{ matrix.target }}/release/bundle/dmg/**.dmg
             ./src-tauri/target/${{ matrix.target }}/release/bundle/macos/**.app.*
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: matrix.os == 'windows-latest'
         with:
           name: artifacts-${{ matrix.arch }}
@@ -109,19 +109,19 @@ jobs:
     needs: build-tauri-redis
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Query version number
         run: echo "version=${GITHUB_REF:11}" >> $GITHUB_ENV
 
       - name: Download x86_64 artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: artifacts-x86_64
           path: artifacts/x86_64
 
       - name: Download aarch64 artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: artifacts-aarch64
           path: artifacts/aarch64
@@ -154,9 +154,9 @@ jobs:
 #    needs: release-tauri-redis
 #
 #    steps:
-#      - uses: actions/checkout@v3
+#      - uses: actions/checkout@v4
 #
-#      - uses: pnpm/action-setup@v2
+#      - uses: pnpm/action-setup@v3
 #        name: Install pnpm
 #        id: pnpm-install
 #        with:
@@ -164,7 +164,7 @@ jobs:
 #          run_install: false
 #
 #      - name: Install Node.js
-#        uses: actions/setup-node@v3
+#        uses: actions/setup-node@v4
 #        with:
 #          node-version: 18
 #          cache: pnpm
@@ -174,7 +174,7 @@ jobs:
 #        run: pnpm updater --token=${{ secrets.GITHUB_TOKEN }}
 #
 #      - name: Deploy install.json
-#        uses: peaceiris/actions-gh-pages@v3
+#        uses: peaceiris/actions-gh-pages@v4
 #        with:
 #          github_token: ${{ secrets.GITHUB_TOKEN }}
 #          publish_dir: ./updater
