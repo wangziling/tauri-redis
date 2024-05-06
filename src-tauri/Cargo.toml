@@ -6,7 +6,7 @@ license = "MIT"
 repository = "https://github.com/wangziling/tauri-redis"
 edition = "2021"
 readme = "README.md"
-rust-version="1.77.2"
+rust-version="1.78.0"
 
 [workspace]
 members = ["app", "core", "config", "plugins/*"]
