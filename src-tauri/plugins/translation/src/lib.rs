@@ -34,26 +34,18 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
 
                 // See https://tauri.app/v1/guides/building/resources/#__docusaurus_skipToContent_fallback
                 // See https://github.com/tauri-apps/tauri/discussions/7323#discussioncomment-6332259
-                let dir = path_resolver
-                    .resolve_resource("../plugins/translation/resources/translations")
-                    .and_then(|dir| {
-                        if !dir.exists() {
-                            return Some(
-                                Path::new(env!("CARGO_MANIFEST_DIR"))
-                                    .to_path_buf()
-                                    .join("resources/translations"),
-                            );
-                        }
-
-                        Some(dir)
-                    })
-                    .or_else(|| {
-                        Some(
+                let dir = {
+                    match path_resolver
+                        .resolve_resource("../plugins/translation/resources/translations")
+                    {
+                        Some(dir) if dir.exists() => Some(dir),
+                        _ => Some(
                             Path::new(env!("CARGO_MANIFEST_DIR"))
                                 .to_path_buf()
                                 .join("resources/translations"),
-                        )
-                    });
+                        ),
+                    }
+                };
 
                 let translations = Arc::new(RwLock::new(Translations::new(dir.unwrap())));
 
